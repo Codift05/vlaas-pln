@@ -1,6 +1,13 @@
 <div align="center">
 
-# 📨 VLAAS
+<!-- Logos -->
+<p>
+  <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/68/Logo_PLN.png/800px-Logo_PLN.png" alt="PLN Logo" height="80" style="margin: 0 20px"/>
+  <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/Logo_Kementerian_BUMN.png/800px-Logo_Kementerian_BUMN.png" alt="BUMN Logo" height="80" style="margin: 0 20px"/>
+  <img src="https://unsrat.ac.id/wp-content/uploads/2021/09/Logo-UNSRAT.png" alt="UNSRAT Logo" height="80" style="margin: 0 20px"/>
+</p>
+
+# VLAAS
 
 **Vendor Letter Archive & Approval System**
 
@@ -11,17 +18,17 @@
 
 *Platform Digital Terpadu untuk Manajemen Surat Vendor PT. PLN Persero*
 
-[Fitur](#-fitur-utama) • [Tech Stack](#-tech-stack) • [Arsitektur](#-arsitektur-sistem) • [Instalasi](#-instalasi) • [Dokumentasi](#-dokumentasi)
+[Fitur](#fitur-utama) • [Tech Stack](#tech-stack) • [Arsitektur](#arsitektur-sistem) • [Instalasi](#instalasi) • [Dokumentasi](#dokumentasi)
 
 </div>
 
 ---
 
-## 📋 Deskripsi Sistem
+## Deskripsi Sistem
 
 **VLAAS** adalah sistem informasi berbasis web yang dirancang khusus untuk PT. PLN Persero guna mengelola proses pengajuan, persetujuan, dan pengarsipan surat dari vendor secara digital, aman, dan terstruktur.
 
-### 🎯 Tujuan Sistem
+### Tujuan Sistem
 
 - **Digitalisasi Proses**: Menggantikan proses manual pengajuan surat vendor yang masih menggunakan fisik/email
 - **Transparansi**: Menyediakan tracking real-time status persetujuan surat
@@ -29,7 +36,7 @@
 - **Audit Trail**: Pencatatan lengkap setiap aktivitas untuk keperluan audit dan compliance
 - **Efisiensi Operasional**: Mempercepat proses approval dan mengurangi risiko dokumen hilang
 
-### ❌ Masalah yang Diselesaikan
+### Masalah yang Diselesaikan
 
 | Masalah Lama | Solusi VLAAS |
 |--------------|--------------|
@@ -41,37 +48,37 @@
 
 ---
 
-## ✨ Fitur Utama
+## Fitur Utama
 
-### 👥 Untuk Vendor (Eksternal)
+### Untuk Vendor (Eksternal)
 
-- ✅ **Registrasi & Verifikasi Email** - Pendaftaran akun dengan verifikasi email otomatis
-- ✅ **Manajemen Profil Perusahaan** - Kelengkapan data perusahaan (nama, alamat, NPWP)
-- ✅ **Pengajuan Surat Digital** - Upload surat format PDF (max 5MB) dengan metadata lengkap
-- ✅ **Tracking Status Real-time** - Monitor status surat (Pending, Approved, Rejected)
-- ✅ **Notifikasi Otomatis** - Pemberitahuan in-app dan email untuk setiap perubahan status
-- ✅ **Riwayat Pengajuan** - Akses penuh ke arsip surat yang pernah diajukan
+- **Registrasi & Verifikasi Email** - Pendaftaran akun dengan verifikasi email otomatis
+- **Manajemen Profil Perusahaan** - Kelengkapan data perusahaan (nama, alamat, NPWP)
+- **Pengajuan Surat Digital** - Upload surat format PDF (max 5MB) dengan metadata lengkap
+- **Tracking Status Real-time** - Monitor status surat (Pending, Approved, Rejected)
+- **Notifikasi Otomatis** - Pemberitahuan in-app dan email untuk setiap perubahan status
+- **Riwayat Pengajuan** - Akses penuh ke arsip surat yang pernah diajukan
 
-### 🔐 Untuk Admin PLN (Internal)
+### Untuk Admin PLN (Internal)
 
-- ✅ **Dashboard Monitoring** - Overview statistik dan tren surat masuk
-- ✅ **Approval Management** - Setujui atau tolak surat dengan alasan detail
-- ✅ **Advanced Search & Filter** - Pencarian berdasarkan vendor, nomor surat, perihal, status, tanggal
-- ✅ **Preview PDF Langsung** - Lihat dokumen tanpa perlu download
-- ✅ **Audit Log Viewer** - Riwayat lengkap setiap aktivitas persetujuan
-- ✅ **Visualisasi Data** - Grafik dan chart untuk analisis tren surat
+- **Dashboard Monitoring** - Overview statistik dan tren surat masuk
+- **Approval Management** - Setujui atau tolak surat dengan alasan detail
+- **Advanced Search & Filter** - Pencarian berdasarkan vendor, nomor surat, perihal, status, tanggal
+- **Preview PDF Langsung** - Lihat dokumen tanpa perlu download
+- **Audit Log Viewer** - Riwayat lengkap setiap aktivitas persetujuan
+- **Visualisasi Data** - Grafik dan chart untuk analisis tren surat
 
-### 🛡️ Keamanan Enterprise
+### Keamanan Enterprise
 
-- 🔒 **Row Level Security (RLS)** - Isolasi data per pengguna di level database
-- 🔒 **Private Storage dengan Signed URL** - Akses file hanya dengan URL bertanda waktu
-- 🔒 **JWT Authentication** - Session management aman
-- 🔒 **Audit Logging** - Pencatatan semua aktivitas sistem
-- 🔒 **Email Verification** - Validasi email untuk mencegah registrasi palsu
+- **Row Level Security (RLS)** - Isolasi data per pengguna di level database
+- **Private Storage dengan Signed URL** - Akses file hanya dengan URL bertanda waktu
+- **JWT Authentication** - Session management aman
+- **Audit Logging** - Pencatatan semua aktivitas sistem
+- **Email Verification** - Validasi email untuk mencegah registrasi palsu
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 ### Frontend
 - **Framework**: React 19.2.0 - Library UI modern dengan hooks
@@ -100,7 +107,7 @@
 
 ---
 
-## 🏗️ Arsitektur Sistem
+## Arsitektur Sistem
 
 ### Arsitektur Aplikasi
 
@@ -202,53 +209,53 @@ approval_logs
 
 ---
 
-## 👥 User Roles & Hak Akses
+## User Roles & Hak Akses
 
-### 🏢 Vendor (Eksternal)
+### Vendor (Eksternal)
 **Deskripsi**: Perusahaan penyedia barang/jasa ke PLN
 
 **Hak Akses**:
-- ✅ Registrasi & login mandiri
-- ✅ Kelola profil perusahaan
-- ✅ Submit surat dengan upload PDF
-- ✅ Lihat status & riwayat surat sendiri
-- ✅ Terima notifikasi perubahan status
+- Registrasi & login mandiri
+- Kelola profil perusahaan
+- Submit surat dengan upload PDF
+- Lihat status & riwayat surat sendiri
+- Terima notifikasi perubahan status
 
 **Batasan**:
-- ❌ Tidak bisa lihat surat vendor lain
-- ❌ Tidak bisa edit/hapus surat setelah submit
-- ❌ Tidak bisa akses dashboard admin
+- Tidak bisa lihat surat vendor lain
+- Tidak bisa edit/hapus surat setelah submit
+- Tidak bisa akses dashboard admin
 
-### 🔐 Admin PLN (Internal)
+### Admin PLN (Internal)
 **Deskripsi**: Pegawai PLN yang menangani surat vendor
 
 **Hak Akses**:
-- ✅ Login ke dashboard admin
-- ✅ Lihat semua surat dari vendor
-- ✅ Approve/Reject surat dengan alasan
-- ✅ Search & filter surat
-- ✅ Preview PDF
-- ✅ Lihat statistik & grafik
-- ✅ Akses audit log
+- Login ke dashboard admin
+- Lihat semua surat dari vendor
+- Approve/Reject surat dengan alasan
+- Search & filter surat
+- Preview PDF
+- Lihat statistik & grafik
+- Akses audit log
 
 **Batasan**:
-- ❌ Tidak bisa registrasi mandiri
-- ❌ Tidak bisa hapus data
+- Tidak bisa registrasi mandiri
+- Tidak bisa hapus data
 
-### ⚙️ Super Admin (IT)
+### Super Admin (IT)
 **Deskripsi**: Pengelola sistem
 
 **Hak Akses**:
-- ✅ Semua hak Admin
-- ✅ Buat akun Admin baru
-- ✅ Konfigurasi sistem
-- ✅ Monitoring & logs
+- Semua hak Admin
+- Buat akun Admin baru
+- Konfigurasi sistem
+- Monitoring & logs
 
 ---
 
-## 🔄 Alur Proses Bisnis
+## Alur Proses Bisnis
 
-### 📤 Alur Pengajuan Surat (Vendor)
+### Alur Pengajuan Surat (Vendor)
 
 ```mermaid
 graph TD
@@ -266,7 +273,7 @@ graph TD
     J --> K[Vendor Menerima Konfirmasi]
 ```
 
-### ✅ Alur Persetujuan (Admin)
+### Alur Persetujuan (Admin)
 
 ```mermaid
 graph TD
@@ -285,12 +292,12 @@ graph TD
 
 ---
 
-## 📊 Status Surat (State Machine)
+## Status Surat (State Machine)
 
 ```
-SUBMITTED ──────► PENDING ────┬────► APPROVED ✅
+SUBMITTED ──────► PENDING ────┬────► APPROVED
                                │
-                               └────► REJECTED ❌
+                               └────► REJECTED
 ```
 
 **Aturan**:
@@ -300,7 +307,7 @@ SUBMITTED ──────► PENDING ────┬────► APPROVED 
 
 ---
 
-## 🚀 Instalasi
+## Instalasi
 
 ### Prerequisites
 
@@ -352,7 +359,7 @@ npm run preview
 
 ---
 
-## 📁 Struktur Folder
+## Struktur Folder
 
 ```
 vlaas-pln/
@@ -384,7 +391,7 @@ vlaas-pln/
 
 ---
 
-## 📖 Dokumentasi
+## Dokumentasi
 
 ### API Documentation
 
@@ -397,7 +404,7 @@ Dokumentasi lengkap API tersedia di: [docs/API.md](docs/API.md) *(coming soon)*
 
 ---
 
-## 🔐 Keamanan
+## Keamanan
 
 ### Security Features
 
@@ -413,13 +420,13 @@ Dokumentasi lengkap API tersedia di: [docs/API.md](docs/API.md) *(coming soon)*
 
 ### Reporting Vulnerabilities
 
-Jika menemukan celah keamanan, harap laporkan ke: security@pln.co.id
+Jika menemukan celah keamanan, harap laporkan melalui [GitHub Security Advisory](https://github.com/Codift05/vlaas-pln/security/advisories)
 
 ---
 
-## 🗺️ Roadmap
+## Roadmap
 
-### ✅ Fase 1 (Current) - MVP
+### Fase 1 (Current) - MVP
 - [x] Setup project structure
 - [ ] Implementasi autentikasi
 - [ ] Modul pengajuan surat
@@ -427,14 +434,14 @@ Jika menemukan celah keamanan, harap laporkan ke: security@pln.co.id
 - [ ] Dashboard statistik
 - [ ] Sistem notifikasi
 
-### 📋 Fase 2 (Q1 2026)
+### Fase 2 (Q1 2026)
 - [ ] Fitur revisi surat
 - [ ] Multi-level approval
 - [ ] Export laporan (PDF/Excel)
 - [ ] Advanced analytics
 - [ ] Mobile responsive optimization
 
-### 🚀 Fase 3 (Q2 2026)
+### Fase 3 (Q2 2026)
 - [ ] API untuk integrasi eksternal
 - [ ] Mobile app (React Native)
 - [ ] OCR untuk parsing PDF
@@ -442,7 +449,7 @@ Jika menemukan celah keamanan, harap laporkan ke: security@pln.co.id
 
 ---
 
-## 👨‍💻 Tim Pengembang
+## Tim Pengembang
 
 Dikembangkan oleh Tim IT PT. PLN Persero
 
@@ -450,7 +457,7 @@ Dikembangkan oleh Tim IT PT. PLN Persero
 
 ---
 
-## 📄 License
+## License
 
 Proprietary - © 2025 PT. PLN Persero. All rights reserved.
 
@@ -458,18 +465,18 @@ Sistem ini dikembangkan untuk penggunaan internal PT. PLN Persero dan tidak dipu
 
 ---
 
-## 📞 Kontak & Support
+## Kontak & Support
 
-- **Email**: support-vlaas@pln.co.id
-- **Internal Helpdesk**: ext. 1234
+- **GitHub**: [@Codift05](https://github.com/Codift05)
 - **Issues**: [GitHub Issues](https://github.com/Codift05/vlaas-pln/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/Codift05/vlaas-pln/discussions)
 
 ---
 
 <div align="center">
 
-**Dibuat dengan ❤️ untuk PT. PLN Persero**
+**Dibuat untuk PT. PLN Persero**
 
-⚡ *Memastikan Listrik untuk Kehidupan yang Lebih Baik* ⚡
+*Memastikan Listrik untuk Kehidupan yang Lebih Baik*
 
 </div>
