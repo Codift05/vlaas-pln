@@ -1,10 +1,10 @@
 <div align="center">
 
 <!-- Logos -->
-<p>
-  <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/68/Logo_PLN.png/800px-Logo_PLN.png" alt="PLN Logo" height="80" style="margin: 0 20px"/>
-  <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/Logo_Kementerian_BUMN.png/800px-Logo_Kementerian_BUMN.png" alt="BUMN Logo" height="80" style="margin: 0 20px"/>
-  <img src="https://unsrat.ac.id/wp-content/uploads/2021/09/Logo-UNSRAT.png" alt="UNSRAT Logo" height="80" style="margin: 0 20px"/>
+<p align="center">
+  <img src="https://upload.wikimedia.org/wikipedia/commons/6/68/Logo_PLN.png" alt="PLN Logo" height="100" hspace="20"/>
+  <img src="https://upload.wikimedia.org/wikipedia/commons/3/3e/Logo_Kementerian_BUMN.png" alt="BUMN Logo" height="100" hspace="20"/>
+  <img src="https://upload.wikimedia.org/wikipedia/id/e/e2/Unsrat.png" alt="UNSRAT Logo" height="100" hspace="20"/>
 </p>
 
 # VLAAS
