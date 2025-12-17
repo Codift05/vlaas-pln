@@ -1,7 +1,25 @@
 {
   "name": "vlaas",
+  "version": "1.0.0",
+  "description": "Platform Digital Terpadu untuk Manajemen Surat Vendor PT. PLN Persero - Vendor Letter Archive & Approval System",
+  "author": "PT. PLN Persero",
+  "license": "UNLICENSED",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Codift05/vlaas-pln.git"
+  },
+  "keywords": [
+    "pln",
+    "vendor-management",
+    "document-management",
+    "approval-system",
+    "react",
+    "vite",
+    "supabase",
+    "enterprise",
+    "bumn"
+  ],
   "private": true,
-  "version": "0.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
