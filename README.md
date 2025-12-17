@@ -1,10 +1,10 @@
 <div align="center">
 
-<!-- Logos -->
+<!-- Logo Badges -->
 <p align="center">
-  <img src="https://upload.wikimedia.org/wikipedia/commons/6/68/Logo_PLN.png" alt="PLN Logo" height="100" hspace="20"/>
-  <img src="https://upload.wikimedia.org/wikipedia/commons/3/3e/Logo_Kementerian_BUMN.png" alt="BUMN Logo" height="100" hspace="20"/>
-  <img src="https://upload.wikimedia.org/wikipedia/id/e/e2/Unsrat.png" alt="UNSRAT Logo" height="100" hspace="20"/>
+  <img src="https://img.shields.io/badge/PT._PLN_PERSERO-Perusahaan_Listrik_Negara-FFD700?style=for-the-badge&logoColor=white" alt="PLN"/>
+  <img src="https://img.shields.io/badge/BUMN-Kementerian_BUMN_RI-DC143C?style=for-the-badge&logoColor=white" alt="BUMN"/>
+  <img src="https://img.shields.io/badge/UNSRAT-Universitas_Sam_Ratulangi-0047AB?style=for-the-badge&logoColor=white" alt="UNSRAT"/>
 </p>
 
 # VLAAS
