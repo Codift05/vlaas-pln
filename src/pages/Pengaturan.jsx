@@ -4,6 +4,7 @@ import Header from '../components/Header'
 import './Pengaturan.css'
 
 function Pengaturan() {
+  const [sidebarOpen, setSidebarOpen] = useState(false)
   const [activeTab, setActiveTab] = useState('profil')
   const [userRole] = useState('Super Admin') // Simulasi role user
 
@@ -90,9 +91,9 @@ function Pengaturan() {
 
   return (
     <div className="dashboard-layout">
-      <Sidebar />
+      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <div className="main-content">
-        <Header title="Pengaturan" />
+        <Header title="Pengaturan" onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
         
         <div className="content-area">
           {/* Tab Navigation */}

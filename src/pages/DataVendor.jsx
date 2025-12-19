@@ -4,6 +4,7 @@ import Header from '../components/Header'
 import './DataVendor.css'
 
 function DataVendor() {
+  const [sidebarOpen, setSidebarOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 10
@@ -225,9 +226,9 @@ function DataVendor() {
 
   return (
     <div className="dashboard-layout">
-      <Sidebar />
+      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <div className="main-content">
-        <Header title="Data Vendor" />
+        <Header title="Data Vendor" onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
         
         <div className="content-area">
           {/* Stats Cards */}

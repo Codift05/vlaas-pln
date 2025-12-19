@@ -4,6 +4,7 @@ import Header from '../components/Header'
 import './Laporan.css'
 
 function Laporan() {
+  const [sidebarOpen, setSidebarOpen] = useState(false)
   const [dateRange, setDateRange] = useState('bulan-ini')
   const [filterStatus, setFilterStatus] = useState('all')
   const [startDate, setStartDate] = useState('')
@@ -63,9 +64,9 @@ function Laporan() {
 
   return (
     <div className="dashboard-layout">
-      <Sidebar />
+      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <div className="main-content">
-        <Header title="Laporan & Analisis" />
+        <Header title="Laporan & Analitik" onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
         
         <div className="content-area">
           {/* Header & Filter Section */}

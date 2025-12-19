@@ -1,8 +1,11 @@
+import { useState } from 'react'
 import Sidebar from '../components/Sidebar'
 import Header from '../components/Header'
 import './Dashboard.css'
 
 function Dashboard() {
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+  
   const stats = [
     { title: 'Total Aset', value: '1,234', icon: '📦', color: '#3498db' },
     { title: 'Aset Aktif', value: '987', icon: '✅', color: '#2ecc71' },
@@ -19,9 +22,9 @@ function Dashboard() {
 
   return (
     <div className="dashboard-layout">
-      <Sidebar />
+      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <div className="main-content">
-        <Header title="Dashboard" />
+        <Header title="Dashboard" onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
         
         <div className="content-area">
           {/* Stats Cards */}

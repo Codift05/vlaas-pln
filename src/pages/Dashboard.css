@@ -234,6 +234,10 @@
   .charts-section {
     grid-template-columns: 1fr;
   }
+  
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 @media (max-width: 968px) {
@@ -247,5 +251,33 @@
 
   .stats-grid {
     grid-template-columns: 1fr;
+  }
+  
+  .activity-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+}
+
+@media (max-width: 600px) {
+  .content-area {
+    padding: 15px;
+  }
+  
+  .stat-card {
+    padding: 20px;
+  }
+  
+  .stat-value {
+    font-size: 24px;
+  }
+  
+  .chart-card {
+    padding: 15px;
+  }
+  
+  .bar {
+    min-width: 25px;
   }
 }

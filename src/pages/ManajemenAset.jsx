@@ -4,6 +4,7 @@ import Header from '../components/Header'
 import './ManajemenAset.css'
 
 function ManajemenAset() {
+  const [sidebarOpen, setSidebarOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
   const [filterStatus, setFilterStatus] = useState('all')
   const [showModal, setShowModal] = useState(false)
@@ -80,9 +81,9 @@ function ManajemenAset() {
 
   return (
     <div className="dashboard-layout">
-      <Sidebar />
+      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <div className="main-content">
-        <Header title="Manajemen Aset" />
+        <Header title="Manajemen Aset" onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
         
         <div className="content-area">
           {/* Action Bar */}
