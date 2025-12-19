@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import ManajemenAset from './pages/ManajemenAset'
+import DataVendor from './pages/DataVendor'
 import './App.css'
 
 // Protected Route Component
@@ -36,10 +37,7 @@ function App() {
           path="/vendor" 
           element={
             <ProtectedRoute>
-              <div style={{ padding: '50px', textAlign: 'center' }}>
-                <h1>Halaman Data Vendor</h1>
-                <p>Dalam Pengembangan...</p>
-              </div>
+              <DataVendor />
             </ProtectedRoute>
           } 
         />

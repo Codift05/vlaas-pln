@@ -16,6 +16,13 @@ function ManajemenAset() {
     { id: 'AST006', name: 'Transformer 1000KVA', category: 'Trafo', location: 'Gardu Induk Semarang', status: 'Tidak Aktif', lastMaintenance: '25/10/2025' },
   ]
 
+  // Filter assets berdasarkan search term dan status
+  const filteredAssets = assets.filter(asset => {
+    const matchesSearch = asset.name.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesStatus = filterStatus === 'all' || asset.status === filterStatus
+    return matchesSearch && matchesStatus
+  })
+
   const getStatusClass = (status) => {
     switch (status) {
       case 'Aktif': return 'status-active'
@@ -48,11 +55,17 @@ function ManajemenAset() {
               
               <input 
                 type="text" 
-                placeholder="Cari aset..." 
+                placeholder="Cari aset berdasarkan nama..." 
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="search-input-table"
               />
+              
+              {searchTerm && (
+                <span className="search-result-count">
+                  Ditemukan {filteredAssets.length} aset
+                </span>
+              )}
             </div>
 
             <button className="btn-primary">
@@ -75,42 +88,58 @@ function ManajemenAset() {
                 </tr>
               </thead>
               <tbody>
-                {assets.map((asset) => (
-                  <tr key={asset.id}>
-                    <td className="asset-id">{asset.id}</td>
-                    <td className="asset-name">{asset.name}</td>
-                    <td>{asset.category}</td>
-                    <td>{asset.location}</td>
-                    <td>
-                      <span className={`status-badge ${getStatusClass(asset.status)}`}>
-                        {asset.status}
-                      </span>
-                    </td>
-                    <td>{asset.lastMaintenance}</td>
-                    <td>
-                      <div className="action-buttons">
-                        <button className="btn-icon btn-view" title="Lihat Detail">👁️</button>
-                        <button className="btn-icon btn-edit" title="Edit">✏️</button>
-                        <button className="btn-icon btn-delete" title="Hapus">🗑️</button>
+                {filteredAssets.length > 0 ? (
+                  filteredAssets.map((asset) => (
+                    <tr key={asset.id}>
+                      <td className="asset-id">{asset.id}</td>
+                      <td className="asset-name">{asset.name}</td>
+                      <td>{asset.category}</td>
+                      <td>{asset.location}</td>
+                      <td>
+                        <span className={`status-badge ${getStatusClass(asset.status)}`}>
+                          {asset.status}
+                        </span>
+                      </td>
+                      <td>{asset.lastMaintenance}</td>
+                      <td>
+                        <div className="action-buttons">
+                          <button className="btn-icon btn-view" title="Lihat Detail">👁️</button>
+                          <button className="btn-icon btn-edit" title="Edit">✏️</button>
+                          <button className="btn-icon btn-delete" title="Hapus">🗑️</button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="7" className="no-data">
+                      <div className="no-data-message">
+                        <span className="no-data-icon">🔍</span>
+                        <p>Tidak ada aset yang ditemukan</p>
+                        <small>Coba gunakan kata kunci yang berbeda atau ubah filter status</small>
                       </div>
                     </td>
                   </tr>
-                ))}
+                )}
               </tbody>
             </table>
           </div>
 
           {/* Pagination */}
-          <div className="table-pagination">
-            <span className="pagination-info">Menampilkan 1-6 dari 6 data</span>
-            <div className="pagination-controls">
-              <button className="pagination-btn">‹ Sebelumnya</button>
-              <button className="pagination-btn active">1</button>
-              <button className="pagination-btn">2</button>
-              <button className="pagination-btn">3</button>
-              <button className="pagination-btn">Selanjutnya ›</button>
+          {filteredAssets.length > 0 && (
+            <div className="table-pagination">
+              <span className="pagination-info">
+                Menampilkan 1-{filteredAssets.length} dari {filteredAssets.length} data
+              </span>
+              <div className="pagination-controls">
+                <button className="pagination-btn">‹ Sebelumnya</button>
+                <button className="pagination-btn active">1</button>
+                <button className="pagination-btn">2</button>
+                <button className="pagination-btn">3</button>
+                <button className="pagination-btn">Selanjutnya ›</button>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
     </div>
