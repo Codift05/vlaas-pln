@@ -3,6 +3,8 @@ import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import ManajemenAset from './pages/ManajemenAset'
 import DataVendor from './pages/DataVendor'
+import Laporan from './pages/Laporan'
+import Pengaturan from './pages/Pengaturan'
 import './App.css'
 
 // Protected Route Component
@@ -45,10 +47,7 @@ function App() {
           path="/laporan" 
           element={
             <ProtectedRoute>
-              <div style={{ padding: '50px', textAlign: 'center' }}>
-                <h1>Halaman Laporan</h1>
-                <p>Dalam Pengembangan...</p>
-              </div>
+              <Laporan />
             </ProtectedRoute>
           } 
         />
@@ -56,10 +55,7 @@ function App() {
           path="/pengaturan" 
           element={
             <ProtectedRoute>
-              <div style={{ padding: '50px', textAlign: 'center' }}>
-                <h1>Halaman Pengaturan</h1>
-                <p>Dalam Pengembangan...</p>
-              </div>
+              <Pengaturan />
             </ProtectedRoute>
           } 
         />

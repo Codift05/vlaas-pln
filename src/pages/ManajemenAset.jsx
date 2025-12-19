@@ -6,6 +6,15 @@ import './ManajemenAset.css'
 function ManajemenAset() {
   const [searchTerm, setSearchTerm] = useState('')
   const [filterStatus, setFilterStatus] = useState('all')
+  const [showModal, setShowModal] = useState(false)
+  const [formData, setFormData] = useState({
+    id: '',
+    name: '',
+    category: '',
+    location: '',
+    status: 'Aktif',
+    lastMaintenance: ''
+  })
 
   const assets = [
     { id: 'AST001', name: 'Transformer 500KVA', category: 'Trafo', location: 'Gardu Induk Jakarta', status: 'Aktif', lastMaintenance: '15/11/2025' },
@@ -30,6 +39,43 @@ function ManajemenAset() {
       case 'Tidak Aktif': return 'status-inactive'
       default: return ''
     }
+  }
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }))
+  }
+
+  const handleSubmit = (e) => {
+    e.preventDefault()
+    // Di sini nanti bisa ditambahkan logika untuk menyimpan ke database
+    console.log('Data aset baru:', formData)
+    alert('Aset berhasil ditambahkan!')
+    setShowModal(false)
+    // Reset form
+    setFormData({
+      id: '',
+      name: '',
+      category: '',
+      location: '',
+      status: 'Aktif',
+      lastMaintenance: ''
+    })
+  }
+
+  const handleCloseModal = () => {
+    setShowModal(false)
+    setFormData({
+      id: '',
+      name: '',
+      category: '',
+      location: '',
+      status: 'Aktif',
+      lastMaintenance: ''
+    })
   }
 
   return (
@@ -68,7 +114,7 @@ function ManajemenAset() {
               )}
             </div>
 
-            <button className="btn-primary">
+            <button className="btn-primary" onClick={() => setShowModal(true)}>
               <span>➕</span> Tambah Aset Baru
             </button>
           </div>
@@ -141,6 +187,116 @@ function ManajemenAset() {
             </div>
           )}
         </div>
+
+        {/* Modal Tambah Aset */}
+        {showModal && (
+          <div className="modal-overlay" onClick={handleCloseModal}>
+            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+              <div className="modal-header">
+                <h2>Tambah Aset Baru</h2>
+                <button className="modal-close" onClick={handleCloseModal}>✕</button>
+              </div>
+
+              <form onSubmit={handleSubmit} className="modal-form">
+                <div className="form-grid">
+                  <div className="form-group">
+                    <label htmlFor="id">ID Aset <span className="required">*</span></label>
+                    <input
+                      type="text"
+                      id="id"
+                      name="id"
+                      value={formData.id}
+                      onChange={handleInputChange}
+                      placeholder="Contoh: AST007"
+                      required
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="name">Nama Aset <span className="required">*</span></label>
+                    <input
+                      type="text"
+                      id="name"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleInputChange}
+                      placeholder="Contoh: Transformer 750KVA"
+                      required
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="category">Kategori <span className="required">*</span></label>
+                    <select
+                      id="category"
+                      name="category"
+                      value={formData.category}
+                      onChange={handleInputChange}
+                      required
+                    >
+                      <option value="">Pilih Kategori</option>
+                      <option value="Trafo">Trafo</option>
+                      <option value="Generator">Generator</option>
+                      <option value="CB">Circuit Breaker</option>
+                      <option value="Panel">Panel Distribusi</option>
+                      <option value="Kabel">Kabel & Aksesoris</option>
+                      <option value="Lainnya">Lainnya</option>
+                    </select>
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="location">Lokasi <span className="required">*</span></label>
+                    <input
+                      type="text"
+                      id="location"
+                      name="location"
+                      value={formData.location}
+                      onChange={handleInputChange}
+                      placeholder="Contoh: Gardu Induk Jakarta"
+                      required
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="status">Status <span className="required">*</span></label>
+                    <select
+                      id="status"
+                      name="status"
+                      value={formData.status}
+                      onChange={handleInputChange}
+                      required
+                    >
+                      <option value="Aktif">Aktif</option>
+                      <option value="Perbaikan">Perbaikan</option>
+                      <option value="Tidak Aktif">Tidak Aktif</option>
+                    </select>
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="lastMaintenance">Pemeliharaan Terakhir <span className="required">*</span></label>
+                    <input
+                      type="date"
+                      id="lastMaintenance"
+                      name="lastMaintenance"
+                      value={formData.lastMaintenance}
+                      onChange={handleInputChange}
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="modal-footer">
+                  <button type="button" className="btn-cancel" onClick={handleCloseModal}>
+                    Batal
+                  </button>
+                  <button type="submit" className="btn-submit">
+                    <span>💾</span> Simpan Aset
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )

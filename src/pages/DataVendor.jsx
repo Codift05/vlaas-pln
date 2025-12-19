@@ -7,6 +7,18 @@ function DataVendor() {
   const [searchTerm, setSearchTerm] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 10
+  const [showModal, setShowModal] = useState(false)
+  const [formData, setFormData] = useState({
+    id: '',
+    nama: '',
+    alamat: '',
+    telepon: '',
+    email: '',
+    kategori: '',
+    kontakPerson: '',
+    status: 'Aktif',
+    tanggalRegistrasi: ''
+  })
 
   // Data dummy vendors - nanti bisa diganti dengan fetch dari API/database
   const vendorsData = [
@@ -168,6 +180,49 @@ function DataVendor() {
     setCurrentPage(1) // Reset ke halaman pertama saat search
   }
 
+  const handleInputChange = (e) => {
+    const { name, value } = e.target
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }))
+  }
+
+  const handleSubmit = (e) => {
+    e.preventDefault()
+    // Di sini nanti bisa ditambahkan logika untuk menyimpan ke database
+    console.log('Data vendor baru:', formData)
+    alert('Vendor berhasil ditambahkan!')
+    setShowModal(false)
+    // Reset form
+    setFormData({
+      id: '',
+      nama: '',
+      alamat: '',
+      telepon: '',
+      email: '',
+      kategori: '',
+      kontakPerson: '',
+      status: 'Aktif',
+      tanggalRegistrasi: ''
+    })
+  }
+
+  const handleCloseModal = () => {
+    setShowModal(false)
+    setFormData({
+      id: '',
+      nama: '',
+      alamat: '',
+      telepon: '',
+      email: '',
+      kategori: '',
+      kontakPerson: '',
+      status: 'Aktif',
+      tanggalRegistrasi: ''
+    })
+  }
+
   return (
     <div className="dashboard-layout">
       <Sidebar />
@@ -244,7 +299,7 @@ function DataVendor() {
               )}
             </div>
 
-            <button className="btn-primary-vendor">
+            <button className="btn-primary-vendor" onClick={() => setShowModal(true)}>
               <span>➕</span> Tambah Vendor Baru
             </button>
           </div>
@@ -346,6 +401,154 @@ function DataVendor() {
             </div>
           )}
         </div>
+
+        {/* Modal Tambah Vendor */}
+        {showModal && (
+          <div className="modal-overlay-vendor" onClick={handleCloseModal}>
+            <div className="modal-content-vendor" onClick={(e) => e.stopPropagation()}>
+              <div className="modal-header-vendor">
+                <h2>Tambah Vendor Baru</h2>
+                <button className="modal-close-vendor" onClick={handleCloseModal}>✕</button>
+              </div>
+
+              <form onSubmit={handleSubmit} className="modal-form-vendor">
+                <div className="form-grid-vendor">
+                  <div className="form-group-vendor">
+                    <label htmlFor="id">ID Vendor <span className="required-vendor">*</span></label>
+                    <input
+                      type="text"
+                      id="id"
+                      name="id"
+                      value={formData.id}
+                      onChange={handleInputChange}
+                      placeholder="Contoh: VND013"
+                      required
+                    />
+                  </div>
+
+                  <div className="form-group-vendor">
+                    <label htmlFor="nama">Nama Vendor <span className="required-vendor">*</span></label>
+                    <input
+                      type="text"
+                      id="nama"
+                      name="nama"
+                      value={formData.nama}
+                      onChange={handleInputChange}
+                      placeholder="Contoh: PT ABC Elektrik"
+                      required
+                    />
+                  </div>
+
+                  <div className="form-group-vendor full-width">
+                    <label htmlFor="alamat">Alamat <span className="required-vendor">*</span></label>
+                    <textarea
+                      id="alamat"
+                      name="alamat"
+                      value={formData.alamat}
+                      onChange={handleInputChange}
+                      placeholder="Contoh: Jl. Merdeka No. 123, Jakarta"
+                      rows="3"
+                      required
+                    />
+                  </div>
+
+                  <div className="form-group-vendor">
+                    <label htmlFor="telepon">Telepon <span className="required-vendor">*</span></label>
+                    <input
+                      type="tel"
+                      id="telepon"
+                      name="telepon"
+                      value={formData.telepon}
+                      onChange={handleInputChange}
+                      placeholder="Contoh: 021-1234567"
+                      required
+                    />
+                  </div>
+
+                  <div className="form-group-vendor">
+                    <label htmlFor="email">Email <span className="required-vendor">*</span></label>
+                    <input
+                      type="email"
+                      id="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      placeholder="Contoh: info@vendor.com"
+                      required
+                    />
+                  </div>
+
+                  <div className="form-group-vendor">
+                    <label htmlFor="kategori">Kategori <span className="required-vendor">*</span></label>
+                    <select
+                      id="kategori"
+                      name="kategori"
+                      value={formData.kategori}
+                      onChange={handleInputChange}
+                      required
+                    >
+                      <option value="">Pilih Kategori</option>
+                      <option value="Peralatan Listrik">Peralatan Listrik</option>
+                      <option value="Transformator">Transformator</option>
+                      <option value="Generator">Generator</option>
+                      <option value="Kabel & Aksesoris">Kabel & Aksesoris</option>
+                      <option value="Panel Distribusi">Panel Distribusi</option>
+                      <option value="Lainnya">Lainnya</option>
+                    </select>
+                  </div>
+
+                  <div className="form-group-vendor">
+                    <label htmlFor="kontakPerson">Kontak Person <span className="required-vendor">*</span></label>
+                    <input
+                      type="text"
+                      id="kontakPerson"
+                      name="kontakPerson"
+                      value={formData.kontakPerson}
+                      onChange={handleInputChange}
+                      placeholder="Contoh: John Doe"
+                      required
+                    />
+                  </div>
+
+                  <div className="form-group-vendor">
+                    <label htmlFor="status">Status <span className="required-vendor">*</span></label>
+                    <select
+                      id="status"
+                      name="status"
+                      value={formData.status}
+                      onChange={handleInputChange}
+                      required
+                    >
+                      <option value="Aktif">Aktif</option>
+                      <option value="Tidak Aktif">Tidak Aktif</option>
+                    </select>
+                  </div>
+
+                  <div className="form-group-vendor">
+                    <label htmlFor="tanggalRegistrasi">Tanggal Registrasi <span className="required-vendor">*</span></label>
+                    <input
+                      type="date"
+                      id="tanggalRegistrasi"
+                      name="tanggalRegistrasi"
+                      value={formData.tanggalRegistrasi}
+                      onChange={handleInputChange}
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="modal-footer-vendor">
+                  <button type="button" className="btn-cancel-vendor" onClick={handleCloseModal}>
+                    Batal
+                  </button>
+                  <button type="submit" className="btn-submit-vendor">
+                    <span>💾</span> Simpan Vendor
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
