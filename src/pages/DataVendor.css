@@ -235,46 +235,55 @@
 .action-buttons-vendor {
   display: flex;
   gap: 6px;
+  justify-content: center;
 }
 
 .btn-icon-vendor {
   width: 32px;
   height: 32px;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
-  transition: all 0.3s;
-  font-size: 14px;
-  display: flex;
+  transition: all 0.2s;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
+  padding: 0;
 }
 
-.btn-view {
-  background: #e3f2fd;
+.btn-icon-vendor svg {
+  display: block;
+  flex-shrink: 0;
 }
 
-.btn-view:hover {
-  background: #bbdefb;
-  transform: scale(1.1);
+.btn-icon-vendor.btn-view {
+  background: rgba(126, 185, 217, 0.15);
+  color: #5a9dc4;
 }
 
-.btn-edit {
-  background: #fff3e0;
+.btn-icon-vendor.btn-view:hover {
+  background: rgba(126, 185, 217, 0.25);
+  transform: scale(1.05);
 }
 
-.btn-edit:hover {
-  background: #ffe0b2;
-  transform: scale(1.1);
+.btn-icon-vendor.btn-edit {
+  background: rgba(243, 156, 18, 0.15);
+  color: #e67e22;
 }
 
-.btn-delete {
-  background: #ffebee;
+.btn-icon-vendor.btn-edit:hover {
+  background: rgba(243, 156, 18, 0.25);
+  transform: scale(1.05);
 }
 
-.btn-delete:hover {
-  background: #ffcdd2;
-  transform: scale(1.1);
+.btn-icon-vendor.btn-delete {
+  background: rgba(231, 76, 60, 0.15);
+  color: #c0392b;
+}
+
+.btn-icon-vendor.btn-delete:hover {
+  background: rgba(231, 76, 60, 0.25);
+  transform: scale(1.05);
 }
 
 /* No Data Message */

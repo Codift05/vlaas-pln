@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import Sidebar from '../components/Sidebar'
 import Header from '../components/Header'
+import { User, Users, Settings, Mail, Search, Lock, FileText } from 'lucide-react'
 import './Pengaturan.css'
 
 function Pengaturan() {
@@ -102,7 +103,7 @@ function Pengaturan() {
               className={`tab-btn ${activeTab === 'profil' ? 'active' : ''}`}
               onClick={() => setActiveTab('profil')}
             >
-              👤 Profil & Akun
+              <User size={18} /> Profil & Akun
             </button>
             {userRole === 'Super Admin' && (
               <>
@@ -110,19 +111,19 @@ function Pengaturan() {
                   className={`tab-btn ${activeTab === 'users' ? 'active' : ''}`}
                   onClick={() => setActiveTab('users')}
                 >
-                  👥 Manajemen User
+                  <Users size={18} /> Manajemen User
                 </button>
                 <button 
                   className={`tab-btn ${activeTab === 'system' ? 'active' : ''}`}
                   onClick={() => setActiveTab('system')}
                 >
-                  ⚙️ Konfigurasi Sistem
+                  <Settings size={18} /> Konfigurasi Sistem
                 </button>
                 <button 
                   className={`tab-btn ${activeTab === 'audit' ? 'active' : ''}`}
                   onClick={() => setActiveTab('audit')}
                 >
-                  📋 Log Audit
+                  <FileText size={18} /> Log Audit
                 </button>
               </>
             )}
@@ -208,12 +209,12 @@ function Pengaturan() {
                         />
                       </div>
                     </div>
-                    <button type="submit" className="btn-save">🔒 Ubah Password</button>
+                    <button type="submit" className="btn-save"><Lock size={18} /> Ubah Password</button>
                   </form>
                   
                   <div className="recovery-section">
                     <p className="recovery-text">Lupa password? Gunakan fitur pemulihan akun</p>
-                    <button className="btn-recovery">📧 Kirim Email Reset Password</button>
+                    <button className="btn-recovery"><Mail size={18} /> Kirim Email Reset Password</button>
                   </div>
                 </div>
               </div>
@@ -366,7 +367,7 @@ function Pengaturan() {
                     <input type="date" className="filter-input-audit" placeholder="Dari tanggal" />
                     <input type="date" className="filter-input-audit" placeholder="Sampai tanggal" />
                     <input type="text" className="filter-input-audit" placeholder="Cari user atau aktivitas..." />
-                    <button className="btn-filter-audit">🔍 Filter</button>
+                    <button className="btn-filter-audit"><Search size={18} /> Filter</button>
                   </div>
 
                   <div className="audit-table-container">

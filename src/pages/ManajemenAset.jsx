@@ -1,13 +1,16 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import Sidebar from '../components/Sidebar'
 import Header from '../components/Header'
+import { Eye, Edit, Trash2, Search, ChevronDown, Plus, Save } from 'lucide-react'
 import './ManajemenAset.css'
 
 function ManajemenAset() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
   const [filterStatus, setFilterStatus] = useState('all')
+  const [dropdownOpen, setDropdownOpen] = useState(false)
   const [showModal, setShowModal] = useState(false)
+  const dropdownRef = useRef(null)
   const [formData, setFormData] = useState({
     id: '',
     name: '',
@@ -25,6 +28,29 @@ function ManajemenAset() {
     { id: 'AST005', name: 'Kabel XLPE 150mm', category: 'Kabel', location: 'Jaringan Tegangan Menengah', status: 'Aktif', lastMaintenance: '05/11/2025' },
     { id: 'AST006', name: 'Transformer 1000KVA', category: 'Trafo', location: 'Gardu Induk Semarang', status: 'Tidak Aktif', lastMaintenance: '25/10/2025' },
   ]
+
+  const statusOptions = [
+    { value: 'all', label: 'Semua Status' },
+    { value: 'Aktif', label: 'Aktif' },
+    { value: 'Perbaikan', label: 'Perbaikan' },
+    { value: 'Tidak Aktif', label: 'Tidak Aktif' }
+  ]
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setDropdownOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  const handleStatusSelect = (value) => {
+    setFilterStatus(value)
+    setDropdownOpen(false)
+  }
 
   // Filter assets berdasarkan search term dan status
   const filteredAssets = assets.filter(asset => {
@@ -116,7 +142,7 @@ function ManajemenAset() {
             </div>
 
             <button className="btn-primary" onClick={() => setShowModal(true)}>
-              <span>➕</span> Tambah Aset Baru
+              <Plus size={18} /> Tambah Aset Baru
             </button>
           </div>
 
@@ -150,9 +176,9 @@ function ManajemenAset() {
                       <td>{asset.lastMaintenance}</td>
                       <td>
                         <div className="action-buttons">
-                          <button className="btn-icon btn-view" title="Lihat Detail">👁️</button>
-                          <button className="btn-icon btn-edit" title="Edit">✏️</button>
-                          <button className="btn-icon btn-delete" title="Hapus">🗑️</button>
+                          <button className="btn-icon btn-view" title="Lihat Detail"><Eye size={16} /></button>
+                          <button className="btn-icon btn-edit" title="Edit"><Edit size={16} /></button>
+                          <button className="btn-icon btn-delete" title="Hapus"><Trash2 size={16} /></button>
                         </div>
                       </td>
                     </tr>
@@ -161,7 +187,7 @@ function ManajemenAset() {
                   <tr>
                     <td colSpan="7" className="no-data">
                       <div className="no-data-message">
-                        <span className="no-data-icon">🔍</span>
+                        <span className="no-data-icon"><Search size={48} /></span>
                         <p>Tidak ada aset yang ditemukan</p>
                         <small>Coba gunakan kata kunci yang berbeda atau ubah filter status</small>
                       </div>
@@ -291,7 +317,7 @@ function ManajemenAset() {
                     Batal
                   </button>
                   <button type="submit" className="btn-submit">
-                    <span>💾</span> Simpan Aset
+                    <Save size={18} /> Simpan Aset
                   </button>
                 </div>
               </form>

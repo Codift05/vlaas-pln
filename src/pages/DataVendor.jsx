@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import Sidebar from '../components/Sidebar'
 import Header from '../components/Header'
+import { Users, CheckCircle, Search, Eye, Edit, Trash2, PauseCircle, ClipboardList } from 'lucide-react'
 import './DataVendor.css'
 
 function DataVendor() {
@@ -235,7 +236,7 @@ function DataVendor() {
           <div className="stats-grid-vendor">
             <div className="stat-card-vendor" style={{ borderLeftColor: '#3498db' }}>
               <div className="stat-icon-vendor" style={{ background: '#3498db' }}>
-                👥
+                <Users size={24} />
               </div>
               <div className="stat-info-vendor">
                 <h3 className="stat-value-vendor">{vendorsData.length}</h3>
@@ -245,7 +246,7 @@ function DataVendor() {
 
             <div className="stat-card-vendor" style={{ borderLeftColor: '#2ecc71' }}>
               <div className="stat-icon-vendor" style={{ background: '#2ecc71' }}>
-                ✅
+                <CheckCircle size={24} />
               </div>
               <div className="stat-info-vendor">
                 <h3 className="stat-value-vendor">
@@ -257,7 +258,7 @@ function DataVendor() {
 
             <div className="stat-card-vendor" style={{ borderLeftColor: '#e74c3c' }}>
               <div className="stat-icon-vendor" style={{ background: '#e74c3c' }}>
-                ⏸️
+                <PauseCircle size={24} />
               </div>
               <div className="stat-info-vendor">
                 <h3 className="stat-value-vendor">
@@ -269,7 +270,7 @@ function DataVendor() {
 
             <div className="stat-card-vendor" style={{ borderLeftColor: '#9b59b6' }}>
               <div className="stat-icon-vendor" style={{ background: '#9b59b6' }}>
-                📋
+                <ClipboardList size={24} />
               </div>
               <div className="stat-info-vendor">
                 <h3 className="stat-value-vendor">
@@ -284,7 +285,7 @@ function DataVendor() {
           <div className="action-bar-vendor">
             <div className="search-section-vendor">
               <div className="search-box-vendor">
-                <span className="search-icon-vendor">🔍</span>
+                <span className="search-icon-vendor"><Search size={18} /></span>
                 <input 
                   type="text" 
                   placeholder="Cari vendor berdasarkan nama..." 
@@ -344,9 +345,9 @@ function DataVendor() {
                       </td>
                       <td>
                         <div className="action-buttons-vendor">
-                          <button className="btn-icon-vendor btn-view" title="Lihat Detail">👁️</button>
-                          <button className="btn-icon-vendor btn-edit" title="Edit">✏️</button>
-                          <button className="btn-icon-vendor btn-delete" title="Hapus">🗑️</button>
+                          <button className="btn-icon-vendor btn-view" title="Lihat Detail"><Eye size={16} /></button>
+                          <button className="btn-icon-vendor btn-edit" title="Edit"><Edit size={16} /></button>
+                          <button className="btn-icon-vendor btn-delete" title="Hapus"><Trash2 size={16} /></button>
                         </div>
                       </td>
                     </tr>
@@ -355,7 +356,7 @@ function DataVendor() {
                   <tr>
                     <td colSpan="8" className="no-data">
                       <div className="no-data-message">
-                        <span className="no-data-icon">🔍</span>
+                        <span className="no-data-icon"><Search size={48} /></span>
                         <p>Tidak ada vendor yang ditemukan</p>
                         <small>Coba gunakan kata kunci yang berbeda</small>
                       </div>

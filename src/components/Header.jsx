@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { Search, Bell, Settings, Moon, Sun, LogOut, ChevronDown, ChevronUp } from 'lucide-react'
 import './Header.css'
 
 function Header({ title, onMenuClick }) {
@@ -41,11 +42,11 @@ function Header({ title, onMenuClick }) {
       </div>
       <div className="header-right">
         <div className="search-box">
-          <span className="search-icon">🔍</span>
+          <Search className="search-icon-svg" size={18} strokeWidth={2} />
           <input type="text" placeholder="Cari..." className="search-input" />
         </div>
         <div className="notification-icon">
-          <span>🔔</span>
+          <Bell size={22} strokeWidth={2} />
           <span className="notification-badge">3</span>
         </div>
         <div className="user-profile" onClick={toggleProfileMenu}>
@@ -54,16 +55,24 @@ function Header({ title, onMenuClick }) {
             <span className="user-name">Admin</span>
             <span className="user-role">Administrator</span>
           </div>
-          <span className="dropdown-arrow">{showProfileMenu ? '▲' : '▼'}</span>
+          {showProfileMenu ? (
+            <ChevronUp className="dropdown-arrow-svg" size={16} strokeWidth={2.5} />
+          ) : (
+            <ChevronDown className="dropdown-arrow-svg" size={16} strokeWidth={2.5} />
+          )}
           
           {showProfileMenu && (
             <div className="profile-dropdown" onClick={(e) => e.stopPropagation()}>
               <div className="dropdown-item" onClick={goToSettings}>
-                <span className="item-icon">⚙️</span>
+                <Settings className="item-icon-svg" size={18} strokeWidth={2} />
                 <span>Pengaturan</span>
               </div>
               <div className="dropdown-item" onClick={toggleNightMode}>
-                <span className="item-icon">{nightMode ? '☀️' : '🌙'}</span>
+                {nightMode ? (
+                  <Sun className="item-icon-svg" size={18} strokeWidth={2} />
+                ) : (
+                  <Moon className="item-icon-svg" size={18} strokeWidth={2} />
+                )}
                 <span>Night Mode</span>
                 <label className="toggle-switch">
                   <input 
@@ -76,7 +85,7 @@ function Header({ title, onMenuClick }) {
               </div>
               <div className="dropdown-divider"></div>
               <div className="dropdown-item logout" onClick={handleLogout}>
-                <span className="item-icon">🚪</span>
+                <LogOut className="item-icon-svg" size={18} strokeWidth={2} />
                 <span>Logout</span>
               </div>
             </div>
