@@ -7,6 +7,7 @@ function Login() {
   const [showPassword, setShowPassword] = useState(false)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [rememberMe, setRememberMe] = useState(false)
   const [devMode, setDevMode] = useState(localStorage.getItem('devMode') === 'true')
 
   const handleLogin = (e) => {
@@ -27,48 +28,89 @@ function Login() {
     }
   }
 
+  const platforms = [
+    {
+      logo: '/images/Logo_vlaas.png',
+      name: 'VLAAS',
+      description: 'Vendor Letter Archive & Approval System - Platform Digital Terpadu untuk Manajemen Surat Vendor PLN'
+    },
+    {
+      logo: '/images/Logo_PLN.png',
+      name: 'PT PLN (Persero)',
+      description: 'Perusahaan Listrik Negara - Menerangi Indonesia dengan energi yang andal dan berkelanjutan'
+    },
+    {
+      logo: '/images/logo_bumn.png',
+      name: 'Badan Usaha Milik Negara',
+      description: 'BUMN Untuk Indonesia - Berkarya untuk negeri, melayani dengan hati'
+    },
+    {
+      logo: '/images/Logo_UNSRAT.png',
+      name: 'Universitas Sam Ratulangi',
+      description: 'Program Magang - Kemitraan pendidikan untuk mengembangkan talenta digital Indonesia'
+    }
+  ]
+
   return (
     <div className="login-container">
-      {/* Left Side - Blue Section */}
+      {/* Left Side - Platform Information */}
       <div className="left-section">
-        <div className="logo-container">
-          <div className="logo">
-            <div className="logo-icon">₴</div>
-            <div className="logo-text">PLN VLAAS</div>
-          </div>
+        <div className="sso-header">
+          <h1 className="sso-title">Single Sign On</h1>
+          <p className="sso-subtitle">
+            Selamat datang di VLAAS - Platform Digital Terpadu untuk Manajemen Surat Vendor PT PLN (Persero).<br />
+            Satu akun untuk mengakses seluruh layanan dengan aman dan efisien.
+          </p>
+        </div>
+
+        <div className="platforms-list">
+          {platforms.map((platform, index) => (
+            <div key={index} className="platform-item">
+              <div className="platform-icon">
+                <img src={platform.logo} alt={platform.name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+              </div>
+              <div className="platform-info">
+                <h3 className="platform-name">{platform.name}</h3>
+                <p className="platform-desc">{platform.description}</p>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 
       {/* Right Side - Login Form */}
       <div className="right-section">
-        <div className="menu-icon">
-          <div className="menu-line"></div>
-          <div className="menu-line"></div>
-          <div className="menu-line"></div>
+        <div className="back-button">
         </div>
 
         <form className="login-form" onSubmit={handleLogin}>
-          <h1 className="title">Masuk ke<br />PLN VLAAS</h1>
-          <p className="subtitle">Akses Sistem Manajemen Aset Anda</p>
+          <h1 className="form-title">Log In Akun</h1>
+          <p className="form-greeting">
+            Selamat Datang di <span className="highlight">VLAAS</span>
+          </p>
 
           <div className="input-group">
-            <div className="input-wrapper">
-              <span className="input-icon">✉</span>
-              <input
-                type="email"
-                placeholder="Email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="input-field"
-                required
-              />
-            </div>
+            <label className="input-label">
+              Email atau No. Handphone <span className="required">*</span>
+            </label>
+            <input
+              type="text"
+              placeholder="example@pln.co.id"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="input-field"
+              required
+            />
+          </div>
 
-            <div className="input-wrapper">
-              <span className="input-icon">🔒</span>
+          <div className="input-group">
+            <label className="input-label">
+              Password <span className="required">*</span>
+            </label>
+            <div className="password-wrapper">
               <input
                 type={showPassword ? 'text' : 'password'}
-                placeholder="Password"
+                placeholder="••••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="input-field"
@@ -79,22 +121,31 @@ function Login() {
                 className="toggle-password"
                 onClick={() => setShowPassword(!showPassword)}
               >
-                {showPassword ? '👁' : '👁‍🗨'}
               </button>
             </div>
           </div>
 
-          <button type="submit" className="login-button">Masuk</button>
+          <div className="form-options">
+            <label className="remember-me">
+              <input
+                type="checkbox"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+              />
+              <span>Ingat Saya</span>
+            </label>
+            <a href="#" className="forgot-password">Lupa Password</a>
+          </div>
+
+          <button type="submit" className="login-button">LOGIN</button>
 
           <p className="register-text">
-            Vendor baru? <a href="#" className="register-link">Daftar di sini</a>
+            Belum Punya Akun? <a href="#" className="register-link">Daftar</a>
           </p>
         </form>
 
-        <div className="pagination">
-          <button className="arrow-btn" type="button">←</button>
-          <button className="arrow-btn" type="button">→</button>
-          <span className="page-number">01 <span className="page-total">/ 01</span></span>
+        <div className="footer">
+          <p className="footer-text">Powered by UPT PLN Manado</p>
         </div>
 
         {/* Developer Mode Toggle */}
@@ -109,7 +160,7 @@ function Login() {
             <span className="toggle-label">Developer Mode</span>
           </label>
           {devMode && (
-            <p className="dev-mode-info">🔓 Akses penuh ke semua halaman</p>
+            <p className="dev-mode-info">Akses penuh ke semua halaman</p>
           )}
         </div>
       </div>
