@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import Sidebar from '../components/Sidebar'
 import Header from '../components/Header'
-import { User, Users, Settings, Mail, Search, Lock, FileText } from 'lucide-react'
+import { User, Users, Settings, Mail, Search, Lock, FileText, Save, UserPlus, Ban } from 'lucide-react'
 import './Pengaturan.css'
 
 function Pengaturan() {
@@ -173,7 +173,7 @@ function Pengaturan() {
                         />
                       </div>
                     </div>
-                    <button type="submit" className="btn-save">💾 Simpan Perubahan</button>
+                    <button type="submit" className="btn-save"><Save size={18} /> Simpan Perubahan</button>
                   </form>
                 </div>
 
@@ -227,7 +227,7 @@ function Pengaturan() {
                   <div className="section-header">
                     <h3 className="section-title">Daftar Pengguna Admin</h3>
                     <button className="btn-add-user" onClick={() => setShowAddUserModal(true)}>
-                      ➕ Tambah Admin Baru
+                      <UserPlus size={18} /> Tambah Admin Baru
                     </button>
                   </div>
                   
@@ -265,7 +265,7 @@ function Pengaturan() {
                                   className="btn-deactivate"
                                   onClick={() => handleDeactivateUser(user.id, user.nama)}
                                 >
-                                  🚫 Nonaktifkan
+                                  <Ban size={16} /> Nonaktifkan
                                 </button>
                               )}
                             </td>
@@ -348,7 +348,7 @@ function Pengaturan() {
                     )}
                   </div>
                   <button className="btn-save" onClick={handleSystemConfigSave}>
-                    💾 Simpan Konfigurasi
+                    <Save size={18} /> Simpan Konfigurasi
                   </button>
                 </div>
               </div>
@@ -443,7 +443,7 @@ function Pengaturan() {
                     Batal
                   </button>
                   <button type="submit" className="btn-submit-settings">
-                    ➕ Tambah User
+                    <UserPlus size={18} /> Tambah User
                   </button>
                 </div>
               </form>
