@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import Sidebar from '../components/Sidebar'
 import Header from '../components/Header'
+import { User, Users, Settings, Mail, Search, Lock, FileText, Save, UserPlus, Ban } from 'lucide-react'
 import './Pengaturan.css'
 
 function Pengaturan() {
@@ -102,7 +103,7 @@ function Pengaturan() {
               className={`tab-btn ${activeTab === 'profil' ? 'active' : ''}`}
               onClick={() => setActiveTab('profil')}
             >
-              👤 Profil & Akun
+              <User size={18} /> Profil & Akun
             </button>
             {userRole === 'Super Admin' && (
               <>
@@ -110,19 +111,19 @@ function Pengaturan() {
                   className={`tab-btn ${activeTab === 'users' ? 'active' : ''}`}
                   onClick={() => setActiveTab('users')}
                 >
-                  👥 Manajemen User
+                  <Users size={18} /> Manajemen User
                 </button>
                 <button 
                   className={`tab-btn ${activeTab === 'system' ? 'active' : ''}`}
                   onClick={() => setActiveTab('system')}
                 >
-                  ⚙️ Konfigurasi Sistem
+                  <Settings size={18} /> Konfigurasi Sistem
                 </button>
                 <button 
                   className={`tab-btn ${activeTab === 'audit' ? 'active' : ''}`}
                   onClick={() => setActiveTab('audit')}
                 >
-                  📋 Log Audit
+                  <FileText size={18} /> Log Audit
                 </button>
               </>
             )}
@@ -172,7 +173,7 @@ function Pengaturan() {
                         />
                       </div>
                     </div>
-                    <button type="submit" className="btn-save">💾 Simpan Perubahan</button>
+                    <button type="submit" className="btn-save"><Save size={18} /> Simpan Perubahan</button>
                   </form>
                 </div>
 
@@ -208,12 +209,12 @@ function Pengaturan() {
                         />
                       </div>
                     </div>
-                    <button type="submit" className="btn-save">🔒 Ubah Password</button>
+                    <button type="submit" className="btn-save"><Lock size={18} /> Ubah Password</button>
                   </form>
                   
                   <div className="recovery-section">
                     <p className="recovery-text">Lupa password? Gunakan fitur pemulihan akun</p>
-                    <button className="btn-recovery">📧 Kirim Email Reset Password</button>
+                    <button className="btn-recovery"><Mail size={18} /> Kirim Email Reset Password</button>
                   </div>
                 </div>
               </div>
@@ -226,7 +227,7 @@ function Pengaturan() {
                   <div className="section-header">
                     <h3 className="section-title">Daftar Pengguna Admin</h3>
                     <button className="btn-add-user" onClick={() => setShowAddUserModal(true)}>
-                      ➕ Tambah Admin Baru
+                      <UserPlus size={18} /> Tambah Admin Baru
                     </button>
                   </div>
                   
@@ -264,7 +265,7 @@ function Pengaturan() {
                                   className="btn-deactivate"
                                   onClick={() => handleDeactivateUser(user.id, user.nama)}
                                 >
-                                  🚫 Nonaktifkan
+                                  <Ban size={16} /> Nonaktifkan
                                 </button>
                               )}
                             </td>
@@ -347,7 +348,7 @@ function Pengaturan() {
                     )}
                   </div>
                   <button className="btn-save" onClick={handleSystemConfigSave}>
-                    💾 Simpan Konfigurasi
+                    <Save size={18} /> Simpan Konfigurasi
                   </button>
                 </div>
               </div>
@@ -366,7 +367,7 @@ function Pengaturan() {
                     <input type="date" className="filter-input-audit" placeholder="Dari tanggal" />
                     <input type="date" className="filter-input-audit" placeholder="Sampai tanggal" />
                     <input type="text" className="filter-input-audit" placeholder="Cari user atau aktivitas..." />
-                    <button className="btn-filter-audit">🔍 Filter</button>
+                    <button className="btn-filter-audit"><Search size={18} /> Filter</button>
                   </div>
 
                   <div className="audit-table-container">
@@ -442,7 +443,7 @@ function Pengaturan() {
                     Batal
                   </button>
                   <button type="submit" className="btn-submit-settings">
-                    ➕ Tambah User
+                    <UserPlus size={18} /> Tambah User
                   </button>
                 </div>
               </form>

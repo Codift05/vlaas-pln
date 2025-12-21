@@ -1,14 +1,15 @@
-import { useState } from 'react';
-import Sidebar from '../components/Sidebar';
-import Header from '../components/Header';
-import './Laporan.css';
+import { useState } from 'react'
+import Sidebar from '../components/Sidebar'
+import Header from '../components/Header'
+import { FileDown, FileText, Clock, CheckCircle, BarChart2, Users, ClipboardList, Hourglass, Target } from 'lucide-react'
+import './Laporan.css'
 
 function Laporan() {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [dateRange, setDateRange] = useState('bulan-ini');
-  const [filterStatus, setFilterStatus] = useState('all');
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [dateRange, setDateRange] = useState('bulan-ini')
+  const [filterStatus, setFilterStatus] = useState('all')
+  const [startDate, setStartDate] = useState('')
+  const [endDate, setEndDate] = useState('')
 
   // Data dummy untuk KPI
   const kpiData = {
@@ -122,10 +123,10 @@ function Laporan() {
 
             <div className="export-buttons">
               <button className="btn-export csv" onClick={() => handleExport('CSV')}>
-                📊 Export CSV
+                <FileDown size={18} /> Export CSV
               </button>
               <button className="btn-export pdf" onClick={() => handleExport('PDF')}>
-                📄 Export PDF
+                <FileText size={18} /> Export PDF
               </button>
             </div>
           </div>
@@ -133,7 +134,7 @@ function Laporan() {
           {/* KPI Cards */}
           <div className="kpi-section">
             <div className="kpi-card blue">
-              <div className="kpi-icon">⏱️</div>
+              <div className="kpi-icon"><Clock size={24} /></div>
               <div className="kpi-content">
                 <h3 className="kpi-value">{kpiData.avgCycleTime} Hari</h3>
                 <p className="kpi-label">Rata-rata Waktu Proses</p>
@@ -142,7 +143,7 @@ function Laporan() {
             </div>
 
             <div className="kpi-card green">
-              <div className="kpi-icon">✅</div>
+              <div className="kpi-icon"><CheckCircle size={24} /></div>
               <div className="kpi-content">
                 <h3 className="kpi-value">{kpiData.approvalRate}%</h3>
                 <p className="kpi-label">Rasio Persetujuan</p>
@@ -151,7 +152,7 @@ function Laporan() {
             </div>
 
             <div className="kpi-card purple">
-              <div className="kpi-icon">📋</div>
+              <div className="kpi-icon"><ClipboardList size={24} /></div>
               <div className="kpi-content">
                 <h3 className="kpi-value">{kpiData.totalDocuments}</h3>
                 <p className="kpi-label">Total Dokumen</p>
@@ -160,7 +161,7 @@ function Laporan() {
             </div>
 
             <div className="kpi-card orange">
-              <div className="kpi-icon">⏳</div>
+              <div className="kpi-icon"><Hourglass size={24} /></div>
               <div className="kpi-content">
                 <h3 className="kpi-value">{kpiData.pendingDocuments}</h3>
                 <p className="kpi-label">Menunggu Review</p>
@@ -174,7 +175,7 @@ function Laporan() {
             {/* Bar Chart - Volume Bulanan */}
             <div className="chart-card large">
               <div className="chart-header">
-                <h3>📊 Volume Dokumen Bulanan</h3>
+                <h3><BarChart2 size={20} style={{display:'inline', marginRight:'8px'}} /> Volume Dokumen Bulanan</h3>
                 <span className="chart-subtitle">Tren beban kerja sepanjang tahun</span>
               </div>
               <div className="bar-chart-container">
@@ -195,7 +196,7 @@ function Laporan() {
             {/* Pie Chart - Komposisi Keputusan */}
             <div className="chart-card">
               <div className="chart-header">
-                <h3>🎯 Komposisi Keputusan</h3>
+                <h3><Target size={20} style={{display:'inline', marginRight:'8px'}} /> Komposisi Keputusan</h3>
                 <span className="chart-subtitle">Distribusi status dokumen</span>
               </div>
               <div className="pie-chart-container">
@@ -257,7 +258,7 @@ function Laporan() {
           {/* Vendor Insights */}
           <div className="vendor-insights">
             <div className="insights-header">
-              <h3>👥 Top 5 Vendor Teraktif</h3>
+              <h3><Users size={20} style={{display:'inline', marginRight:'8px'}} /> Top 5 Vendor Teraktif</h3>
               <span className="insights-subtitle">Vendor dengan volume dokumen tertinggi</span>
             </div>
             <div className="vendor-table-container">

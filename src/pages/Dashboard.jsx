@@ -1,23 +1,24 @@
 import { useState } from 'react'
 import Sidebar from '../components/Sidebar'
 import Header from '../components/Header'
+import { Package, CheckCircle, Wrench, Users, FileText, TrendingUp, Activity } from 'lucide-react'
 import './Dashboard.css'
 
 function Dashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   
   const stats = [
-    { title: 'Total Aset', value: '1,234', icon: '📦', color: '#3498db' },
-    { title: 'Aset Aktif', value: '987', icon: '✅', color: '#2ecc71' },
-    { title: 'Dalam Perbaikan', value: '45', icon: '🔧', color: '#f39c12' },
-    { title: 'Total Vendor', value: '156', icon: '👥', color: '#9b59b6' },
+    { title: 'Total Aset', value: '1,234', icon: Package, color: '#3498db', bgColor: '#e3f2fd' },
+    { title: 'Aset Aktif', value: '987', icon: CheckCircle, color: '#2ecc71', bgColor: '#e8f5e9' },
+    { title: 'Dalam Perbaikan', value: '45', icon: Wrench, color: '#f39c12', bgColor: '#fff3e0' },
+    { title: 'Total Vendor', value: '156', icon: Users, color: '#9b59b6', bgColor: '#f3e5f5' },
   ]
 
   const recentActivities = [
-    { action: 'Aset baru ditambahkan', item: 'Transformer 500KVA', time: '2 jam lalu' },
-    { action: 'Pemeliharaan selesai', item: 'Generator Set A-123', time: '5 jam lalu' },
-    { action: 'Vendor terdaftar', item: 'PT Elektrindo Jaya', time: '1 hari lalu' },
-    { action: 'Laporan dikirim', item: 'Laporan Bulanan Oktober', time: '2 hari lalu' },
+    { action: 'Aset baru ditambahkan', item: 'Transformer 500KVA', time: '2 jam lalu', icon: Package },
+    { action: 'Pemeliharaan selesai', item: 'Generator Set A-123', time: '5 jam lalu', icon: CheckCircle },
+    { action: 'Vendor terdaftar', item: 'PT Elektrindo Jaya', time: '1 hari lalu', icon: Users },
+    { action: 'Laporan dikirim', item: 'Laporan Bulanan Oktober', time: '2 hari lalu', icon: FileText },
   ]
 
   return (
@@ -29,27 +30,36 @@ function Dashboard() {
         <div className="content-area">
           {/* Stats Cards */}
           <div className="stats-grid">
-            {stats.map((stat, index) => (
-              <div key={index} className="stat-card" style={{ borderLeftColor: stat.color }}>
-                <div className="stat-icon" style={{ background: stat.color }}>
-                  {stat.icon}
+            {stats.map((stat, index) => {
+              const IconComponent = stat.icon
+              return (
+                <div key={index} className="stat-card">
+                  <div className="stat-icon-wrapper" style={{ background: stat.bgColor }}>
+                    <IconComponent className="stat-icon-svg" style={{ color: stat.color }} strokeWidth={2.5} size={28} />
+                  </div>
+                  <div className="stat-info">
+                    <h3 className="stat-value">{stat.value}</h3>
+                    <p className="stat-title">{stat.title}</p>
+                  </div>
                 </div>
-                <div className="stat-info">
-                  <h3 className="stat-value">{stat.value}</h3>
-                  <p className="stat-title">{stat.title}</p>
-                </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
 
           {/* Charts Section */}
           <div className="charts-section">
             <div className="chart-card">
-              <h3 className="card-title">Statistik Aset Bulanan</h3>
+              <div className="card-header">
+                <h3 className="card-title">Statistik Aset Bulanan</h3>
+                <TrendingUp size={20} className="card-icon" />
+              </div>
               <div className="chart-placeholder">
                 <div className="bar-chart">
                   {[65, 85, 75, 95, 70, 90, 80, 88, 92, 78, 85, 95].map((height, index) => (
-                    <div key={index} className="bar" style={{ height: `${height}%` }}>
+                    <div key={index} className="bar-wrapper">
+                      <div className="bar" style={{ height: `${height}%` }}>
+                        <span className="bar-value">{Math.round(height)}</span>
+                      </div>
                       <span className="bar-label">{['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'][index]}</span>
                     </div>
                   ))}
@@ -58,26 +68,34 @@ function Dashboard() {
             </div>
 
             <div className="chart-card">
-              <h3 className="card-title">Status Aset</h3>
-              <div className="pie-chart">
-                <svg width="550" height="550" viewBox="0 0 200 200" className="pie-svg">
-                  <circle cx="100" cy="100" r="65" fill="none" stroke="#2ecc71" strokeWidth="70" strokeDasharray="327 408" transform="rotate(-90 100 100)" />
-                  <circle cx="100" cy="100" r="65" fill="none" stroke="#f39c12" strokeWidth="70" strokeDasharray="61 408" strokeDashoffset="-327" transform="rotate(-90 100 100)" />
-                  <circle cx="100" cy="100" r="65" fill="none" stroke="#e74c3c" strokeWidth="70" strokeDasharray="20 408" strokeDashoffset="-388" transform="rotate(-90 100 100)" />
-                </svg>
-                <div className="pie-legend">
-                  <div className="legend-item">
-                    <span className="legend-color" style={{ background: '#2ecc71' }}></span>
-                    <span>Aktif (80%)</span>
-                  </div>
-                  <div className="legend-item">
-                    <span className="legend-color" style={{ background: '#f39c12' }}></span>
-                    <span>Perbaikan (15%)</span>
-                  </div>
-                  <div className="legend-item">
-                    <span className="legend-color" style={{ background: '#e74c3c' }}></span>
-                    <span>Tidak Aktif (5%)</span>
-                  </div>
+              <div className="card-header">
+                <h3 className="card-title">Status Aset</h3>
+                <Activity size={20} className="card-icon" />
+              </div>
+              <div className="pie-chart-container">
+                <div className="pie-chart">
+                  <div className="pie-slice"></div>
+                </div>
+                <div className="pie-center">
+                  <div className="pie-total">987</div>
+                  <div className="pie-label">Total</div>
+                </div>
+              </div>
+              <div className="pie-legend">
+                <div className="legend-item">
+                  <span className="legend-color" style={{ background: '#2ecc71' }}></span>
+                  <span className="legend-text">Aktif</span>
+                  <span className="legend-value">80%</span>
+                </div>
+                <div className="legend-item">
+                  <span className="legend-color" style={{ background: '#f39c12' }}></span>
+                  <span className="legend-text">Perbaikan</span>
+                  <span className="legend-value">15%</span>
+                </div>
+                <div className="legend-item">
+                  <span className="legend-color" style={{ background: '#e74c3c' }}></span>
+                  <span className="legend-text">Tidak Aktif</span>
+                  <span className="legend-value">5%</span>
                 </div>
               </div>
             </div>
@@ -85,18 +103,26 @@ function Dashboard() {
 
           {/* Recent Activities */}
           <div className="activity-section">
-            <h3 className="card-title">Aktivitas Terkini</h3>
+            <div className="card-header">
+              <h3 className="card-title">Aktivitas Terkini</h3>
+              <FileText size={20} className="card-icon" />
+            </div>
             <div className="activity-list">
-              {recentActivities.map((activity, index) => (
-                <div key={index} className="activity-item">
-                  <div className="activity-icon">📋</div>
-                  <div className="activity-details">
-                    <p className="activity-action">{activity.action}</p>
-                    <p className="activity-item-name">{activity.item}</p>
+              {recentActivities.map((activity, index) => {
+                const ActivityIcon = activity.icon
+                return (
+                  <div key={index} className="activity-item">
+                    <div className="activity-icon-wrapper">
+                      <ActivityIcon className="activity-icon-svg" size={20} strokeWidth={2} />
+                    </div>
+                    <div className="activity-details">
+                      <p className="activity-action">{activity.action}</p>
+                      <p className="activity-item-name">{activity.item}</p>
+                    </div>
+                    <span className="activity-time">{activity.time}</span>
                   </div>
-                  <span className="activity-time">{activity.time}</span>
-                </div>
-              ))}
+                )
+              })}
             </div>
           </div>
         </div>
