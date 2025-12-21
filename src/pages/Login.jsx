@@ -83,7 +83,12 @@ function Login() {
         <div className="back-button">
         </div>
 
-        <form className="login-form" onSubmit={handleLogin}>
+        <div className="login-form-wrapper">
+          <div className="login-logo">
+            <img src="/images/Logo_vlaas.png" alt="VLAAS Logo" className="vlaas-logo" />
+          </div>
+
+          <form className="login-form" onSubmit={handleLogin}>
           <h1 className="form-title">Log In Akun</h1>
           <p className="form-greeting">
             Selamat Datang di <span className="highlight">VLAAS</span>
@@ -146,6 +151,7 @@ function Login() {
 
         <div className="footer">
           <p className="footer-text">Powered by UPT PLN Manado</p>
+        </div>
         </div>
 
         {/* Developer Mode Toggle */}
