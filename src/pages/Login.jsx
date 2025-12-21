@@ -163,11 +163,7 @@ function Login() {
               onChange={toggleDevMode}
             />
             <span className="toggle-slider"></span>
-            <span className="toggle-label">Developer Mode</span>
           </label>
-          {devMode && (
-            <p className="dev-mode-info">Akses penuh ke semua halaman</p>
-          )}
         </div>
       </div>
     </div>
