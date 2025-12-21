@@ -29,10 +29,16 @@
   padding: 8px;
   border-radius: 6px;
   transition: background 0.3s;
+  z-index: 101;
+  position: relative;
 }
 
 .hamburger-menu:hover {
   background: #f5f5f5;
+}
+
+.hamburger-menu:active {
+  transform: scale(0.95);
 }
 
 .hamburger-menu span {
@@ -41,6 +47,7 @@
   background: #1e5ba8;
   border-radius: 2px;
   transition: all 0.3s;
+  display: block;
 }
 
 .header-title {
@@ -269,7 +276,8 @@
 
 @media (max-width: 968px) {
   .hamburger-menu {
-    display: flex;
+    display: flex !important;
+    pointer-events: auto;
   }
   
   .header {

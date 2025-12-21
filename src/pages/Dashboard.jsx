@@ -60,9 +60,11 @@ function Dashboard() {
             <div className="chart-card">
               <h3 className="card-title">Status Aset</h3>
               <div className="pie-chart">
-                <div className="pie-slice slice-1"></div>
-                <div className="pie-slice slice-2"></div>
-                <div className="pie-slice slice-3"></div>
+                <svg width="550" height="550" viewBox="0 0 200 200" className="pie-svg">
+                  <circle cx="100" cy="100" r="65" fill="none" stroke="#2ecc71" strokeWidth="70" strokeDasharray="327 408" transform="rotate(-90 100 100)" />
+                  <circle cx="100" cy="100" r="65" fill="none" stroke="#f39c12" strokeWidth="70" strokeDasharray="61 408" strokeDashoffset="-327" transform="rotate(-90 100 100)" />
+                  <circle cx="100" cy="100" r="65" fill="none" stroke="#e74c3c" strokeWidth="70" strokeDasharray="20 408" strokeDashoffset="-388" transform="rotate(-90 100 100)" />
+                </svg>
                 <div className="pie-legend">
                   <div className="legend-item">
                     <span className="legend-color" style={{ background: '#2ecc71' }}></span>

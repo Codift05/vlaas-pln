@@ -1,14 +1,14 @@
-import { useState } from 'react'
-import Sidebar from '../components/Sidebar'
-import Header from '../components/Header'
-import './Laporan.css'
+import { useState } from 'react';
+import Sidebar from '../components/Sidebar';
+import Header from '../components/Header';
+import './Laporan.css';
 
 function Laporan() {
-  const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [dateRange, setDateRange] = useState('bulan-ini')
-  const [filterStatus, setFilterStatus] = useState('all')
-  const [startDate, setStartDate] = useState('')
-  const [endDate, setEndDate] = useState('')
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [dateRange, setDateRange] = useState('bulan-ini');
+  const [filterStatus, setFilterStatus] = useState('all');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
 
   // Data dummy untuk KPI
   const kpiData = {
