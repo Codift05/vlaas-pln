@@ -40,7 +40,7 @@ function Login() {
       description: 'Perusahaan Listrik Negara - Menerangi Indonesia dengan energi yang andal dan berkelanjutan'
     },
     {
-      logo: '/images/logo_bumn.png',
+      logo: '/images/Logo_BUMN.png',
       name: 'Badan Usaha Milik Negara',
       description: 'BUMN Untuk Indonesia - Berkarya untuk negeri, melayani dengan hati'
     },
@@ -56,10 +56,10 @@ function Login() {
       {/* Left Side - Platform Information */}
       <div className="left-section">
         <div className="sso-header">
-          <h1 className="sso-title">Single Sign On</h1>
+          <h1 className="sso-title">Sistem Manajemen Vendor</h1>
           <p className="sso-subtitle">
-            Selamat datang di VLAAS - Platform Digital Terpadu untuk Manajemen Surat Vendor PT PLN (Persero).<br />
-            Satu akun untuk mengakses seluruh layanan dengan aman dan efisien.
+            Selamat datang di VLAAS - Platform Digital Terpadu untuk Manajemen Surat dan Aset Vendor PT PLN (Persero).<br />
+            Kelola dokumen vendor, aset, dan laporan dengan sistem yang aman, efisien, dan terintegrasi.
           </p>
         </div>
 
