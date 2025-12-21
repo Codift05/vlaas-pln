@@ -1,41 +1,63 @@
 /* Stats Grid for Vendor */
 .stats-grid-vendor {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 24px;
   margin-bottom: 32px;
 }
 
 .stat-card-vendor {
   background: rgba(255, 255, 255, 0.65);
-  backdrop-filter: blur(10px);
-  padding: 28px;
+  backdrop-filter: blur(8px);
+  padding: 26px 24px;
   border-radius: 24px;
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 18px;
   box-shadow: 0 2px 16px rgba(0, 0, 0, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.8);
-  transition: transform 0.3s, box-shadow 0.3s;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-card-vendor::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 100%;
+  background: linear-gradient(90deg, rgba(126, 185, 217, 0.08) 0%, transparent 100%);
+  transition: width 0.3s;
 }
 
 .stat-card-vendor:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+}
+
+.stat-card-vendor:hover::before {
+  width: 100%;
 }
 
 .stat-icon-vendor {
-  width: 64px;
-  height: 64px;
-  border-radius: 16px;
+  width: 56px;
+  height: 56px;
+  border-radius: 18px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  transition: transform 0.25s;
+}
+
+.stat-card-vendor:hover .stat-icon-vendor {
+  transform: scale(1.05);
 }
 
 .stat-icon-vendor svg {
-  display: block;
+  transition: all 0.3s;
 }
 
 .stat-info-vendor {
@@ -43,20 +65,22 @@
 }
 
 .stat-value-vendor {
-  font-size: 36px;
+  font-size: 34px;
   font-weight: 700;
   color: #2b3f50;
-  margin: 0 0 6px 0;
-  font-family: 'Inter', sans-serif;
+  margin: 0 0 2px 0;
   line-height: 1;
+  letter-spacing: -0.8px;
+  font-family: 'Inter', sans-serif;
 }
 
 .stat-title-vendor {
-  font-size: 14px;
+  font-size: 13px;
   color: #8b95a1;
   margin: 0;
-  font-family: 'Inter', sans-serif;
   font-weight: 500;
+  letter-spacing: 0.2px;
+  font-family: 'Inter', sans-serif;
 }
 
 /* Action Bar */
