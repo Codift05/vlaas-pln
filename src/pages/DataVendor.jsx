@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import Sidebar from '../components/Sidebar'
 import Header from '../components/Header'
-import { Users, CheckCircle, Search, Eye, Edit, Trash2, PauseCircle, ClipboardList } from 'lucide-react'
+import { Users, CheckCircle, Search, Eye, Edit, Trash2, PauseCircle, ClipboardList, Plus, Save, X } from 'lucide-react'
 import './DataVendor.css'
 
 function DataVendor() {
@@ -302,7 +302,7 @@ function DataVendor() {
             </div>
 
             <button className="btn-primary-vendor" onClick={() => setShowModal(true)}>
-              <span>➕</span> Tambah Vendor Baru
+              <Plus size={18} /> Tambah Vendor Baru
             </button>
           </div>
 
@@ -544,7 +544,7 @@ function DataVendor() {
                     Batal
                   </button>
                   <button type="submit" className="btn-submit-vendor">
-                    <span>💾</span> Simpan Vendor
+                    <Save size={18} /> Simpan Vendor
                   </button>
                 </div>
               </form>
