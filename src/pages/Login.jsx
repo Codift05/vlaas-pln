@@ -1,32 +1,65 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import './Login.css'
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { login as loginService } from '../services/authService';
+import './Login.css';
 
 function Login() {
-  const navigate = useNavigate()
-  const [showPassword, setShowPassword] = useState(false)
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [rememberMe, setRememberMe] = useState(false)
-  const [devMode, setDevMode] = useState(localStorage.getItem('devMode') === 'true')
+  const navigate = useNavigate();
+  const [showPassword, setShowPassword] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
+  const [devMode, setDevMode] = useState(localStorage.getItem('devMode') === 'true');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleLogin = (e) => {
-    e.preventDefault()
-    // Simulasi login - nanti bisa diganti dengan API call
-    if (email && password) {
-      localStorage.setItem('isLoggedIn', 'true')
-      navigate('/dashboard')
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+
+    try {
+      // Validasi input
+      if (!email || !password) {
+        setError('Email dan password harus diisi');
+        setLoading(false);
+        return;
+      }
+
+      // Call Supabase authentication
+      const result = await loginService(email, password);
+
+      if (result.success) {
+        // Login berhasil
+        console.log('Login berhasil:', result.data);
+        
+        // Simpan remember me jika dicentang
+        if (rememberMe) {
+          localStorage.setItem('rememberMe', 'true');
+        }
+        
+        // Navigate ke dashboard
+        navigate('/dashboard');
+      } else {
+        // Login gagal
+        setError(result.error || 'Email atau password salah');
+      }
+    } catch (err) {
+      console.error('Login error:', err);
+      setError('Terjadi kesalahan. Silakan coba lagi.');
+    } finally {
+      setLoading(false);
     }
-  }
+  };
 
   const toggleDevMode = () => {
-    const newDevMode = !devMode
-    setDevMode(newDevMode)
-    localStorage.setItem('devMode', newDevMode.toString())
+    const newDevMode = !devMode;
+    setDevMode(newDevMode);
+    localStorage.setItem('devMode', newDevMode.toString());
     if (newDevMode) {
-      navigate('/dashboard')
+      navigate('/dashboard');
     }
-  }
+  };
 
   const platforms = [
     {
@@ -94,6 +127,13 @@ function Login() {
             Selamat Datang di <span className="highlight">VLAAS</span>
           </p>
 
+          {error && (
+            <div className="error-message">
+              <span className="error-icon">⚠️</span>
+              <span>{error}</span>
+            </div>
+          )}
+
           <div className="input-group">
             <label className="input-label">
               Email atau No. Handphone <span className="required">*</span>
@@ -105,6 +145,7 @@ function Login() {
               onChange={(e) => setEmail(e.target.value)}
               className="input-field"
               required
+              disabled={loading}
             />
           </div>
 
@@ -120,11 +161,13 @@ function Login() {
                 onChange={(e) => setPassword(e.target.value)}
                 className="input-field"
                 required
+                disabled={loading}
               />
               <button
                 type="button"
                 className="toggle-password"
                 onClick={() => setShowPassword(!showPassword)}
+                disabled={loading}
               >
               </button>
             </div>
@@ -136,13 +179,16 @@ function Login() {
                 type="checkbox"
                 checked={rememberMe}
                 onChange={(e) => setRememberMe(e.target.checked)}
+                disabled={loading}
               />
               <span>Ingat Saya</span>
             </label>
             <a href="#" className="forgot-password">Lupa Password</a>
           </div>
 
-          <button type="submit" className="login-button">LOGIN</button>
+          <button type="submit" className="login-button" disabled={loading}>
+            {loading ? 'Memproses...' : 'LOGIN'}
+          </button>
 
           <p className="register-text">
             Belum Punya Akun? <a href="#" className="register-link">Daftar</a>
