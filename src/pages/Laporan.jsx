@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import Sidebar from '../components/Sidebar'
 import Header from '../components/Header'
-import { FileDown, FileText, Clock, CheckCircle, BarChart2, Users, ClipboardList, Hourglass } from 'lucide-react'
+import { FileDown, FileText, Clock, CheckCircle, BarChart2, Users, ClipboardList, Hourglass, Target } from 'lucide-react'
 import './Laporan.css'
 
 function Laporan() {
@@ -196,7 +196,7 @@ function Laporan() {
             {/* Pie Chart - Komposisi Keputusan */}
             <div className="chart-card">
               <div className="chart-header">
-                <h3>🎯 Komposisi Keputusan</h3>
+                <h3><Target size={20} style={{display:'inline', marginRight:'8px'}} /> Komposisi Keputusan</h3>
                 <span className="chart-subtitle">Distribusi status dokumen</span>
               </div>
               <div className="pie-chart-container">
