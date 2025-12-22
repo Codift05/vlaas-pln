@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Search, Bell, Settings, Moon, Sun, LogOut, ChevronDown, ChevronUp } from 'lucide-react'
 import './Header.css'
 
+
 function Header({ title, onMenuClick }) {
   const [showProfileMenu, setShowProfileMenu] = useState(false)
   const [nightMode, setNightMode] = useState(localStorage.getItem('nightMode') === 'true')
@@ -38,6 +39,7 @@ function Header({ title, onMenuClick }) {
           <span></span>
           <span></span>
         </button>
+        
         <h1 className="header-title">{title}</h1>
       </div>
       <div className="header-right">
