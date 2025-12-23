@@ -23,6 +23,21 @@ function Login() {
     setLoading(true);
 
     try {
+      // Developer Mode - bypass authentication
+      if (devMode) {
+        if (isVendorLogin) {
+          localStorage.setItem('vendorLoggedIn', 'true');
+          localStorage.setItem('vendorEmail', email || 'vendor@demo.com');
+          navigate('/vendor-portal');
+        } else {
+          localStorage.setItem('adminLoggedIn', 'true');
+          localStorage.setItem('adminEmail', email || 'admin@demo.com');
+          navigate('/dashboard');
+        }
+        setLoading(false);
+        return;
+      }
+
       // Validasi input
       if (!email || !password) {
         setError('Email dan password harus diisi');
@@ -72,10 +87,16 @@ function Login() {
     const newDevMode = !devMode;
     setDevMode(newDevMode);
     localStorage.setItem('devMode', newDevMode.toString());
+    
+    // Auto login when developer mode is activated
     if (newDevMode) {
       if (isVendorLogin) {
+        localStorage.setItem('vendorLoggedIn', 'true');
+        localStorage.setItem('vendorEmail', 'vendor@demo.com');
         navigate('/vendor-portal');
       } else {
+        localStorage.setItem('adminLoggedIn', 'true');
+        localStorage.setItem('adminEmail', 'admin@demo.com');
         navigate('/dashboard');
       }
     }
