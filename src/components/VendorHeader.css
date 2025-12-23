@@ -92,40 +92,46 @@
 
 .notification-btn {
   position: relative;
-  width: 44px;
-  height: 44px;
+  width: 56px;
+  height: 56px;
   border: none;
-  background: rgba(248, 250, 252, 0.8);
-  border-radius: 12px;
+  background: transparent;
+  border-radius: 16px;
   color: #8b95a1;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all 0.25s;
-  border: 1px solid rgba(226, 232, 240, 0.4);
+  outline: none;
+  overflow: visible;
 }
 
 .notification-btn:hover {
-  background: rgba(126, 185, 217, 0.1);
   color: #5a9dc4;
-  border-color: rgba(126, 185, 217, 0.3);
+  transform: scale(1.05);
+}
+
+.notification-btn:focus {
+  outline: none;
+  border: none;
 }
 
 .notification-badge {
   position: absolute;
-  top: -4px;
-  right: -4px;
+  top: -6px;
+  right: -6px;
   background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
   color: white;
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 700;
-  padding: 3px 7px;
-  border-radius: 10px;
-  min-width: 20px;
+  padding: 5px 9px;
+  border-radius: 14px;
+  min-width: 24px;
   text-align: center;
-  box-shadow: 0 2px 6px rgba(239, 68, 68, 0.4);
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.5);
   font-family: 'Inter', sans-serif;
+  line-height: 1;
 }
 
 .notification-dropdown {
@@ -363,6 +369,38 @@
 }
 
 .profile-dropdown-item.logout:hover {
+  background: rgba(231, 76, 60, 0.08);
+}
+
+.profile-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 18px;
+  color: #5a6d7f;
+  text-decoration: none;
+  transition: all 0.2s;
+  cursor: pointer;
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+  font-size: 14px;
+  font-weight: 500;
+  font-family: 'Inter', sans-serif;
+}
+
+.profile-menu-item:hover {
+  background: rgba(248, 250, 252, 0.8);
+  color: #2b3f50;
+}
+
+.profile-menu-item.logout {
+  color: #c0392b;
+  border-top: 1px solid rgba(226, 232, 240, 0.6);
+}
+
+.profile-menu-item.logout:hover {
   background: rgba(231, 76, 60, 0.08);
 }
 

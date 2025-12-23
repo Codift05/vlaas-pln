@@ -49,25 +49,13 @@ function VendorHeader() {
         </div>
 
         <div className="vendor-header-right">
-          {/* Search Box */}
-          <div className="search-box">
-            <div className="search-icon">
-              <Search size={18} />
-            </div>
-            <input 
-              type="text" 
-              className="search-input" 
-              placeholder="Cari..." 
-            />
-          </div>
-
           {/* Notifications */}
           <div className="notification-container">
             <button 
               className="notification-btn"
               onClick={() => setShowNotifications(!showNotifications)}
             >
-              <Bell size={20} />
+              <Bell size={60} strokeWidth={2.5} />
               {unreadCount > 0 && (
                 <span className="notification-badge">{unreadCount}</span>
               )}
@@ -77,14 +65,13 @@ function VendorHeader() {
               <div className="notification-dropdown">
                 <div className="notification-header">
                   <h3>Notifikasi</h3>
-                  <button className="clear-all-btn">Hapus Semua</button>
+                  <span className="notification-count">{unreadCount} baru</span>
                 </div>
                 <div className="notification-list">
                   {notifications.map(notif => (
                     <div key={notif.id} className={`notification-item ${notif.unread ? 'unread' : ''}`}>
-                      <h4>Notifikasi Pengajuan</h4>
                       <p>{notif.message}</p>
-                      <small>{notif.time}</small>
+                      <span className="notification-time">{notif.time}</span>
                     </div>
                   ))}
                 </div>
@@ -98,21 +85,20 @@ function VendorHeader() {
               className="profile-btn"
               onClick={() => setShowProfileMenu(!showProfileMenu)}
             >
-              <div className="profile-avatar">V</div>
-              <div className="profile-info">
-                <div className="profile-name">Vendor</div>
-                <div className="profile-role">Perusahaan</div>
+              <div className="profile-avatar">
+                <User size={18} />
               </div>
-              <ChevronDown size={16} className={`profile-dropdown-icon ${showProfileMenu ? 'open' : ''}`} />
+              <span className="profile-name">Vendor</span>
+              <ChevronDown size={16} />
             </button>
 
             {showProfileMenu && (
               <div className="profile-dropdown">
-                <button className="profile-dropdown-item" onClick={handleProfileClick}>
+                <button className="profile-menu-item" onClick={handleProfileClick}>
                   <User size={16} />
                   <span>Profil Saya</span>
                 </button>
-                <button className="profile-dropdown-item logout" onClick={handleLogout}>
+                <button className="profile-menu-item logout" onClick={handleLogout}>
                   <LogOut size={16} />
                   <span>Keluar</span>
                 </button>

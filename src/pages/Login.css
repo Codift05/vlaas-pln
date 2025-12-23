@@ -325,10 +325,6 @@
   justify-content: center;
 }
 
-.dev-mode-container:hover {
-  /* No hover effect needed */
-}
-
 .dev-mode-toggle {
   display: block;
   cursor: pointer;
