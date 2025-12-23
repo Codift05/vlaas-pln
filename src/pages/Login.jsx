@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { login as loginService } from '../services/authService';
 import './Login.css';
 
 function Login() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -12,6 +13,9 @@ function Login() {
   const [devMode, setDevMode] = useState(localStorage.getItem('devMode') === 'true');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  // Detect if this is vendor login based on URL
+  const isVendorLogin = location.pathname === '/vendor-login';
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -26,23 +30,35 @@ function Login() {
         return;
       }
 
-      // Call Supabase authentication
-      const result = await loginService(email, password);
-
-      if (result.success) {
-        // Login berhasil
-        console.log('Login berhasil:', result.data);
+      if (isVendorLogin) {
+        // Vendor login - simple localStorage for now
+        localStorage.setItem('vendorLoggedIn', 'true');
+        localStorage.setItem('vendorEmail', email);
         
-        // Simpan remember me jika dicentang
         if (rememberMe) {
           localStorage.setItem('rememberMe', 'true');
         }
         
-        // Navigate ke dashboard
-        navigate('/dashboard');
+        navigate('/vendor-portal');
       } else {
-        // Login gagal
-        setError(result.error || 'Email atau password salah');
+        // Admin login - Call Supabase authentication
+        const result = await loginService(email, password);
+
+        if (result.success) {
+          // Login berhasil
+          console.log('Login berhasil:', result.data);
+          
+          // Simpan remember me jika dicentang
+          if (rememberMe) {
+            localStorage.setItem('rememberMe', 'true');
+          }
+          
+          // Navigate ke dashboard
+          navigate('/dashboard');
+        } else {
+          // Login gagal
+          setError(result.error || 'Email atau password salah');
+        }
       }
     } catch (err) {
       console.error('Login error:', err);
@@ -57,7 +73,11 @@ function Login() {
     setDevMode(newDevMode);
     localStorage.setItem('devMode', newDevMode.toString());
     if (newDevMode) {
-      navigate('/dashboard');
+      if (isVendorLogin) {
+        navigate('/vendor-portal');
+      } else {
+        navigate('/dashboard');
+      }
     }
   };
 
@@ -122,7 +142,7 @@ function Login() {
           </div>
 
           <form className="login-form" onSubmit={handleLogin}>
-          <h1 className="form-title">Log In Akun</h1>
+          <h1 className="form-title">{isVendorLogin ? 'Login Sebagai Vendor' : 'Log In Akun'}</h1>
           <p className="form-greeting">
             Selamat Datang di <span className="highlight">VLAAS</span>
           </p>
@@ -190,9 +210,15 @@ function Login() {
             {loading ? 'Memproses...' : 'LOGIN'}
           </button>
 
-          <p className="register-text">
-            Belum Punya Akun? <a href="#" className="register-link">Daftar</a>
-          </p>
+          {isVendorLogin ? (
+            <p className="register-text">
+              Belum punya akun vendor? <a href="#" className="register-link">Daftar Sekarang</a>
+            </p>
+          ) : (
+            <p className="register-text">
+              Login sebagai vendor? <a href="/vendor-login" className="register-link">Klik di sini</a>
+            </p>
+          )}
         </form>
 
         <div className="footer">

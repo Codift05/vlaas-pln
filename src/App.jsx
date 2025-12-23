@@ -5,19 +5,30 @@ import ManajemenAset from './pages/ManajemenAset'
 import DataVendor from './pages/DataVendor'
 import Laporan from './pages/Laporan'
 import Pengaturan from './pages/Pengaturan'
+import VendorLayout from './pages/VendorLayout'
+import VendorDashboard from './pages/VendorDashboard'
+import VendorPengajuan from './pages/VendorPengajuan'
+import VendorProfile from './pages/VendorProfile'
 import './App.css'
 
-// Protected Route Component
+// Protected Route for Admin
 function ProtectedRoute({ children }) {
   const isLoggedIn = localStorage.getItem('isLoggedIn')
   const devMode = localStorage.getItem('devMode') === 'true'
   return (isLoggedIn || devMode) ? children : <Navigate to="/" />
 }
 
+// Protected Route for Vendor
+function VendorProtectedRoute({ children }) {
+  const isVendorLoggedIn = localStorage.getItem('vendorLoggedIn')
+  return isVendorLoggedIn ? children : <Navigate to="/vendor-login" />
+}
+
 function App() {
   return (
     <Router>
       <Routes>
+        {/* Admin Routes */}
         <Route path="/" element={<Login />} />
         <Route 
           path="/dashboard" 
@@ -59,6 +70,21 @@ function App() {
             </ProtectedRoute>
           } 
         />
+
+        {/* Vendor Routes - using same Login component */}
+        <Route path="/vendor-login" element={<Login />} />
+        <Route 
+          path="/vendor-portal" 
+          element={
+            <VendorProtectedRoute>
+              <VendorLayout />
+            </VendorProtectedRoute>
+          }
+        >
+          <Route index element={<VendorDashboard />} />
+          <Route path="pengajuan" element={<VendorPengajuan />} />
+          <Route path="profile" element={<VendorProfile />} />
+        </Route>
       </Routes>
     </Router>
   )
