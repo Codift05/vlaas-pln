@@ -16,7 +16,6 @@ function DataVendor() {
     alamat: '',
     telepon: '',
     email: '',
-    kategori: '',
     kontakPerson: '',
     status: 'Aktif',
     tanggalRegistrasi: ''
@@ -203,7 +202,6 @@ function DataVendor() {
       alamat: '',
       telepon: '',
       email: '',
-      kategori: '',
       kontakPerson: '',
       status: 'Aktif',
       tanggalRegistrasi: ''
@@ -218,7 +216,6 @@ function DataVendor() {
       alamat: '',
       telepon: '',
       email: '',
-      kategori: '',
       kontakPerson: '',
       status: 'Aktif',
       tanggalRegistrasi: ''
@@ -268,17 +265,7 @@ function DataVendor() {
               </div>
             </div>
 
-            <div className="stat-card-vendor" style={{ borderLeftColor: '#9b59b6' }}>
-              <div className="stat-icon-vendor" style={{ background: '#9b59b6' }}>
-                <ClipboardList size={24} />
-              </div>
-              <div className="stat-info-vendor">
-                <h3 className="stat-value-vendor">
-                  {[...new Set(vendorsData.map(v => v.kategori))].length}
-                </h3>
-                <p className="stat-title-vendor">Kategori Vendor</p>
-              </div>
-            </div>
+
           </div>
 
           {/* Action Bar */}
@@ -313,7 +300,6 @@ function DataVendor() {
                 <tr>
                   <th>ID Vendor</th>
                   <th>Nama Vendor</th>
-                  <th>Kategori</th>
                   <th>Kontak Person</th>
                   <th>Telepon</th>
                   <th>Email</th>
@@ -331,9 +317,6 @@ function DataVendor() {
                           <span className="vendor-name-text">{vendor.nama}</span>
                           <span className="vendor-address">{vendor.alamat}</span>
                         </div>
-                      </td>
-                      <td>
-                        <span className="kategori-badge">{vendor.kategori}</span>
                       </td>
                       <td>{vendor.kontakPerson}</td>
                       <td>{vendor.telepon}</td>
@@ -354,7 +337,7 @@ function DataVendor() {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="8" className="no-data">
+                    <td colSpan="7" className="no-data">
                       <div className="no-data-message">
                         <span className="no-data-icon"><Search size={48} /></span>
                         <p>Tidak ada vendor yang ditemukan</p>
@@ -478,25 +461,6 @@ function DataVendor() {
                       placeholder="Contoh: info@vendor.com"
                       required
                     />
-                  </div>
-
-                  <div className="form-group-vendor">
-                    <label htmlFor="kategori">Kategori <span className="required-vendor">*</span></label>
-                    <select
-                      id="kategori"
-                      name="kategori"
-                      value={formData.kategori}
-                      onChange={handleInputChange}
-                      required
-                    >
-                      <option value="">Pilih Kategori</option>
-                      <option value="Peralatan Listrik">Peralatan Listrik</option>
-                      <option value="Transformator">Transformator</option>
-                      <option value="Generator">Generator</option>
-                      <option value="Kabel & Aksesoris">Kabel & Aksesoris</option>
-                      <option value="Panel Distribusi">Panel Distribusi</option>
-                      <option value="Lainnya">Lainnya</option>
-                    </select>
                   </div>
 
                   <div className="form-group-vendor">
