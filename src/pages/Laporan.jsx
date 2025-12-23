@@ -132,42 +132,57 @@ function Laporan() {
           </div>
 
           {/* KPI Cards */}
-          <div className="kpi-section">
-            <div className="kpi-card blue">
-              <div className="kpi-icon"><Clock size={24} /></div>
-              <div className="kpi-content">
-                <h3 className="kpi-value">{kpiData.avgCycleTime} Hari</h3>
-                <p className="kpi-label">Rata-rata Waktu Proses</p>
-                <span className="kpi-trend positive">↓ 0.3 hari lebih cepat</span>
-              </div>
-            </div>
-
-            <div className="kpi-card green">
-              <div className="kpi-icon"><CheckCircle size={24} /></div>
-              <div className="kpi-content">
-                <h3 className="kpi-value">{kpiData.approvalRate}%</h3>
-                <p className="kpi-label">Rasio Persetujuan</p>
-                <span className="kpi-trend positive">↑ 3% dari bulan lalu</span>
-              </div>
-            </div>
-
-            <div className="kpi-card purple">
-              <div className="kpi-icon"><ClipboardList size={24} /></div>
-              <div className="kpi-content">
-                <h3 className="kpi-value">{kpiData.totalDocuments}</h3>
-                <p className="kpi-label">Total Dokumen</p>
-                <span className="kpi-trend neutral">Periode ini</span>
-              </div>
-            </div>
-
-            <div className="kpi-card orange">
-              <div className="kpi-icon"><Hourglass size={24} /></div>
-              <div className="kpi-content">
-                <h3 className="kpi-value">{kpiData.pendingDocuments}</h3>
-                <p className="kpi-label">Menunggu Review</p>
-                <span className="kpi-trend warning">Perlu perhatian</span>
-              </div>
-            </div>
+          <div className="stats-grid">
+            {[
+              {
+                title: 'Rata-rata Waktu Proses',
+                value: `${kpiData.avgCycleTime} Hari`,
+                icon: Clock,
+                color: '#7c4dff',
+                bgColor: '#ede7f6',
+                badge: { text: '↓ 0.3 hari lebih cepat', type: 'positive' },
+              },
+              {
+                title: 'Rasio Persetujuan',
+                value: `${kpiData.approvalRate}%`,
+                icon: CheckCircle,
+                color: '#2ecc71',
+                bgColor: '#e8f5e9',
+                badge: { text: '↑ 3% dari bulan lalu', type: 'positive' },
+              },
+              {
+                title: 'Total Dokumen',
+                value: kpiData.totalDocuments,
+                icon: ClipboardList,
+                color: '#9b59b6',
+                bgColor: '#f3e5f5',
+                badge: { text: 'Periode ini', type: 'neutral' },
+              },
+              {
+                title: 'Menunggu Review',
+                value: kpiData.pendingDocuments,
+                icon: Hourglass,
+                color: '#f39c12',
+                bgColor: '#fff8e1',
+                badge: { text: 'Perlu perhatian', type: 'warning' },
+              },
+            ].map((stat, index) => {
+              const IconComponent = stat.icon;
+              return (
+                <div key={index} className="stat-card">
+                  <div className="stat-icon-wrapper" style={{ background: stat.bgColor }}>
+                    <IconComponent className="stat-icon-svg" style={{ color: stat.color }} strokeWidth={2.5} size={28} />
+                  </div>
+                  <div className="stat-info">
+                    <h3 className="stat-value">{stat.value}</h3>
+                    <p className="stat-title">{stat.title}</p>
+                    {stat.badge && (
+                      <span className={`stat-badge ${stat.badge.type}`}>{stat.badge.text}</span>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
           </div>
 
           {/* Charts Section */}

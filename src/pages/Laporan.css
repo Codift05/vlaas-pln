@@ -1,3 +1,29 @@
+/* Badge untuk stat-card (KPI) */
+.stat-badge {
+  display: inline-block;
+  margin-top: 10px;
+  padding: 4px 14px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 500;
+  font-family: 'Inter', sans-serif;
+  letter-spacing: 0.1px;
+  background: #f4f6fa;
+  color: #6b7685;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+}
+.stat-badge.positive {
+  background: #e0f7e9;
+  color: #219150;
+}
+.stat-badge.neutral {
+  background: #f4f6fa;
+  color: #6b7685;
+}
+.stat-badge.warning {
+  background: #fff9e1;
+  color: #b8860b;
+}
 /* Laporan Header & Filters */
 .laporan-header {
   background: rgba(255, 255, 255, 0.65);

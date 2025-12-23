@@ -233,52 +233,50 @@ function DataVendor() {
         
         <div className="content-area">
           {/* Stats Cards */}
-          <div className="stats-grid-vendor">
-            <div className="stat-card-vendor" style={{ borderLeftColor: '#3498db' }}>
-              <div className="stat-icon-vendor" style={{ background: '#3498db' }}>
-                <Users size={24} />
-              </div>
-              <div className="stat-info-vendor">
-                <h3 className="stat-value-vendor">{vendorsData.length}</h3>
-                <p className="stat-title-vendor">Total Vendor</p>
-              </div>
-            </div>
-
-            <div className="stat-card-vendor" style={{ borderLeftColor: '#2ecc71' }}>
-              <div className="stat-icon-vendor" style={{ background: '#2ecc71' }}>
-                <CheckCircle size={24} />
-              </div>
-              <div className="stat-info-vendor">
-                <h3 className="stat-value-vendor">
-                  {vendorsData.filter(v => v.status === 'Aktif').length}
-                </h3>
-                <p className="stat-title-vendor">Vendor Aktif</p>
-              </div>
-            </div>
-
-            <div className="stat-card-vendor" style={{ borderLeftColor: '#e74c3c' }}>
-              <div className="stat-icon-vendor" style={{ background: '#e74c3c' }}>
-                <PauseCircle size={24} />
-              </div>
-              <div className="stat-info-vendor">
-                <h3 className="stat-value-vendor">
-                  {vendorsData.filter(v => v.status === 'Tidak Aktif').length}
-                </h3>
-                <p className="stat-title-vendor">Vendor Tidak Aktif</p>
-              </div>
-            </div>
-
-            <div className="stat-card-vendor" style={{ borderLeftColor: '#9b59b6' }}>
-              <div className="stat-icon-vendor" style={{ background: '#9b59b6' }}>
-                <ClipboardList size={24} />
-              </div>
-              <div className="stat-info-vendor">
-                <h3 className="stat-value-vendor">
-                  {[...new Set(vendorsData.map(v => v.kategori))].length}
-                </h3>
-                <p className="stat-title-vendor">Kategori Vendor</p>
-              </div>
-            </div>
+          <div className="stats-grid">
+            {[
+              {
+                title: 'Total Vendor',
+                value: vendorsData.length,
+                icon: Users,
+                color: '#3498db',
+                bgColor: '#e3f2fd',
+              },
+              {
+                title: 'Vendor Aktif',
+                value: vendorsData.filter(v => v.status === 'Aktif').length,
+                icon: CheckCircle,
+                color: '#2ecc71',
+                bgColor: '#e8f5e9',
+              },
+              {
+                title: 'Vendor Tidak Aktif',
+                value: vendorsData.filter(v => v.status === 'Tidak Aktif').length,
+                icon: PauseCircle,
+                color: '#e74c3c',
+                bgColor: '#ffebee',
+              },
+              {
+                title: 'Kategori Vendor',
+                value: [...new Set(vendorsData.map(v => v.kategori))].length,
+                icon: ClipboardList,
+                color: '#9b59b6',
+                bgColor: '#f3e5f5',
+              },
+            ].map((stat, index) => {
+              const IconComponent = stat.icon;
+              return (
+                <div key={index} className="stat-card">
+                  <div className="stat-icon-wrapper" style={{ background: stat.bgColor }}>
+                    <IconComponent className="stat-icon-svg" style={{ color: stat.color }} strokeWidth={2.5} size={28} />
+                  </div>
+                  <div className="stat-info">
+                    <h3 className="stat-value">{stat.value}</h3>
+                    <p className="stat-title">{stat.title}</p>
+                  </div>
+                </div>
+              );
+            })}
           </div>
 
           {/* Action Bar */}
