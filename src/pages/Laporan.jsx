@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import Select from 'react-select'
 import Sidebar from '../components/Sidebar'
 import Header from '../components/Header'
 import { FileDown, FileText, Clock, CheckCircle, BarChart2, Users, ClipboardList, Hourglass, Target } from 'lucide-react'
@@ -6,8 +7,8 @@ import './Laporan.css'
 
 function Laporan() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [dateRange, setDateRange] = useState('bulan-ini')
-  const [filterStatus, setFilterStatus] = useState('all')
+  const [dateRange, setDateRange] = useState({ value: 'bulan-ini', label: 'Bulan Ini' })
+  const [filterStatus, setFilterStatus] = useState({ value: 'all', label: 'Semua Status' })
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
 
@@ -75,20 +76,58 @@ function Laporan() {
             <div className="filter-controls">
               <div className="filter-group">
                 <label>Periode:</label>
-                <select 
-                  value={dateRange} 
-                  onChange={(e) => setDateRange(e.target.value)}
-                  className="filter-select-laporan"
-                >
-                  <option value="hari-ini">Hari Ini</option>
-                  <option value="minggu-ini">Minggu Ini</option>
-                  <option value="bulan-ini">Bulan Ini</option>
-                  <option value="tahun-ini">Tahun Ini</option>
-                  <option value="custom">Custom Range</option>
-                </select>
+                <div style={{ minWidth: 180 }}>
+                  <Select
+                    classNamePrefix="modern-select"
+                    value={dateRange}
+                    onChange={setDateRange}
+                    options={[
+                      { value: 'hari-ini', label: 'Hari Ini' },
+                      { value: 'minggu-ini', label: 'Minggu Ini' },
+                      { value: 'bulan-ini', label: 'Bulan Ini' },
+                      { value: 'tahun-ini', label: 'Tahun Ini' },
+                      { value: 'custom', label: 'Custom Range' },
+                    ]}
+                    isSearchable={false}
+                    styles={{
+                      control: (base, state) => ({
+                        ...base,
+                        borderRadius: 14,
+                        background: 'rgba(255,255,255,0.9)',
+                        borderColor: state.isFocused ? '#7eb9d9' : 'rgba(200,210,220,0.5)',
+                        boxShadow: state.isFocused ? '0 4px 16px rgba(126,185,217,0.15)' : '0 2px 8px rgba(0,0,0,0.04)',
+                        minHeight: 44,
+                        fontFamily: 'Inter, sans-serif',
+                        fontWeight: 500,
+                        fontSize: 15,
+                        color: '#2b3f50',
+                        transition: 'all 0.25s cubic-bezier(0.4,0,0.2,1)',
+                      }),
+                      option: (base, state) => ({
+                        ...base,
+                        borderRadius: 10,
+                        background: state.isSelected ? '#e3f2fd' : state.isFocused ? '#f4f8fb' : 'white',
+                        color: '#2b3f50',
+                        fontWeight: state.isSelected ? 700 : 500,
+                        fontSize: 15,
+                        fontFamily: 'Inter, sans-serif',
+                        padding: '10px 18px',
+                        cursor: 'pointer',
+                      }),
+                      menu: (base) => ({
+                        ...base,
+                        borderRadius: 14,
+                        boxShadow: '0 8px 32px rgba(126,185,217,0.10)',
+                        marginTop: 4,
+                        zIndex: 9999,
+                        position: 'absolute',
+                      }),
+                    }}
+                  />
+                </div>
               </div>
 
-              {dateRange === 'custom' && (
+              {dateRange.value === 'custom' && (
                 <div className="date-range">
                   <input 
                     type="date" 
@@ -108,16 +147,53 @@ function Laporan() {
 
               <div className="filter-group">
                 <label>Filter Status:</label>
-                <select 
-                  value={filterStatus} 
-                  onChange={(e) => setFilterStatus(e.target.value)}
-                  className="filter-select-laporan"
-                >
-                  <option value="all">Semua Status</option>
-                  <option value="approved">Approved</option>
-                  <option value="rejected">Rejected</option>
-                  <option value="pending">Pending</option>
-                </select>
+                <div style={{ minWidth: 180 }}>
+                  <Select
+                    classNamePrefix="modern-select"
+                    value={filterStatus}
+                    onChange={setFilterStatus}
+                    options={[
+                      { value: 'all', label: 'Semua Status' },
+                      { value: 'approved', label: 'Approved' },
+                      { value: 'rejected', label: 'Rejected' },
+                      { value: 'pending', label: 'Pending' },
+                    ]}
+                    isSearchable={false}
+                    styles={{
+                      control: (base, state) => ({
+                        ...base,
+                        borderRadius: 14,
+                        background: 'rgba(255,255,255,0.9)',
+                        borderColor: state.isFocused ? '#7eb9d9' : 'rgba(200,210,220,0.5)',
+                        boxShadow: state.isFocused ? '0 4px 16px rgba(126,185,217,0.15)' : '0 2px 8px rgba(0,0,0,0.04)',
+                        minHeight: 44,
+                        fontFamily: 'Inter, sans-serif',
+                        fontWeight: 500,
+                        fontSize: 15,
+                        color: '#2b3f50',
+                        transition: 'all 0.25s cubic-bezier(0.4,0,0.2,1)',
+                      }),
+                      option: (base, state) => ({
+                        ...base,
+                        borderRadius: 10,
+                        background: state.isSelected ? '#e3f2fd' : state.isFocused ? '#f4f8fb' : 'white',
+                        color: '#2b3f50',
+                        fontWeight: state.isSelected ? 700 : 500,
+                        fontSize: 15,
+                        fontFamily: 'Inter, sans-serif',
+                        padding: '10px 18px',
+                        cursor: 'pointer',
+                      }),
+                      menu: (base) => ({
+                        ...base,
+                        borderRadius: 14,
+                        boxShadow: '0 8px 32px rgba(126,185,217,0.10)',
+                        marginTop: 4,
+                        zIndex: 20,
+                      }),
+                    }}
+                  />
+                </div>
               </div>
             </div>
 
