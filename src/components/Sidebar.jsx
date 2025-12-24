@@ -25,7 +25,7 @@ function Sidebar({ isOpen, onClose }) {
 
         <NavLink to="/aset" className="nav-item">
           <Package className="nav-icon-svg" size={20} strokeWidth={2} />
-          <span className="nav-text">Manajemen Aset</span>
+          <span className="nav-text">Manajemen Kontrak</span>
         </NavLink>
 
         <NavLink to="/vendor" className="nav-item">

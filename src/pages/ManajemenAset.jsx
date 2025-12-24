@@ -5,6 +5,28 @@ import { Eye, Edit, Trash2, Search, ChevronDown, Plus, Save } from 'lucide-react
 import './ManajemenAset.css'
 
 function ManajemenAset() {
+    // State untuk file yang dipilih per kontrak
+    const [selectedFiles, setSelectedFiles] = useState({});
+    // Handler saat file dipilih
+    const handleFileChange = (e, assetId) => {
+      setSelectedFiles(prev => ({
+        ...prev,
+        [assetId]: e.target.files[0]
+      }));
+    };
+
+    // Handler simpan file (dummy, bisa dihubungkan ke backend/Supabase)
+    const handleSaveFile = (assetId) => {
+      const file = selectedFiles[assetId];
+      if (!file) {
+        alert('Pilih file terlebih dahulu!');
+        return;
+      }
+      // TODO: Upload file ke server/Supabase di sini
+      alert(`File untuk kontrak ${assetId} berhasil disimpan!`);
+      // Reset file input jika perlu
+      setSelectedFiles(prev => ({ ...prev, [assetId]: null }));
+    };
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
   const [filterStatus, setFilterStatus] = useState('all')
@@ -287,6 +309,7 @@ function ManajemenAset() {
                   {columnVisibility.status && <th>Status</th>}
                   {columnVisibility.startDate && <th>Tanggal Mulai</th>}
                   {columnVisibility.endDate && <th>Tanggal Selesai</th>}
+                  <th>File</th>
                   <th>Aksi</th>
                 </tr>
               </thead>
@@ -321,6 +344,22 @@ function ManajemenAset() {
                       )}
                       {columnVisibility.startDate && <td>{asset.startDate}</td>}
                       {columnVisibility.endDate && <td>{asset.endDate}</td>}
+                      {/* Kolom File & Simpan */}
+                      <td>
+                        <input
+                          type="file"
+                          onChange={(e) => handleFileChange(e, asset.id)}
+                          style={{ marginBottom: 4 }}
+                        />
+                        <button
+                          className="btn-icon btn-save"
+                          title="Simpan File"
+                          onClick={() => handleSaveFile(asset.id)}
+                          style={{ marginLeft: 4 }}
+                        >
+                          <Save size={16} />
+                        </button>
+                      </td>
                       <td>
                         <div className="action-buttons">
                           <button className="btn-icon btn-view" title="Lihat Detail"><Eye size={16} /></button>
@@ -332,7 +371,7 @@ function ManajemenAset() {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={getVisibleColumnsCount() + 1} className="no-data">
+                    <td colSpan={getVisibleColumnsCount() + 2} className="no-data">
                       <div className="no-data-message">
                         <span className="no-data-icon"><Search size={48} /></span>
                         <p>Tidak ada kontrak yang ditemukan</p>
