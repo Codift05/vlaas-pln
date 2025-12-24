@@ -203,18 +203,36 @@
 .btn-secondary {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 11px 20px;
+  gap: 6px;
+  padding: 6px 14px;
   background: #fff;
   color: #2c3e50;
   border: 1px solid rgba(226, 232, 240, 0.8);
-  border-radius: 12px;
-  font-size: 14px;
+  border-radius: 10px;
+  font-size: 0.6px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.25s;
   font-family: 'Inter', sans-serif;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.btn-secondary {
+  width: 116px;
+  height: 40px;
+  padding: 0;
+  font-size: 11px !important;
+  border-radius: 10px;
+  background: #e3f0ff;
+  color: #1a4c7c;
+  font-weight: 500;
+  border: none;
+  box-shadow: none;
+  transition: background 0.2s;
+  margin-right: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .btn-secondary:hover {
@@ -228,6 +246,20 @@
 /* Column Selector */
 .column-selector {
   position: relative;
+}
+
+.column-selector {
+  width: 116px;
+  height: 40px;
+  min-width: 116px;
+  min-height: 40px;
+  max-width: 116px;
+  max-height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 5px;
+  /* ...existing code... */
 }
 
 .column-dropdown {

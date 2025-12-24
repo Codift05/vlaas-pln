@@ -183,7 +183,7 @@ function ManajemenAset() {
                   className="btn-secondary" 
                   onClick={() => setShowColumnSelector(!showColumnSelector)}
                 >
-                  <Eye size={18} /> Pilih Kolom ({getVisibleColumnsCount()}/9)
+                  <Eye size={25} /> Pilih Kolom ({getVisibleColumnsCount()}/9)
                 </button>
                 {showColumnSelector && (
                   <div className="column-dropdown">
