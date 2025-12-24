@@ -1,3 +1,22 @@
+html {
+  font-size: 16px;
+}
+
+@media (max-width: 1200px) {
+  html {
+    font-size: 15px;
+  }
+}
+@media (max-width: 900px) {
+  html {
+    font-size: 14px;
+  }
+}
+@media (max-width: 600px) {
+  html {
+    font-size: 13px;
+  }
+}
 .header {
   height: 80px;
   background: rgba(255, 255, 255, 0.85);
@@ -5,12 +24,16 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 40px;
+  padding: 0 2.5rem;
   box-shadow: 0 1px 8px rgba(0, 0, 0, 0.03);
   border-bottom: 1px solid rgba(255, 255, 255, 0.3);
   position: sticky;
   top: 0;
   z-index: 100;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  box-sizing: border-box;
 }
 
 .header-left {
@@ -53,7 +76,7 @@
 }
 
 .header-title {
-  font-size: 26px;
+  font-size: 1.7rem;
   font-weight: 700;
   color: #2b3f50;
   margin: 0;
@@ -64,17 +87,19 @@
 .header-right {
   display: flex;
   align-items: center;
-  gap: 25px;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
 .search-box {
   display: flex;
   align-items: center;
   background: rgba(248, 250, 252, 0.8);
-  padding: 11px 22px;
+  padding: 0.7rem 1.3rem;
   border-radius: 30px;
   gap: 10px;
-  min-width: 320px;
+  min-width: 13rem;
   border: 1px solid rgba(226, 232, 240, 0.4);
   transition: all 0.25s;
 }
@@ -95,7 +120,7 @@
   border: none;
   background: transparent;
   outline: none;
-  font-size: 14px;
+  font-size: 1rem;
   color: #2b3f50;
   font-family: 'Inter', sans-serif;
 }
@@ -144,7 +169,7 @@
   align-items: center;
   gap: 12px;
   cursor: pointer;
-  padding: 8px 16px;
+  padding: 0.5rem 1rem;
   border-radius: 30px;
   transition: all 0.25s;
 }
@@ -276,15 +301,15 @@
 }
 
 .user-avatar {
-  width: 42px;
-  height: 42px;
+  width: 2.5rem;
+  height: 2.5rem;
   background: linear-gradient(135deg, #7eb9d9 0%, #5a9dc4 100%);
   color: white;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 17px;
+  font-size: 1.1rem;
   font-weight: 700;
   font-family: 'Inter', sans-serif;
   box-shadow: 0 2px 8px rgba(126, 185, 217, 0.2);
@@ -296,35 +321,39 @@
 }
 
 .user-name {
-  font-size: 14px;
+  font-size: 1rem;
   font-weight: 600;
   color: #2b3f50;
   font-family: 'Inter', sans-serif;
 }
 
 .user-role {
-  font-size: 12px;
+  font-size: 0.85rem;
   color: #8b95a1;
   font-family: 'Inter', sans-serif;
   font-weight: 500;
 }
 
 @media (max-width: 968px) {
+    .header-right {
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
   .hamburger-menu {
     display: flex !important;
     pointer-events: auto;
   }
   
   .header {
-    padding: 0 20px;
+    padding: 0 4vw;
   }
 
   .search-box {
-    min-width: 150px;
+    min-width: 120px;
   }
   
   .header-title {
-    font-size: 20px;
+    font-size: 1.3rem;
   }
 
   .user-info {
@@ -337,14 +366,27 @@
 }
 
 @media (max-width: 600px) {
+    .header-right {
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
   .header {
-    padding: 0 15px;
+    padding: 0 2vw;
   }
   
   .header-title {
-    font-size: 18px;
+    font-size: 1.1rem;
   }
   
+
+@media (max-width: 400px) {
+  .header {
+    padding: 0 1vw;
+  }
+  .header-title {
+    font-size: 0.95rem;
+  }
+}
   .search-box {
     display: none;
   }

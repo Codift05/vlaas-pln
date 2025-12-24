@@ -5,6 +5,7 @@ import { Eye, Edit, Trash2, Search, ChevronDown, Plus, Save } from 'lucide-react
 import './ManajemenAset.css'
 
 function ManajemenAset() {
+      const [sidebarMini, setSidebarMini] = useState(false)
     // State untuk file yang dipilih per kontrak
     const [selectedFiles, setSelectedFiles] = useState({});
     // Handler saat file dipilih
@@ -165,7 +166,7 @@ function ManajemenAset() {
 
   return (
     <div className="dashboard-layout">
-      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <Sidebar isOpen={sidebarOpen} isMini={sidebarMini} onClose={() => setSidebarOpen(false)} onLogoClick={() => { setSidebarMini(true); setSidebarOpen(false); }} onHamburgerClick={() => { setSidebarMini(false); setSidebarOpen(true); }} />
       <div className="main-content">
         <Header title="Manajemen Kontrak" onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
         
