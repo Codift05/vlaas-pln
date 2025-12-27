@@ -1,0 +1,202 @@
+
+> vlaas@1.0.0 build
+> next build
+
+⚠ Warning: Next.js inferred your workspace root, but it may not be correct.
+ We detected multiple lockfiles and selected the directory of D:\package-lock.json as the root directory.
+ To silence this warning, set `turbopack.root` in your Next.js config, or consider removing one of the lockfiles if it's not needed.
+   See https://nextjs.org/docs/app/api-reference/config/next-config-js/turbopack#root-directory for more information.
+ Detected additional lockfiles: 
+   * D:\VLAAS\package-lock.json
+
+▲ Next.js 16.1.1 (Turbopack)
+- Environments: .env
+
+  Creating an optimized production build ...
+
+> Build error occurred
+Error: Turbopack build failed with 11 errors:
+./VLAAS/src/app/vendor-portal/profile/VendorProfile.css:163:18
+Parsing CSS source code failed
+[0m [90m 161 |[39m   }
+ [90m 162 |[39m }
+[31m[1m>[22m[39m[90m 163 |[39m   margin[33m-[39mbottom[33m:[39m [35m32[39mpx[33m;[39m
+ [90m     |[39m                  [31m[1m^[22m[39m
+ [90m 164 |[39m   flex[33m-[39mwrap[33m:[39m wrap[33m;[39m
+ [90m 165 |[39m   gap[33m:[39m [35m20[39mpx[33m;[39m
+ [90m 166 |[39m }[0m
+
+Invalid token in pseudo element: WhiteSpace(" ")
+
+Import trace:
+  Client Component Browser:
+    ./VLAAS/src/app/vendor-portal/profile/VendorProfile.css [Client Component Browser]
+    ./VLAAS/src/app/vendor-portal/profile/page.js [Client Component Browser]
+    ./VLAAS/src/app/vendor-portal/profile/page.js [Server Component]
+
+
+./VLAAS/src/pages/VendorDashboard_backup.jsx:77:13
+Parsing ecmascript source code failed
+[0m [90m 75 |[39m       kategori[33m:[39m [32m'Kabel'[39m[33m,[39m
+ [90m 76 |[39m       lokasi[33m:[39m [32m'Jaringan Tegangan Menengah'[39m[33m,[39m
+[31m[1m>[22m[39m[90m 77 |[39m      [33mFilter[39m data based on search
+ [90m    |[39m             [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 78 |[39m   [36mconst[39m filteredData [33m=[39m suratData[33m.[39mfilter(surat [33m=>[39m
+ [90m 79 |[39m     surat[33m.[39mnamaKontrak[33m.[39mtoLowerCase()[33m.[39mincludes(searchQuery[33m.[39mtoLowerCase()) [33m||[39m
+ [90m 80 |[39m     surat[33m.[39mnomorSurat[33m.[39mtoLowerCase()[33m.[39mincludes(searchQuery[33m.[39mtoLowerCase()) [33m||[39m[0m
+
+Unexpected token `data`. Expected ... , *,  (, [, :, , ?, = or an identifier
+
+
+./VLAAS/src/pages/DataVendor.jsx:5:1
+Module not found: Can't resolve './DataVendor.css'
+[0m [90m 3 |[39m [36mimport[39m [33mHeader[39m [36mfrom[39m [32m'../components/Header'[39m
+ [90m 4 |[39m [36mimport[39m { [33mUsers[39m[33m,[39m [33mCheckCircle[39m[33m,[39m [33mSearch[39m[33m,[39m [33mEye[39m[33m,[39m [33mEdit[39m[33m,[39m [33mTrash2[39m[33m,[39m [33mPauseCircle[39m[33m,[39m [33mClipboardList[39m[33m,[39m [33mPlus[39m[33m,[39m [33mSave[39m[33m,[39m [33mX[39m } [36mfrom[39m [32m'lucide-react'[39m
+[31m[1m>[22m[39m[90m 5 |[39m [36mimport[39m [32m'./DataVendor.css'[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 6 |[39m
+ [90m 7 |[39m [36mfunction[39m [33mDataVendor[39m() {
+ [90m 8 |[39m     [90m// State untuk file yang dipilih[39m[0m
+
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+./VLAAS/src/pages/Laporan.jsx:6:1
+Module not found: Can't resolve './Laporan.css'
+[0m [90m 4 |[39m [36mimport[39m [33mHeader[39m [36mfrom[39m [32m'../components/Header'[39m
+ [90m 5 |[39m [36mimport[39m { [33mFileDown[39m[33m,[39m [33mFileText[39m[33m,[39m [33mClock[39m[33m,[39m [33mCheckCircle[39m[33m,[39m [33mBarChart2[39m[33m,[39m [33mUsers[39m[33m,[39m [33mClipboardList[39m[33m,[39m [33mHourglass[39m[33m,[39m [33mTarget[39m } [36mfrom[39m [32m'lucide-react'[39m
+[31m[1m>[22m[39m[90m 6 |[39m [36mimport[39m [32m'./Laporan.css'[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 7 |[39m
+ [90m 8 |[39m [36mfunction[39m [33mLaporan[39m() {
+ [90m 9 |[39m   [36mconst[39m [sidebarOpen[33m,[39m setSidebarOpen] [33m=[39m useState([36mfalse[39m)[0m
+
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+./VLAAS/src/pages/ManajemenAset.jsx:7:1
+Module not found: Can't resolve './ManajemenAset.css'
+[0m [90m  5 |[39m [36mimport[39m { [33mEye[39m[33m,[39m [33mEdit[39m[33m,[39m [33mTrash2[39m[33m,[39m [33mSearch[39m[33m,[39m [33mChevronDown[39m[33m,[39m [33mPlus[39m[33m,[39m [33mSave[39m[33m,[39m [33mUpload[39m } [36mfrom[39m [32m'lucide-react'[39m
+ [90m  6 |[39m [36mimport[39m { supabase } [36mfrom[39m [32m'../lib/supabaseClient'[39m
+[31m[1m>[22m[39m[90m  7 |[39m [36mimport[39m [32m'./ManajemenAset.css'[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m  8 |[39m [36mfunction[39m [33mManajemenAset[39m() {
+ [90m  9 |[39m   [90m// Debug log to help diagnose blank page[39m
+ [90m 10 |[39m   console[33m.[39mlog([32m'ManajemenAset render start'[39m)[33m;[39m[0m
+
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+./VLAAS/src/pages/Pengaturan.jsx:5:1
+Module not found: Can't resolve './Pengaturan.css'
+[0m [90m 3 |[39m [36mimport[39m [33mHeader[39m [36mfrom[39m [32m'../components/Header'[39m
+ [90m 4 |[39m [36mimport[39m { [33mUser[39m[33m,[39m [33mUsers[39m[33m,[39m [33mSettings[39m[33m,[39m [33mMail[39m[33m,[39m [33mSearch[39m[33m,[39m [33mLock[39m[33m,[39m [33mFileText[39m[33m,[39m [33mSave[39m[33m,[39m [33mUserPlus[39m[33m,[39m [33mBan[39m } [36mfrom[39m [32m'lucide-react'[39m
+[31m[1m>[22m[39m[90m 5 |[39m [36mimport[39m [32m'./Pengaturan.css'[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 6 |[39m
+ [90m 7 |[39m [36mfunction[39m [33mPengaturan[39m() {
+ [90m 8 |[39m   [36mconst[39m [sidebarOpen[33m,[39m setSidebarOpen] [33m=[39m useState([36mfalse[39m)[0m
+
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+./VLAAS/src/pages/VendorLayout.jsx:4:1
+Module not found: Can't resolve './VendorLayout.css'
+[0m [90m 2 |[39m [36mimport[39m [33mVendorHeader[39m [36mfrom[39m [32m'../components/VendorHeader'[39m
+ [90m 3 |[39m [36mimport[39m [33mVendorSidebar[39m [36mfrom[39m [32m'../components/VendorSidebar'[39m
+[31m[1m>[22m[39m[90m 4 |[39m [36mimport[39m [32m'./VendorLayout.css'[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 5 |[39m
+ [90m 6 |[39m [36mfunction[39m [33mVendorLayout[39m() {
+ [90m 7 |[39m   [36mreturn[39m ([0m
+
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+./VLAAS/src/pages/VendorPengajuan.jsx:4:1
+Module not found: Can't resolve './VendorPengajuan.css'
+[0m [90m 2 |[39m [36mimport[39m { useNavigate } [36mfrom[39m [32m'react-router-dom'[39m
+ [90m 3 |[39m [36mimport[39m { [33mFileText[39m[33m,[39m [33mUpload[39m[33m,[39m [33mX[39m[33m,[39m [33mCheckCircle[39m[33m,[39m [33mCalendar[39m[33m,[39m [33mAlertCircle[39m } [36mfrom[39m [32m'lucide-react'[39m
+[31m[1m>[22m[39m[90m 4 |[39m [36mimport[39m [32m'./VendorPengajuan.css'[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 5 |[39m
+ [90m 6 |[39m [36mfunction[39m [33mVendorPengajuan[39m() {
+ [90m 7 |[39m   [36mconst[39m navigate [33m=[39m useNavigate()[0m
+
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+./VLAAS/src/pages/VendorProfile.jsx:3:1
+Module not found: Can't resolve './VendorProfile.css'
+[0m [90m 1 |[39m [36mimport[39m { useState[33m,[39m useEffect } [36mfrom[39m [32m'react'[39m
+ [90m 2 |[39m [36mimport[39m { [33mBuilding2[39m[33m,[39m [33mMapPin[39m[33m,[39m [33mPhone[39m[33m,[39m [33mUser[39m[33m,[39m [33mMail[39m[33m,[39m [33mSave[39m[33m,[39m [33mEdit2[39m } [36mfrom[39m [32m'lucide-react'[39m
+[31m[1m>[22m[39m[90m 3 |[39m [36mimport[39m [32m'./VendorProfile.css'[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 4 |[39m
+ [90m 5 |[39m [36mfunction[39m [33mVendorProfile[39m() {
+ [90m 6 |[39m   [36mconst[39m [isEditing[33m,[39m setIsEditing] [33m=[39m useState([36mfalse[39m)[0m
+
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+./VLAAS/src/pages/VendorLayout.jsx:1:1
+Module not found: Can't resolve 'react-router-dom'
+[0m[31m[1m>[22m[39m[90m 1 |[39m [36mimport[39m { [33mOutlet[39m } [36mfrom[39m [32m'react-router-dom'[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 2 |[39m [36mimport[39m [33mVendorHeader[39m [36mfrom[39m [32m'../components/VendorHeader'[39m
+ [90m 3 |[39m [36mimport[39m [33mVendorSidebar[39m [36mfrom[39m [32m'../components/VendorSidebar'[39m
+ [90m 4 |[39m [36mimport[39m [32m'./VendorLayout.css'[39m[0m
+
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+./VLAAS/src/pages/VendorPengajuan.jsx:2:1
+Module not found: Can't resolve 'react-router-dom'
+[0m [90m 1 |[39m [36mimport[39m { useState[33m,[39m useRef } [36mfrom[39m [32m'react'[39m
+[31m[1m>[22m[39m[90m 2 |[39m [36mimport[39m { useNavigate } [36mfrom[39m [32m'react-router-dom'[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 3 |[39m [36mimport[39m { [33mFileText[39m[33m,[39m [33mUpload[39m[33m,[39m [33mX[39m[33m,[39m [33mCheckCircle[39m[33m,[39m [33mCalendar[39m[33m,[39m [33mAlertCircle[39m } [36mfrom[39m [32m'lucide-react'[39m
+ [90m 4 |[39m [36mimport[39m [32m'./VendorPengajuan.css'[39m
+ [90m 5 |[39m[0m
+
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+    at <unknown> (./VLAAS/src/app/vendor-portal/profile/VendorProfile.css:163:18)
+    at <unknown> (./VLAAS/src/pages/VendorDashboard_backup.jsx:77:13)
+    at <unknown> (./VLAAS/src/pages/DataVendor.jsx:5:1)
+    at <unknown> (https://nextjs.org/docs/messages/module-not-found)
+    at <unknown> (./VLAAS/src/pages/Laporan.jsx:6:1)
+    at <unknown> (https://nextjs.org/docs/messages/module-not-found)
+    at <unknown> (./VLAAS/src/pages/ManajemenAset.jsx:7:1)
+    at <unknown> (https://nextjs.org/docs/messages/module-not-found)
+    at <unknown> (./VLAAS/src/pages/Pengaturan.jsx:5:1)
+    at <unknown> (https://nextjs.org/docs/messages/module-not-found)
+    at <unknown> (./VLAAS/src/pages/VendorLayout.jsx:4:1)
+    at <unknown> (https://nextjs.org/docs/messages/module-not-found)
+    at <unknown> (./VLAAS/src/pages/VendorPengajuan.jsx:4:1)
+    at <unknown> (https://nextjs.org/docs/messages/module-not-found)
+    at <unknown> (./VLAAS/src/pages/VendorProfile.jsx:3:1)
+    at <unknown> (https://nextjs.org/docs/messages/module-not-found)
+    at <unknown> (./VLAAS/src/pages/VendorLayout.jsx:1:1)
+    at <unknown> (https://nextjs.org/docs/messages/module-not-found)
+    at <unknown> (./VLAAS/src/pages/VendorPengajuan.jsx:2:1)
+    at <unknown> (https://nextjs.org/docs/messages/module-not-found)
