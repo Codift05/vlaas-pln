@@ -14,7 +14,7 @@
 **Vendor Letter Archive & Approval System**
 
 [![React](https://img.shields.io/badge/React-19.2.0-61DAFB?style=for-the-badge&logo=react&logoColor=white)](https://react.dev/)
-[![Vite](https://img.shields.io/badge/Vite-7.2.5-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
+[![Next.js](https://img.shields.io/badge/Next.js-16.1.1-000000?style=for-the-badge&logo=next.js&logoColor=white)](https://nextjs.org/)
 [![Supabase](https://img.shields.io/badge/Supabase-Database-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)](https://supabase.com/)
 [![License](https://img.shields.io/badge/License-Proprietary-red?style=for-the-badge)](LICENSE)
 
@@ -83,12 +83,10 @@
 ## Tech Stack
 
 ### Frontend
-- **Framework**: React 19.2.0 - Library UI modern dengan hooks
-- **Build Tool**: Vite 7.2.5 - Fast build dan HMR
-- **Router**: React Router v6 - Client-side routing
-- **Styling**: Tailwind CSS - Utility-first CSS framework
+- **Framework**: Next.js 16.1.1 - React Framework for the Web (App Router)
+- **Styling**: Vanilla CSS / Styled Components
 - **Charts**: Chart.js / Recharts - Visualisasi data interaktif
-- **HTTP Client**: Axios - Request handling
+- **HTTP Client**: Axios / Fetch API
 - **Form Management**: React Hook Form - Form validation
 - **State Management**: Context API - Global state
 
@@ -116,7 +114,7 @@
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                         FRONTEND                            │
-│                    (React + Vite SPA)                       │
+│                  (Next.js App Router)                       │
 │                                                             │
 │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐    │
 │  │   Vendor     │  │    Admin     │  │ Super Admin  │    │
@@ -124,7 +122,7 @@
 │  └──────────────┘  └──────────────┘  └──────────────┘    │
 │                                                             │
 │  ┌─────────────────────────────────────────────────────┐  │
-│  │           React Router (Client Routing)             │  │
+│  │           Next.js Router (App Directory)            │  │
 │  └─────────────────────────────────────────────────────┘  │
 │                                                             │
 │  ┌─────────────────────────────────────────────────────┐  │
@@ -336,8 +334,8 @@ npm install
 Buat file `.env` di root project:
 
 ```env
-VITE_SUPABASE_URL=your_supabase_url
-VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 ```
 
 ### 4. Setup Database (Supabase)
@@ -350,13 +348,13 @@ Jalankan migration SQL di Supabase SQL Editor (lihat folder `/database`)
 npm run dev
 ```
 
-Aplikasi akan berjalan di `http://localhost:5173`
+Aplikasi akan berjalan di `http://localhost:3000`
 
 ### 6. Build untuk Production
 
 ```bash
 npm run build
-npm run preview
+npm start
 ```
 
 ---
@@ -367,27 +365,22 @@ npm run preview
 vlaas-pln/
 ├── public/                 # Static assets
 ├── src/
+│   ├── app/               # App Router pages & layouts
 │   ├── assets/            # Images, icons
 │   ├── components/        # Reusable components
 │   │   ├── common/        # Button, Input, Modal, dll
 │   │   ├── vendor/        # Vendor-specific components
 │   │   └── admin/         # Admin-specific components
-│   ├── pages/             # Page components
-│   │   ├── auth/          # Login, Register
-│   │   ├── vendor/        # Vendor dashboard
-│   │   └── admin/         # Admin dashboard
 │   ├── services/          # API services (Supabase)
 │   ├── hooks/             # Custom React hooks
 │   ├── contexts/          # Context providers
 │   ├── utils/             # Helper functions
 │   ├── constants/         # Constants & enums
-│   ├── routes/            # Route configuration
-│   ├── App.jsx            # Main App component
-│   └── main.jsx           # Entry point
+│   ├── lib/               # Libraries (e.g. Supabase client)
 ├── database/              # SQL migrations & schema
 ├── .env.example           # Environment template
 ├── package.json
-├── vite.config.js
+├── next.config.mjs
 └── README.md
 ```
 

@@ -2,7 +2,193 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { LayoutDashboard, Package, Users, FileBarChart } from 'lucide-react'
-import './Sidebar.css'
+import styled from 'styled-components'
+
+const Overlay = styled.div`
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+
+  &.active {
+    opacity: 1;
+  }
+
+  @media (max-width: 968px) {
+    display: block;
+    
+    &.active {
+      opacity: 1;
+    }
+  }
+`;
+
+const SidebarWrapper = styled.div`
+  width: 280px;
+  height: 100vh;
+  background: linear-gradient(180deg, #5a9dc4 0%, #7eb9d9 50%, #8ac4dd 100%);
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  left: 0;
+  top: 0;
+  box-shadow: 4px 0 16px rgba(0, 0, 0, 0.08);
+  z-index: 1000;
+  transition: transform 0.3s ease;
+  border-right: 1px solid rgba(255, 255, 255, 0.2);
+
+  .sidebar-header {
+    height: 80px;
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.08);
+  }
+
+  .sidebar-logo {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .sidebar-logo-img {
+    width: 48px;
+    height: 48px;
+    object-fit: contain;
+    background: white;
+    border-radius: 12px;
+    padding: 6px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+
+  .sidebar-logo-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .sidebar-logo-text {
+    font-size: 20px;
+    font-weight: 800;
+    color: white;
+    letter-spacing: 0.5px;
+    font-family: 'Inter', sans-serif;
+    line-height: 1;
+  }
+
+  .sidebar-logo-desc {
+    font-size: 11px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.75);
+    font-family: 'Inter', sans-serif;
+    letter-spacing: 0.3px;
+  }
+
+  .sidebar-nav {
+    flex: 1;
+    padding: 20px 0;
+    overflow-y: auto;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 24px;
+    margin: 4px 12px;
+    color: rgba(255, 255, 255, 0.85);
+    text-decoration: none;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    border-radius: 12px;
+    border-left: 3px solid transparent;
+    font-family: 'Inter', sans-serif;
+  }
+
+  .nav-item:hover {
+    background: rgba(255, 255, 255, 0.12);
+    color: white;
+    transform: translateX(4px);
+    border-left-color: rgba(255, 255, 255, 0.5);
+  }
+
+  .nav-item.active {
+    background: rgba(255, 255, 255, 0.18);
+    color: white;
+    border-left-color: white;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .nav-icon-svg {
+    color: currentColor;
+    flex-shrink: 0;
+  }
+
+  .nav-text {
+    font-size: 15px;
+    font-weight: 500;
+    letter-spacing: 0.2px;
+  }
+
+  .sidebar-footer {
+    padding: 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .logout-btn {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    width: 100%;
+    padding: 15px 25px;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-size: 16px;
+  }
+
+  .logout-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+  }
+
+  /* Scrollbar Styling */
+  .sidebar-nav::-webkit-scrollbar {
+    width: 5px;
+  }
+
+  .sidebar-nav::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  .sidebar-nav::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.25);
+    border-radius: 10px;
+  }
+
+  .sidebar-nav::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.4);
+  }
+
+  @media (max-width: 968px) {
+    transform: translateX(-100%);
+    
+    &.open {
+      transform: translateX(0);
+    }
+  }
+`;
 
 function Sidebar({ isOpen, onClose }) {
   const pathname = usePathname()
@@ -11,8 +197,8 @@ function Sidebar({ isOpen, onClose }) {
 
   return (
     <>
-      <div className={`sidebar-overlay ${isOpen ? 'active' : ''}`} onClick={onClose}></div>
-      <div className={`sidebar ${isOpen ? 'open' : ''}`}>
+      <Overlay className={isOpen ? 'active' : ''} onClick={onClose} />
+      <SidebarWrapper className={isOpen ? 'open' : ''}>
         <div className="sidebar-header">
           <div className="sidebar-logo">
             <img src="/images/Logo_vlaas.png" alt="VLAAS Logo" className="sidebar-logo-img" />
@@ -44,7 +230,7 @@ function Sidebar({ isOpen, onClose }) {
             <span className="nav-text">Laporan</span>
           </Link>
         </nav>
-      </div>
+      </SidebarWrapper>
     </>
   )
 }

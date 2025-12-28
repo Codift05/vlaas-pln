@@ -124,10 +124,12 @@
   position: relative;
   overflow: hidden;
 }
+
 .btn-primary:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 16px rgba(126, 185, 217, 0.35);
 }
+
 .btn-secondary {
   display: flex;
   align-items: center;
@@ -144,6 +146,7 @@
   font-family: 'Inter', sans-serif;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
 }
+
 .btn-secondary:hover {
   background: #f8fafc;
   border-color: #cbd5e1;
@@ -156,14 +159,12 @@
   .profile-section {
     padding: 18px 8px;
   }
+
   .profile-sections {
     gap: 18px;
   }
 }
-  margin-bottom: 32px;
-  flex-wrap: wrap;
-  gap: 20px;
-}
+
 
 .profile-header h1 {
   font-size: 2rem;
@@ -628,21 +629,5 @@
     justify-content: center;
     margin-left: 0;
     margin-top: 12px;
-  }
-}
-
-  .form-actions {
-    flex-direction: column-reverse;
-  }
-
-  .btn-primary,
-  .btn-secondary {
-    width: 100%;
-    justify-content: center;
-  }
-
-  .warning-banner {
-    flex-direction: column;
-    align-items: flex-start;
   }
 }
