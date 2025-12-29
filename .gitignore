@@ -42,3 +42,6 @@ yarn-error.log*
 # Pushing secrets to git is BAD.
 # I will ADD .env to gitignore.
 .env
+
+# Google Credentials
+*.apps.googleusercontent.com.json

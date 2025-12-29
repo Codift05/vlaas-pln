@@ -367,7 +367,7 @@ function Header({ onMenuClick }) {
       case '/dashboard':
         return 'Dashboard'
       case '/aset':
-        return 'Manajemen Aset'
+        return 'Manajemen Kontrak'
       case '/vendor':
         return 'Data Vendor'
       case '/laporan':
