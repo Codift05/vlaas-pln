@@ -1,3 +1,4 @@
+// ...existing code from previous patch (Next.js styled-components version)...
 'use client'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
@@ -22,7 +23,6 @@ const Overlay = styled.div`
 
   @media (max-width: 968px) {
     display: block;
-    
     &.active {
       opacity: 1;
     }
@@ -182,18 +182,24 @@ const SidebarWrapper = styled.div`
   }
 
   @media (max-width: 968px) {
+    width: 80vw;
+    min-width: 220px;
+    max-width: 320px;
     transform: translateX(-100%);
-    
     &.open {
       transform: translateX(0);
     }
   }
 `;
 
-function Sidebar({ isOpen, onClose }) {
-  const pathname = usePathname()
 
-  const isActive = (path) => pathname === path ? 'active' : ''
+function Sidebar({ isOpen, onClose }) {
+  const pathname = usePathname();
+  const isActive = (path) => pathname === path ? 'active' : '';
+  // Tutup sidebar otomatis saat link diklik di mobile
+  const handleNavClick = () => {
+    if (window.innerWidth <= 968 && onClose) onClose();
+  };
 
   return (
     <>
@@ -210,29 +216,29 @@ function Sidebar({ isOpen, onClose }) {
         </div>
 
         <nav className="sidebar-nav">
-          <Link href="/dashboard" className={`nav-item ${isActive('/dashboard')}`}>
+          <Link href="/dashboard" className={`nav-item ${isActive('/dashboard')}`} onClick={handleNavClick}>
             <LayoutDashboard className="nav-icon-svg" size={20} strokeWidth={2} />
             <span className="nav-text">Dashboard</span>
           </Link>
 
-          <Link href="/aset" className={`nav-item ${isActive('/aset')}`}>
+          <Link href="/aset" className={`nav-item ${isActive('/aset')}`} onClick={handleNavClick}>
             <Package className="nav-icon-svg" size={20} strokeWidth={2} />
-            <span className="nav-text">Manajemen Aset</span>
+            <span className="nav-text">Manajemen Kontrak</span>
           </Link>
 
-          <Link href="/vendor" className={`nav-item ${isActive('/vendor')}`}>
+          <Link href="/vendor" className={`nav-item ${isActive('/vendor')}`} onClick={handleNavClick}>
             <Users className="nav-icon-svg" size={20} strokeWidth={2} />
             <span className="nav-text">Data Vendor</span>
           </Link>
 
-          <Link href="/laporan" className={`nav-item ${isActive('/laporan')}`}>
+          <Link href="/laporan" className={`nav-item ${isActive('/laporan')}`} onClick={handleNavClick}>
             <FileBarChart className="nav-icon-svg" size={20} strokeWidth={2} />
             <span className="nav-text">Laporan</span>
           </Link>
         </nav>
       </SidebarWrapper>
     </>
-  )
+  );
 }
 
-export default Sidebar
+export default Sidebar;

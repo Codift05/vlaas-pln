@@ -17,9 +17,10 @@ function ManajemenAset() {
         id: true,
         name: true,
         vendorName: true,
+        amount: true, // Nilai Kontrak
         budgetType: true,
         contractType: true,
-        category: true,
+        // category: true, // kategori dihapus
         location: true,
         status: true,
         startDate: true,
@@ -80,9 +81,12 @@ function ManajemenAset() {
     const [formData, setFormData] = useState({
         id: '',
         name: '',
+        recipient: '',
+        invoiceNumber: '',
+        amount: '',
         budgetType: '',
         contractType: '',
-        category: '',
+        // category: '', // kategori dihapus
         location: '',
         status: 'Aktif',
         startDate: '',
@@ -90,13 +94,35 @@ function ManajemenAset() {
     });
 
     const assets = [
-        { id: 'AST001', name: 'Transformer 500KVA', vendorName: 'PT Elektrindo Jaya', budgetType: 'AI', contractType: 'PJ', category: 'Trafo', location: 'Gardu Induk Jakarta', status: 'Aktif', startDate: '01/01/2025', endDate: '31/12/2025' },
-        { id: 'AST002', name: 'Generator Set Diesel', vendorName: 'CV Maju Bersama Electric', budgetType: 'AO', contractType: 'SPK', category: 'Generator', location: 'PLTD Surabaya', status: 'Aktif', startDate: '15/02/2025', endDate: '15/08/2025' },
-        { id: 'AST003', name: 'Circuit Breaker 20KV', vendorName: 'PT Sentosa Generator', budgetType: 'AI', contractType: 'PO', category: 'CB', location: 'Gardu Induk Bandung', status: 'Perbaikan', startDate: '01/03/2025', endDate: '30/06/2025' },
-        { id: 'AST004', name: 'Panel Distribusi', vendorName: 'CV Kabel Utama Indonesia', budgetType: 'AO', contractType: 'PJ', category: 'Panel', location: 'Gardu Distribusi A12', status: 'Aktif', startDate: '10/01/2025', endDate: '10/07/2025' },
-        { id: 'AST005', name: 'Kabel XLPE 150mm', vendorName: 'PT Teknindo Power System', budgetType: 'AI', contractType: 'SPK', category: 'Kabel', location: 'Jaringan Tegangan Menengah', status: 'Aktif', startDate: '20/02/2025', endDate: '20/11/2025' },
-        { id: 'AST006', name: 'Transformer 1000KVA', vendorName: 'PT Elektrindo Jaya', budgetType: 'AO', contractType: 'PO', category: 'Trafo', location: 'Gardu Induk Semarang', status: 'Tidak Aktif', startDate: '05/01/2025', endDate: '05/05/2025' },
+        { id: 'AST001', name: 'Transformer 500KVA', vendorName: 'PT Elektrindo Jaya', recipient: 'Divisi Operasi PLN', invoiceNumber: 'INV-2025-001', amount: 1500000000, budgetType: 'AI', contractType: 'PJ', category: 'Trafo', location: 'Gardu Induk Jakarta', status: 'Aktif', startDate: '01/01/2025', endDate: '31/12/2025' },
+        { id: 'AST002', name: 'Generator Set Diesel', vendorName: 'CV Maju Bersama Electric', recipient: 'Divisi Pemeliharaan', invoiceNumber: 'INV-2025-002', amount: 900000000, budgetType: 'AO', contractType: 'SPK', category: 'Generator', location: 'PLTD Surabaya', status: 'Aktif', startDate: '15/02/2025', endDate: '15/08/2025' },
+        { id: 'AST003', name: 'Circuit Breaker 20KV', vendorName: 'PT Sentosa Generator', recipient: 'Divisi Proteksi', invoiceNumber: 'INV-2025-003', amount: 500000000, budgetType: 'AI', contractType: 'PO', category: 'CB', location: 'Gardu Induk Bandung', status: 'Perbaikan', startDate: '01/03/2025', endDate: '30/06/2025' },
+        { id: 'AST004', name: 'Panel Distribusi', vendorName: 'CV Kabel Utama Indonesia', recipient: 'Divisi Distribusi', invoiceNumber: 'INV-2025-004', amount: 700000000, budgetType: 'AO', contractType: 'PJ', category: 'Panel', location: 'Gardu Distribusi A12', status: 'Aktif', startDate: '10/01/2025', endDate: '10/07/2025' },
+        { id: 'AST005', name: 'Kabel XLPE 150mm', vendorName: 'PT Teknindo Power System', recipient: 'Divisi Jaringan', invoiceNumber: 'INV-2025-005', amount: 1200000000, budgetType: 'AI', contractType: 'SPK', category: 'Kabel', location: 'Jaringan Tegangan Menengah', status: 'Aktif', startDate: '20/02/2025', endDate: '20/11/2025' },
+        { id: 'AST006', name: 'Transformer 1000KVA', vendorName: 'PT Elektrindo Jaya', recipient: 'Divisi Investasi', invoiceNumber: 'INV-2025-006', amount: 2000000000, budgetType: 'AO', contractType: 'PO', category: 'Trafo', location: 'Gardu Induk Semarang', status: 'Tidak Aktif', startDate: '05/01/2025', endDate: '05/05/2025' },
     ]
+    // Countdown timer for detail modal
+    const [timeRemaining, setTimeRemaining] = useState('');
+    useEffect(() => {
+        if (!showDetailModal || !selectedAsset) return;
+        function updateCountdown() {
+            const now = new Date();
+            const end = new Date(selectedAsset.endDate.split('/').reverse().join('-'));
+            const diff = end - now;
+            if (diff <= 0) {
+                setTimeRemaining('Sudah melewati tenggat!');
+                return;
+            }
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+            const minutes = Math.floor((diff / (1000 * 60)) % 60);
+            const seconds = Math.floor((diff / 1000) % 60);
+            setTimeRemaining(`${days} hari ${hours} jam ${minutes} menit ${seconds} detik`);
+        }
+        updateCountdown();
+        const interval = setInterval(updateCountdown, 1000);
+        return () => clearInterval(interval);
+    }, [showDetailModal, selectedAsset]);
 
     // Close dropdown when clicking outside
     useEffect(() => {
@@ -218,7 +244,7 @@ function ManajemenAset() {
                                 className="column-selector-btn"
                                 onClick={() => setShowColumnSelector(!showColumnSelector)}
                             >
-                                <Eye size={18} /> Pilih Kolom ({getVisibleColumnsCount()}/9)
+                                <Eye size={18} /> Pilih Kolom ({getVisibleColumnsCount()}/10)
                             </button>
                             {showColumnSelector && (
                                 <div className="column-dropdown">
@@ -253,6 +279,14 @@ function ManajemenAset() {
                                         <label className="column-option">
                                             <input
                                                 type="checkbox"
+                                                checked={columnVisibility.amount}
+                                                onChange={() => toggleColumnVisibility('amount')}
+                                            />
+                                            <span>Nilai Kontrak</span>
+                                        </label>
+                                        <label className="column-option">
+                                            <input
+                                                type="checkbox"
                                                 checked={columnVisibility.budgetType}
                                                 onChange={() => toggleColumnVisibility('budgetType')}
                                             />
@@ -266,14 +300,7 @@ function ManajemenAset() {
                                             />
                                             <span>Tipe Kontrak</span>
                                         </label>
-                                        <label className="column-option">
-                                            <input
-                                                type="checkbox"
-                                                checked={columnVisibility.category}
-                                                onChange={() => toggleColumnVisibility('category')}
-                                            />
-                                            <span>Kategori</span>
-                                        </label>
+
                                         <label className="column-option">
                                             <input
                                                 type="checkbox"
@@ -324,9 +351,10 @@ function ManajemenAset() {
                                 {columnVisibility.id && <th>Nomor Kontrak</th>}
                                 {columnVisibility.name && <th>Nama Kontrak</th>}
                                 {columnVisibility.vendorName && <th>Nama Vendor</th>}
+                                {columnVisibility.amount && <th>Nilai Kontrak</th>}
                                 {columnVisibility.budgetType && <th>Tipe Anggaran</th>}
                                 {columnVisibility.contractType && <th>Tipe Kontrak</th>}
-                                {columnVisibility.category && <th>Kategori</th>}
+
                                 {columnVisibility.location && <th>Lokasi</th>}
                                 {columnVisibility.status && <th>Status</th>}
                                 {columnVisibility.startDate && <th>Tanggal Mulai</th>}
@@ -341,6 +369,7 @@ function ManajemenAset() {
                                         {columnVisibility.id && <td className="asset-id">{asset.id}</td>}
                                         {columnVisibility.name && <td className="asset-name">{asset.name}</td>}
                                         {columnVisibility.vendorName && <td className="asset-vendor">{asset.vendorName}</td>}
+                                        {columnVisibility.amount && <td>{asset.amount?.toLocaleString('id-ID', { style: 'currency', currency: 'IDR' })}</td>}
                                         {columnVisibility.budgetType && (
                                             <td>
                                                 <span className={`budget-badge budget-${asset.budgetType.toLowerCase()}`}>
@@ -355,7 +384,7 @@ function ManajemenAset() {
                                                 </span>
                                             </td>
                                         )}
-                                        {columnVisibility.category && <td>{asset.category}</td>}
+
                                         {columnVisibility.location && <td>{asset.location}</td>}
                                         {columnVisibility.status && (
                                             <td>
@@ -460,6 +489,14 @@ function ManajemenAset() {
                                                     </span>
                                                 </div>
                                             </div>
+                                            <div className="detail-item">
+                                                <label className="detail-label">Nomor Tagihan</label>
+                                                <div className="detail-value">{selectedAsset.invoiceNumber}</div>
+                                            </div>
+                                            <div className="detail-item">
+                                                <label className="detail-label">Nilai Kontrak</label>
+                                                <div className="detail-value">Rp {selectedAsset.amount?.toLocaleString('id-ID')}</div>
+                                            </div>
                                             <div className="detail-item full-width">
                                                 <label className="detail-label">Nama Pekerjaan / Kontrak</label>
                                                 <div className="detail-value detail-value-lg">{selectedAsset.name}</div>
@@ -468,12 +505,15 @@ function ManajemenAset() {
                                                 <label className="detail-label">Pelaksana (Vendor)</label>
                                                 <div className="detail-value">{selectedAsset.vendorName}</div>
                                             </div>
+                                            <div className="detail-item full-width">
+                                                <label className="detail-label">Ditujukan Kepada</label>
+                                                <div className="detail-value">{selectedAsset.recipient}</div>
+                                            </div>
                                         </div>
 
                                         <div className="time-range-title">
                                             <Calendar size={18} /> Rentang Waktu Pelaksanaan
                                         </div>
-
                                         <div className="time-range-container">
                                             <div className="time-box">
                                                 <div className="time-label">Tanggal Mulai</div>
@@ -487,6 +527,14 @@ function ManajemenAset() {
                                                 <div className="time-value">{selectedAsset.endDate}</div>
                                             </div>
                                         </div>
+                                        <div className="time-remaining-info" style={{marginTop:8, fontWeight:500, color: timeRemaining.includes('melewati') ? 'red' : '#219150'}}>
+                                            Sisa waktu: {timeRemaining}
+                                        </div>
+                                        {timeRemaining.includes('melewati') && (
+                                            <div className="deadline-notif" style={{color:'red',fontWeight:700,marginTop:4}}>
+                                                ⚠️ Kontrak ini sudah melewati tenggat waktu!
+                                            </div>
+                                        )}
 
                                         <div className="detail-table-wrapper">
                                             <table className="detail-table">
@@ -529,6 +577,7 @@ function ManajemenAset() {
 
                                 <form onSubmit={handleSubmit} className="modal-form">
                                     <div className="form-grid">
+
                                         <div className="form-group">
                                             <label htmlFor="id">Nomor Kontrak <span className="required">*</span></label>
                                             <input
@@ -551,6 +600,46 @@ function ManajemenAset() {
                                                 value={formData.name}
                                                 onChange={handleInputChange}
                                                 placeholder="Contoh: Kontrak Pemeliharaan Transformer"
+                                                required
+                                            />
+                                        </div>
+
+                                        <div className="form-group">
+                                            <label htmlFor="recipient">Ditujukan Kepada <span className="required">*</span></label>
+                                            <input
+                                                type="text"
+                                                id="recipient"
+                                                name="recipient"
+                                                value={formData.recipient}
+                                                onChange={handleInputChange}
+                                                placeholder="Contoh: Divisi Operasi PLN"
+                                                required
+                                            />
+                                        </div>
+
+                                        <div className="form-group">
+                                            <label htmlFor="invoiceNumber">Nomor Tagihan <span className="required">*</span></label>
+                                            <input
+                                                type="text"
+                                                id="invoiceNumber"
+                                                name="invoiceNumber"
+                                                value={formData.invoiceNumber}
+                                                onChange={handleInputChange}
+                                                placeholder="Contoh: INV-2025-001"
+                                                required
+                                            />
+                                        </div>
+
+                                        <div className="form-group">
+                                            <label htmlFor="amount">Nilai Kontrak (Rp) <span className="required">*</span></label>
+                                            <input
+                                                type="number"
+                                                id="amount"
+                                                name="amount"
+                                                value={formData.amount}
+                                                onChange={handleInputChange}
+                                                placeholder="Contoh: 1500000000"
+                                                min="0"
                                                 required
                                             />
                                         </div>
@@ -586,23 +675,7 @@ function ManajemenAset() {
                                             </select>
                                         </div>
 
-                                        <div className="form-group">
-                                            <label htmlFor="category">Kategori <span className="required">*</span></label>
-                                            <select
-                                                id="category"
-                                                name="category"
-                                                value={formData.category}
-                                                onChange={handleInputChange}
-                                                required
-                                            >
-                                                <option value="Trafo">Trafo</option>
-                                                <option value="Generator">Generator</option>
-                                                <option value="CB">Circuit Breaker</option>
-                                                <option value="Panel">Panel Distribusi</option>
-                                                <option value="Kabel">Kabel & Aksesoris</option>
-                                                <option value="Lainnya">Lainnya</option>
-                                            </select>
-                                        </div>
+
 
                                         <div className="form-group">
                                             <label htmlFor="location">Lokasi <span className="required">*</span></label>
@@ -676,7 +749,7 @@ function ManajemenAset() {
         // Fallback UI if error occurs
         return (
             <div style={{ padding: 40, color: 'red', fontSize: 18 }}>
-                <b>Terjadi error saat render halaman Manajemen Aset:</b>
+                <b>Terjadi error saat render halaman Manajemen Kontrak:</b>
                 <pre style={{ color: 'black', background: '#fff', padding: 16, borderRadius: 8, marginTop: 16 }}>{String(err)}</pre>
             </div>
         )
