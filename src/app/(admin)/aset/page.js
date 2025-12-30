@@ -218,7 +218,7 @@ function ManajemenAset() {
                                 className="column-selector-btn"
                                 onClick={() => setShowColumnSelector(!showColumnSelector)}
                             >
-                                <Eye size={18} /> Pilih Kolom ({getVisibleColumnsCount()}/9)
+                                <Eye size={18} /> Pilih Kolom ({getVisibleColumnsCount()}/10)
                             </button>
                             {showColumnSelector && (
                                 <div className="column-dropdown">
@@ -676,7 +676,7 @@ function ManajemenAset() {
         // Fallback UI if error occurs
         return (
             <div style={{ padding: 40, color: 'red', fontSize: 18 }}>
-                <b>Terjadi error saat render halaman Manajemen Aset:</b>
+                <b>Terjadi error saat render halaman Manajemen Kontrak:</b>
                 <pre style={{ color: 'black', background: '#fff', padding: 16, borderRadius: 8, marginTop: 16 }}>{String(err)}</pre>
             </div>
         )
