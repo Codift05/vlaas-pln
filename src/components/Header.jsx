@@ -1,22 +1,23 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
-import { Search, Bell, Settings, Moon, Sun, LogOut, ChevronDown, ChevronUp } from 'lucide-react'
+import { Search, Bell, Settings, LogOut, ChevronDown, ChevronUp } from 'lucide-react'
 import styled from 'styled-components'
 
 const HeaderContainer = styled.header`
   height: 80px;
-  background: rgba(255, 255, 255, 0.85);
+  background: var(--bg-header);
   backdrop-filter: blur(10px);
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 40px;
-  box-shadow: 0 1px 8px rgba(0, 0, 0, 0.03);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: var(--shadow-sm);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   position: sticky;
   top: 0;
   z-index: 100;
+  transition: background 0.3s, border-color 0.3s;
 
   .header-left {
     flex: 1;
@@ -41,7 +42,7 @@ const HeaderContainer = styled.header`
   }
 
   .hamburger-menu:hover {
-    background: #f5f5f5;
+    background: var(--bg-hover);
   }
 
   .hamburger-menu:active {
@@ -60,10 +61,10 @@ const HeaderContainer = styled.header`
   .header-title {
     font-size: 26px;
     font-weight: 700;
-    color: #2b3f50;
+    color: var(--text-primary);
     margin: 0;
     letter-spacing: -0.5px;
-    font-family: 'Inter', sans-serif;
+    font-family: var(--font-inter);
   }
 
   .header-right {
@@ -75,23 +76,23 @@ const HeaderContainer = styled.header`
   .search-box {
     display: flex;
     align-items: center;
-    background: rgba(248, 250, 252, 0.8);
+    background: var(--bg-hover);
     padding: 11px 22px;
     border-radius: 30px;
     gap: 10px;
     min-width: 320px;
-    border: 1px solid rgba(226, 232, 240, 0.4);
+    border: 1px solid var(--border-color);
     transition: all 0.25s;
   }
 
   .search-box:focus-within {
-    background: rgba(255, 255, 255, 0.9);
+    background: var(--bg-card);
     border-color: rgba(126, 185, 217, 0.3);
-    box-shadow: 0 2px 8px rgba(126, 185, 217, 0.1);
+    box-shadow: var(--shadow-md);
   }
 
   .search-icon-svg {
-    color: #8b95a1;
+    color: var(--text-muted);
     flex-shrink: 0;
   }
 
@@ -101,12 +102,12 @@ const HeaderContainer = styled.header`
     background: transparent;
     outline: none;
     font-size: 14px;
-    color: #2b3f50;
-    font-family: 'Inter', sans-serif;
+    color: var(--text-primary);
+    font-family: var(--font-inter);
   }
 
   .search-input::placeholder {
-    color: #a5b0bc;
+    color: var(--text-muted);
     font-weight: 400;
   }
 
@@ -124,7 +125,7 @@ const HeaderContainer = styled.header`
 
   .notification-icon:hover {
     transform: scale(1.05);
-    background: rgba(248, 250, 252, 0.8);
+    background: var(--bg-hover);
   }
 
   .notification-badge {
@@ -140,7 +141,7 @@ const HeaderContainer = styled.header`
     min-width: 18px;
     text-align: center;
     box-shadow: 0 2px 6px rgba(238, 90, 82, 0.3);
-    font-family: 'Inter', sans-serif;
+    font-family: var(--font-inter);
   }
 
   .user-profile {
@@ -155,11 +156,11 @@ const HeaderContainer = styled.header`
   }
 
   .user-profile:hover {
-    background: rgba(248, 250, 252, 0.8);
+    background: var(--bg-hover);
   }
 
   .dropdown-arrow-svg {
-    color: #8b95a1;
+    color: var(--text-muted);
     margin-left: 4px;
     transition: transform 0.3s;
     flex-shrink: 0;
@@ -171,11 +172,11 @@ const HeaderContainer = styled.header`
     top: 100%;
     right: 0;
     margin-top: 10px;
-    background: rgba(255, 255, 255, 0.95);
+    background: var(--bg-card);
     backdrop-filter: blur(10px);
     border-radius: 16px;
-    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
-    border: 1px solid rgba(226, 232, 240, 0.4);
+    box-shadow: var(--shadow-lg);
+    border: 1px solid var(--border-color);
     min-width: 240px;
     z-index: 1000;
     animation: slideDown 0.3s ease;
@@ -201,13 +202,13 @@ const HeaderContainer = styled.header`
     cursor: pointer;
     transition: background 0.2s;
     font-size: 14px;
-    color: #2b3f50;
-    font-family: 'Inter', sans-serif;
+    color: var(--text-primary);
+    font-family: var(--font-inter);
     font-weight: 500;
   }
 
   .dropdown-item:hover {
-    background: rgba(248, 250, 252, 0.8);
+    background: var(--bg-hover);
   }
 
   .dropdown-item.logout {
@@ -229,55 +230,8 @@ const HeaderContainer = styled.header`
 
   .dropdown-divider {
     height: 1px;
-    background: rgba(226, 232, 240, 0.5);
+    background: var(--border-color);
     margin: 8px 0;
-  }
-
-  /* Toggle Switch for Night Mode */
-  .toggle-switch {
-    position: relative;
-    width: 44px;
-    height: 24px;
-    margin-left: auto;
-  }
-
-  .toggle-switch input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-  }
-
-  .toggle-slider {
-    position: absolute;
-    cursor: pointer;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: #d1d5db;
-    transition: 0.3s;
-    border-radius: 24px;
-  }
-
-  .toggle-slider:before {
-    position: absolute;
-    content: "";
-    height: 18px;
-    width: 18px;
-    left: 3px;
-    bottom: 3px;
-    background-color: white;
-    transition: 0.3s;
-    border-radius: 50%;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  }
-
-  .toggle-switch input:checked + .toggle-slider {
-    background: linear-gradient(135deg, #7eb9d9 0%, #5a9dc4 100%);
-  }
-
-  .toggle-switch input:checked + .toggle-slider:before {
-    transform: translateX(20px);
   }
 
   .user-avatar {
@@ -358,7 +312,6 @@ const HeaderContainer = styled.header`
 
 function Header({ onMenuClick }) {
   const [showProfileMenu, setShowProfileMenu] = useState(false)
-  const [nightMode, setNightMode] = useState(false)
   const router = useRouter()
   const pathname = usePathname()
 
@@ -379,12 +332,6 @@ function Header({ onMenuClick }) {
     }
   }
 
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      setNightMode(localStorage.getItem('nightMode') === 'true')
-    }
-  }, [])
-
   const toggleProfileMenu = () => {
     setShowProfileMenu(!showProfileMenu)
   }
@@ -393,14 +340,6 @@ function Header({ onMenuClick }) {
     localStorage.removeItem('isLoggedIn')
     localStorage.removeItem('devMode')
     router.push('/')
-  }
-
-  const toggleNightMode = (e) => {
-    e.stopPropagation()
-    const newMode = !nightMode
-    setNightMode(newMode)
-    localStorage.setItem('nightMode', newMode)
-    document.body.classList.toggle('night-mode', newMode)
   }
 
   const goToSettings = () => {
@@ -443,18 +382,6 @@ function Header({ onMenuClick }) {
               <div className="dropdown-item" onClick={goToSettings}>
                 <Settings className="item-icon-svg" size={18} strokeWidth={2} />
                 <span>Pengaturan</span>
-              </div>
-              <div className="dropdown-item" onClick={toggleNightMode}>
-                {nightMode ? (
-                  <Sun className="item-icon-svg" size={18} strokeWidth={2} />
-                ) : (
-                  <Moon className="item-icon-svg" size={18} strokeWidth={2} />
-                )}
-                <span>Night Mode</span>
-                <label className="toggle-switch" onClick={e => e.stopPropagation()}>
-                  <input type="checkbox" checked={nightMode} onChange={toggleNightMode} />
-                  <span className="toggle-slider" style={nightMode ? { background: 'linear-gradient(135deg, #7eb9d9 0%, #5a9dc4 100%)' } : {}}></span>
-                </label>
               </div>
               <div className="dropdown-divider" />
               <div className="dropdown-item logout" onClick={handleLogout}>

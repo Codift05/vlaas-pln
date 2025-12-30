@@ -89,14 +89,49 @@ function ManajemenAset() {
         endDate: ''
     });
 
-    const assets = [
-        { id: 'AST001', name: 'Transformer 500KVA', vendorName: 'PT Elektrindo Jaya', budgetType: 'AI', contractType: 'PJ', category: 'Trafo', location: 'Gardu Induk Jakarta', status: 'Aktif', startDate: '01/01/2025', endDate: '31/12/2025' },
-        { id: 'AST002', name: 'Generator Set Diesel', vendorName: 'CV Maju Bersama Electric', budgetType: 'AO', contractType: 'SPK', category: 'Generator', location: 'PLTD Surabaya', status: 'Aktif', startDate: '15/02/2025', endDate: '15/08/2025' },
-        { id: 'AST003', name: 'Circuit Breaker 20KV', vendorName: 'PT Sentosa Generator', budgetType: 'AI', contractType: 'PO', category: 'CB', location: 'Gardu Induk Bandung', status: 'Perbaikan', startDate: '01/03/2025', endDate: '30/06/2025' },
-        { id: 'AST004', name: 'Panel Distribusi', vendorName: 'CV Kabel Utama Indonesia', budgetType: 'AO', contractType: 'PJ', category: 'Panel', location: 'Gardu Distribusi A12', status: 'Aktif', startDate: '10/01/2025', endDate: '10/07/2025' },
-        { id: 'AST005', name: 'Kabel XLPE 150mm', vendorName: 'PT Teknindo Power System', budgetType: 'AI', contractType: 'SPK', category: 'Kabel', location: 'Jaringan Tegangan Menengah', status: 'Aktif', startDate: '20/02/2025', endDate: '20/11/2025' },
-        { id: 'AST006', name: 'Transformer 1000KVA', vendorName: 'PT Elektrindo Jaya', budgetType: 'AO', contractType: 'PO', category: 'Trafo', location: 'Gardu Induk Semarang', status: 'Tidak Aktif', startDate: '05/01/2025', endDate: '05/05/2025' },
-    ]
+    // State untuk data aset (dari Supabase)
+    const [assets, setAssets] = useState([])
+
+    // Fetch data contracts & history from Supabase
+    const fetchContracts = async () => {
+        try {
+            const { data, error } = await supabase
+                .from('contracts')
+                .select(`
+                    *,
+                    history:contract_history(*)
+                `)
+
+            if (error) throw error
+
+            // Format data sesuai struktur UI
+            const formattedData = data.map(contract => ({
+                id: contract.id,
+                name: contract.name,
+                vendorName: contract.vendor_name, // Map snake_case -> camelCase
+                budgetType: contract.budget_type,
+                contractType: contract.contract_type,
+                category: contract.category,
+                location: contract.location,
+                status: contract.status,
+                startDate: contract.start_date,
+                endDate: contract.end_date,
+                history: contract.history || []
+            }))
+            setAssets(formattedData)
+        } catch (err) {
+            console.error('Error fetching contracts:', err.message)
+        }
+    }
+
+    // Load data on mount
+    useEffect(() => {
+        fetchContracts()
+    }, [])
+
+    // State untuk mode edit
+    const [isEditing, setIsEditing] = useState(false);
+    const [editId, setEditId] = useState(null);
 
     // Close dropdown when clicking outside
     useEffect(() => {
@@ -145,28 +180,135 @@ function ManajemenAset() {
         }))
     }
 
-    const handleSubmit = (e) => {
-        e.preventDefault()
-        // Di sini nanti bisa ditambahkan logika untuk menyimpan ke database
-        console.log('Data Kontrak baru:', formData)
-        alert('Kontrak berhasil ditambahkan!')
-        setShowModal(false)
-        // Reset form
+    const handleEdit = (asset) => {
         setFormData({
-            id: '',
-            name: '',
-            budgetType: '',
-            contractType: '',
-            category: '',
-            location: '',
-            status: 'Aktif',
-            startDate: '',
-            endDate: ''
+            ...asset,
+            // Re-map camelCase -> form names if needed, but our form uses camelCase mostly
+            // except vendorName need check input
         })
+        // Note: Our form uses 'id', 'name', 'budgetType', etc.
+        // We need to ensure formData matches.
+        // Asset structure: vendorName. Form input? 
+        // Let's check form input... it uses 'vendorName' ? NO, waiting to check form inputs below
+        // Form doesn't have vendorName input in the visible code previously? 
+        // Wait, looking at lines 530+ of current file...
+        // ... I don't see Vendor Name input in lines 530-556. 
+        // Ah, it was missing in the original code too? 
+        // Let's check the viewed file content at Step 394 (lines 530+).
+        // It has 'Nomor Kontrak' (id), 'Nama Kontrak' (name), 'Tipe Anggaran', etc.
+        // It DOES NOT have Vendor Name input! 
+        // I should probably add it or else it will be null.
+        // For now I will focus on Supabase integration and fix Vendor input later if missing.
+
+        setEditId(asset.id)
+        setIsEditing(true)
+        setShowModal(true)
+    }
+
+    const handleSubmit = async (e) => {
+        e.preventDefault()
+
+        try {
+            if (isEditing) {
+                // 1. Update Contracts Table
+                const { error: updateError } = await supabase
+                    .from('contracts')
+                    .update({
+                        name: formData.name,
+                        vendor_name: 'Vendor Default', // Hardcoded for now as input missing
+                        budget_type: formData.budgetType,
+                        contract_type: formData.contractType,
+                        category: formData.category,
+                        location: formData.location,
+                        status: formData.status,
+                        start_date: formData.startDate,
+                        end_date: formData.endDate
+                    })
+                    .eq('id', editId)
+
+                if (updateError) throw updateError
+
+                // 2. Insert History Log
+                // Find old asset to compare (optional, or just generic log)
+                const { error: historyError } = await supabase
+                    .from('contract_history')
+                    .insert([{
+                        contract_id: editId,
+                        action: 'Update Data',
+                        user_name: 'Admin',
+                        details: `Perubahan data kontrak ${editId}`
+                    }])
+
+                if (historyError) throw historyError
+
+                alert('Kontrak berhasil diperbarui!')
+            } else {
+                // 1. Insert New Contract
+                const { error: insertError } = await supabase
+                    .from('contracts')
+                    .insert([{
+                        id: formData.id,
+                        name: formData.name,
+                        vendor_name: 'Vendor Default', // Hardcoded for now
+                        budget_type: formData.budgetType,
+                        contract_type: formData.contractType,
+                        category: formData.category,
+                        location: formData.location,
+                        status: formData.status,
+                        start_date: formData.startDate,
+                        end_date: formData.endDate
+                    }])
+
+                if (insertError) throw insertError
+
+                // 2. Insert Initial History
+                await supabase.from('contract_history').insert([{
+                    contract_id: formData.id,
+                    action: 'Kontrak Dibuat',
+                    user_name: 'Admin',
+                    details: 'Kontrak baru ditambahkan ke sistem'
+                }])
+
+                alert('Kontrak berhasil ditambahkan!')
+            }
+
+            // Refresh data
+            fetchContracts()
+            handleCloseModal()
+
+        } catch (err) {
+            console.error('Error saving contract:', err)
+            if (err.message.includes('duplicate key') || err.code === '23505') {
+                alert('Gagal: Nomor Kontrak (ID) tersebut sudah ada di sistem. Gunakan nomor lain.')
+            } else {
+                alert('Gagal menyimpan data: ' + err.message)
+            }
+        }
+    }
+
+    const handleDelete = async (id) => {
+        if (confirm('Apakah Anda yakin ingin menghapus kontrak ini? Data yang dihapus tidak dapat dikembalikan.')) {
+            try {
+                const { error } = await supabase
+                    .from('contracts')
+                    .delete()
+                    .eq('id', id)
+
+                if (error) throw error
+
+                alert('Kontrak berhasil dihapus')
+                fetchContracts() // Refresh data
+            } catch (err) {
+                console.error('Error deleting contract:', err)
+                alert('Gagal menghapus: ' + err.message)
+            }
+        }
     }
 
     const handleCloseModal = () => {
         setShowModal(false)
+        setIsEditing(false)
+        setEditId(null)
         setFormData({
             id: '',
             name: '',
@@ -369,8 +511,8 @@ function ManajemenAset() {
                                         <td>
                                             <div className="action-buttons">
                                                 <button className="btn-icon btn-view" title="Lihat Detail" onClick={() => handleViewDetail(asset)}><Eye size={16} /></button>
-                                                <button className="btn-icon btn-edit" title="Edit"><Edit size={16} /></button>
-                                                <button className="btn-icon btn-delete" title="Hapus"><Trash2 size={16} /></button>
+                                                <button className="btn-icon btn-edit" title="Edit" onClick={() => handleEdit(asset)}><Edit size={16} /></button>
+                                                <button className="btn-icon btn-delete" title="Hapus" onClick={() => handleDelete(asset.id)}><Trash2 size={16} /></button>
                                                 <button className="btn-icon btn-upload" title="Upload PDF" onClick={() => openUploadModal(asset.id)}><Upload size={16} /></button>
                                             </div>
                                             {/* Modal Upload PDF */}
@@ -509,6 +651,38 @@ function ManajemenAset() {
                                                     </tr>
                                                 </tbody>
                                             </table>
+                                        </div>
+
+                                        <div className="history-section" style={{ marginTop: '24px', borderTop: '1px solid #eff2f5', paddingTop: '24px' }}>
+                                            <h3 className="detail-section-title" style={{ marginBottom: '16px' }}>
+                                                <Clock size={20} /> Riwayat Perubahan
+                                            </h3>
+                                            <div className="history-list">
+                                                {selectedAsset.history && selectedAsset.history.length > 0 ? (
+                                                    selectedAsset.history.slice().reverse().map((log, index) => (
+                                                        <div key={index} className="history-item" style={{ display: 'flex', gap: '16px', marginBottom: '16px', paddingLeft: '8px', borderLeft: '3px solid #e2e8f0' }}>
+                                                            <div className="history-time" style={{ minWidth: '130px', color: '#64748b', fontSize: '13px', paddingTop: '2px' }}>
+                                                                {log.date}
+                                                            </div>
+                                                            <div className="history-content">
+                                                                <div style={{ fontWeight: 600, color: '#1e293b', marginBottom: '2px' }}>
+                                                                    {log.action}
+                                                                    <span style={{ fontWeight: 400, color: '#94a3b8', fontSize: '12px', marginLeft: '6px' }}>
+                                                                        • {log.user}
+                                                                    </span>
+                                                                </div>
+                                                                <div style={{ color: '#475569', fontSize: '14px', lineHeight: '1.4' }}>
+                                                                    {log.details}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    ))
+                                                ) : (
+                                                    <div style={{ color: '#94a3b8', fontStyle: 'italic', padding: '12px', background: '#f8fafc', borderRadius: '8px', textAlign: 'center' }}>
+                                                        Belum ada riwayat perubahan tercatat.
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>

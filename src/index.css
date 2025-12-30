@@ -5,30 +5,52 @@
 }
 
 :root {
-  font-family: var(--font-inter), var(--font-outfit), -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, Roboto, 'Helvetica Neue', Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+  /* Light Mode (Default) */
+  --bg-body: linear-gradient(135deg, #b5dced 0%, #d4e7f5 50%, #e8e3f5 100%);
+  --bg-card: #ffffff;
+  --bg-input: #f8fafc;
+  --bg-header: rgba(255, 255, 255, 0.85);
+  --bg-hover: rgba(248, 250, 252, 0.8);
 
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  --text-primary: #2b3f50;
+  --text-secondary: #5a6d7f;
+  --text-muted: #8b95a1;
+  --text-inverse: #ffffff;
+
+  --border-color: rgba(226, 232, 240, 0.6);
+  --border-strong: #cbd5e1;
+
+  --primary-gradient: linear-gradient(135deg, #7eb9d9 0%, #5a9dc4 100%);
+  --sidebar-gradient: linear-gradient(180deg, #5a9dc4 0%, #7eb9d9 50%, #8ac4dd 100%);
+
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.12);
+
+  /* Font Families */
+  --font-inter: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-outfit: 'Outfit', sans-serif;
 }
+
+/* Dark Mode Removed */
 
 body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
   overflow-x: hidden;
-  background: linear-gradient(135deg, #b5dced 0%, #d4e7f5 50%, #e8e3f5 100%);
+  background: var(--bg-body);
+  color: var(--text-primary);
   background-attachment: fixed;
   overscroll-behavior: none;
+  font-family: var(--font-inter);
+  transition: background 0.3s, color 0.3s;
 }
 
+/* Ensure HTML matches body bg to prevent white flashes */
 html {
+  background: var(--bg-body);
   overscroll-behavior: none;
-  background: linear-gradient(135deg, #b5dced 0%, #d4e7f5 50%, #e8e3f5 100%);
-  background-attachment: fixed;
 }
 
 #root {
@@ -48,9 +70,10 @@ button {
   font-size: 1em;
   font-weight: 500;
   font-family: inherit;
-  background-color: #1a1a1a;
+  background-color: var(--bg-card);
+  color: var(--text-primary);
   cursor: pointer;
-  transition: border-color 0.25s;
+  transition: border-color 0.25s, background-color 0.25s, color 0.25s;
 }
 
 button:hover {
@@ -60,19 +83,4 @@ button:hover {
 button:focus,
 button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
-}
-
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-
-  a:hover {
-    color: #747bff;
-  }
-
-  button {
-    background-color: #f9f9f9;
-  }
 }

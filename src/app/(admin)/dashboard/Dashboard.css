@@ -1,11 +1,13 @@
+/* Dashboard Layout */
 .dashboard-layout {
   display: flex;
   min-height: 100vh;
-  background: linear-gradient(135deg, #b5dced 0%, #d4e7f5 50%, #e8e3f5 100%);
+  background: var(--bg-body);
   background-attachment: fixed;
   position: relative;
 }
 
+/* Gradient Overlay - Restored to Original */
 .dashboard-layout::before {
   content: '';
   position: fixed;
@@ -13,7 +15,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: 
+  background:
     radial-gradient(circle at 15% 20%, rgba(181, 220, 237, 0.3), transparent 35%),
     radial-gradient(circle at 85% 75%, rgba(232, 227, 245, 0.25), transparent 35%);
   pointer-events: none;
@@ -95,6 +97,27 @@
 
 .stat-icon-svg {
   transition: all 0.3s;
+}
+
+/* Stat Colors */
+.stat-blue {
+  background: rgba(52, 152, 219, 0.12);
+  color: #3498db;
+}
+
+.stat-green {
+  background: rgba(46, 204, 113, 0.12);
+  color: #2ecc71;
+}
+
+.stat-orange {
+  background: rgba(243, 156, 18, 0.12);
+  color: #f39c12;
+}
+
+.stat-purple {
+  background: rgba(155, 89, 182, 0.12);
+  color: #9b59b6;
 }
 
 .stat-info {
@@ -243,11 +266,9 @@
   width: 200px;
   height: 200px;
   border-radius: 50%;
-  background: conic-gradient(
-    #2ecc71 0% 80%,
-    #f39c12 80% 95%,
-    #e74c3c 95% 100%
-  );
+  background: conic-gradient(#2ecc71 0% 80%,
+      #f39c12 80% 95%,
+      #e74c3c 95% 100%);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
   position: relative;
   transition: transform 0.3s;
@@ -304,6 +325,7 @@
   background: rgba(248, 250, 252, 0.3);
   border-radius: 12px;
   transition: all 0.2s;
+  border: 1px solid transparent;
 }
 
 .legend-item:hover {
@@ -433,7 +455,7 @@
   .charts-section {
     grid-template-columns: 1fr;
   }
-  
+
   .stats-grid {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -451,7 +473,7 @@
   .stats-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .activity-item {
     flex-direction: column;
     align-items: flex-start;
@@ -463,19 +485,19 @@
   .content-area {
     padding: 15px;
   }
-  
+
   .stat-card {
     padding: 20px;
   }
-  
+
   .stat-value {
     font-size: 24px;
   }
-  
+
   .chart-card {
     padding: 15px;
   }
-  
+
   .bar {
     min-width: 25px;
   }

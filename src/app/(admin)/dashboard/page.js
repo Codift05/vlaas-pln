@@ -4,10 +4,10 @@ import './Dashboard.css'
 
 export default function DashboardPage() {
     const stats = [
-        { title: 'Total Aset', value: '1,234', icon: Package, color: '#3498db', bgColor: '#e3f2fd' },
-        { title: 'Aset Aktif', value: '987', icon: CheckCircle, color: '#2ecc71', bgColor: '#e8f5e9' },
-        { title: 'Dalam Perbaikan', value: '45', icon: Wrench, color: '#f39c12', bgColor: '#fff3e0' },
-        { title: 'Total Vendor', value: '156', icon: Users, color: '#9b59b6', bgColor: '#f3e5f5' },
+        { title: 'Total Aset', value: '1,234', icon: Package, className: 'stat-blue' },
+        { title: 'Aset Aktif', value: '987', icon: CheckCircle, className: 'stat-green' },
+        { title: 'Dalam Perbaikan', value: '45', icon: Wrench, className: 'stat-orange' },
+        { title: 'Total Vendor', value: '156', icon: Users, className: 'stat-purple' },
     ]
 
     const recentActivities = [
@@ -25,8 +25,8 @@ export default function DashboardPage() {
                     const IconComponent = stat.icon
                     return (
                         <div key={index} className="stat-card">
-                            <div className="stat-icon-wrapper" style={{ background: stat.bgColor }}>
-                                <IconComponent className="stat-icon-svg" style={{ color: stat.color }} strokeWidth={2.5} size={28} />
+                            <div className={`stat-icon-wrapper ${stat.className}`}>
+                                <IconComponent className="stat-icon-svg" strokeWidth={2.5} size={28} />
                             </div>
                             <div className="stat-info">
                                 <h3 className="stat-value">{stat.value}</h3>
