@@ -90,19 +90,21 @@
 .search-section-vendor {
   display: flex;
   align-items: center;
-  gap: 14px;
-  flex: 1;
-  max-width: 650px;
+  gap: 18px;
+  flex: 2 1 0%;
+  max-width: 1000px;
 }
 
 .search-box-vendor {
   display: flex;
   align-items: center;
   background: rgba(255, 255, 255, 0.9);
-  padding: 11px 20px;
+  padding: 11px 24px;
   border-radius: 16px;
   gap: 12px;
-  flex: 1;
+  flex: 1 1 0%;
+  min-width: 350px;
+  max-width: 100%;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
   transition: all 0.3s;
   border: 1px solid rgba(226, 232, 240, 0.6);
