@@ -105,9 +105,17 @@
   color: #3498db;
 }
 
+.stat-blue .stat-icon-svg {
+  stroke: #3498db;
+}
+
 .stat-green {
   background: rgba(46, 204, 113, 0.12);
   color: #2ecc71;
+}
+
+.stat-green .stat-icon-svg {
+  stroke: #2ecc71;
 }
 
 .stat-orange {
@@ -115,9 +123,17 @@
   color: #f39c12;
 }
 
+.stat-orange .stat-icon-svg {
+  stroke: #f39c12;
+}
+
 .stat-purple {
   background: rgba(155, 89, 182, 0.12);
   color: #9b59b6;
+}
+
+.stat-purple .stat-icon-svg {
+  stroke: #9b59b6;
 }
 
 .stat-info {

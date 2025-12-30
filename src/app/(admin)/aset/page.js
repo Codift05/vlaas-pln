@@ -108,11 +108,16 @@ function ManajemenAset() {
 
             if (error) throw error
 
+            console.log('Raw data from Supabase:', data) // Debug log
+
             // Format data sesuai struktur UI
             const formattedData = data.map(contract => ({
                 id: contract.id,
                 name: contract.name,
                 vendorName: contract.vendor_name, // Map snake_case -> camelCase
+                recipient: contract.recipient,
+                invoiceNumber: contract.invoice_number,
+                amount: contract.amount ? parseFloat(contract.amount) : 0,
                 budgetType: contract.budget_type,
                 contractType: contract.contract_type,
                 category: contract.category,
@@ -249,10 +254,13 @@ function ManajemenAset() {
                     .from('contracts')
                     .update({
                         name: formData.name,
-                        vendor_name: 'Vendor Default', // Hardcoded for now as input missing
+                        recipient: formData.recipient,
+                        invoice_number: formData.invoiceNumber,
+                        vendor_name: formData.vendorName,
+                        amount: formData.amount ? parseFloat(formData.amount) : 0,
                         budget_type: formData.budgetType,
                         contract_type: formData.contractType,
-                        category: formData.category,
+                        category: formData.category || '-',
                         location: formData.location,
                         status: formData.status,
                         start_date: formData.startDate,
@@ -262,15 +270,38 @@ function ManajemenAset() {
 
                 if (updateError) throw updateError
 
-                // 2. Insert History Log
-                // Find old asset to compare (optional, or just generic log)
+                // 2. Insert History Log (Detailed Amandemen)
+                const oldData = assets.find(a => a.id === editId)
+                let changeDetails = []
+
+                if (oldData) {
+                    if (oldData.name !== formData.name) changeDetails.push(`Nama Kontrak: "${oldData.name}" ➝ "${formData.name}"`)
+                    if (oldData.vendorName !== formData.vendorName) changeDetails.push(`Vendor: "${oldData.vendorName}" ➝ "${formData.vendorName}"`)
+
+                    const oldAmount = parseFloat(oldData.amount || 0)
+                    const newAmount = parseFloat(formData.amount || 0)
+                    if (oldAmount !== newAmount) {
+                        changeDetails.push(`Nilai: ${oldAmount.toLocaleString('id-ID')} ➝ ${newAmount.toLocaleString('id-ID')}`)
+                    }
+
+                    if (oldData.status !== formData.status) changeDetails.push(`Status: "${oldData.status}" ➝ "${formData.status}"`)
+                    if (oldData.startDate !== formData.startDate) changeDetails.push(`Tgl Mulai: ${oldData.startDate} ➝ ${formData.startDate}`)
+                    if (oldData.endDate !== formData.endDate) changeDetails.push(`Tgl Selesai: ${oldData.endDate} ➝ ${formData.endDate}`)
+                    if (oldData.location !== formData.location) changeDetails.push(`Lokasi: "${oldData.location}" ➝ "${formData.location}"`)
+                }
+
+                const actionTitle = changeDetails.length > 0 ? 'Amandemen Kontrak' : 'Update Data'
+                const actionDetails = changeDetails.length > 0
+                    ? `Perubahan: ${changeDetails.join(', ')}`
+                    : `Update data kontrak ${editId} tanpa perubahan signifikan`
+
                 const { error: historyError } = await supabase
                     .from('contract_history')
                     .insert([{
                         contract_id: editId,
-                        action: 'Update Data',
+                        action: actionTitle,
                         user_name: 'Admin',
-                        details: `Perubahan data kontrak ${editId}`
+                        details: actionDetails
                     }])
 
                 if (historyError) throw historyError
@@ -278,30 +309,37 @@ function ManajemenAset() {
                 alert('Kontrak berhasil diperbarui!')
             } else {
                 // 1. Insert New Contract
+                const payload = {
+                    id: formData.id,
+                    name: formData.name,
+                    recipient: formData.recipient || '',
+                    invoice_number: formData.invoiceNumber || '',
+                    vendor_name: formData.vendorName || '',
+                    amount: formData.amount ? parseFloat(formData.amount) : 0,
+                    budget_type: formData.budgetType,
+                    contract_type: formData.contractType,
+                    category: formData.category || '-',
+                    location: formData.location,
+                    status: formData.status,
+                    start_date: formData.startDate,
+                    end_date: formData.endDate
+                }
+
                 const { error: insertError } = await supabase
                     .from('contracts')
-                    .insert([{
-                        id: formData.id,
-                        name: formData.name,
-                        vendor_name: 'Vendor Default', // Hardcoded for now
-                        budget_type: formData.budgetType,
-                        contract_type: formData.contractType,
-                        category: formData.category,
-                        location: formData.location,
-                        status: formData.status,
-                        start_date: formData.startDate,
-                        end_date: formData.endDate
-                    }])
+                    .insert([payload])
 
                 if (insertError) throw insertError
 
                 // 2. Insert Initial History
-                await supabase.from('contract_history').insert([{
+                const { error: historyError } = await supabase.from('contract_history').insert([{
                     contract_id: formData.id,
                     action: 'Kontrak Dibuat',
                     user_name: 'Admin',
                     details: 'Kontrak baru ditambahkan ke sistem'
                 }])
+
+                if (historyError) console.error('Warning: Failed to create history log', historyError)
 
                 alert('Kontrak berhasil ditambahkan!')
             }
@@ -312,10 +350,14 @@ function ManajemenAset() {
 
         } catch (err) {
             console.error('Error saving contract:', err)
-            if (err.message.includes('duplicate key') || err.code === '23505') {
+            console.error('Error details:', JSON.stringify(err, null, 2))
+
+            const errorMessage = err.message || err.error_description || 'Terjadi kesalahan yang tidak diketahui.'
+
+            if (errorMessage.includes('duplicate key') || err.code === '23505') {
                 alert('Gagal: Nomor Kontrak (ID) tersebut sudah ada di sistem. Gunakan nomor lain.')
             } else {
-                alert('Gagal menyimpan data: ' + err.message)
+                alert('Gagal menyimpan data: ' + errorMessage)
             }
         }
     }
@@ -346,6 +388,10 @@ function ManajemenAset() {
         setFormData({
             id: '',
             name: '',
+            recipient: '',
+            invoiceNumber: '',
+            vendorName: '',
+            amount: '',
             budgetType: '',
             contractType: '',
             category: '',
@@ -552,29 +598,7 @@ function ManajemenAset() {
                                                 <button className="btn-icon btn-delete" title="Hapus" onClick={() => handleDelete(asset.id)}><Trash2 size={16} /></button>
                                                 <button className="btn-icon btn-upload" title="Upload PDF" onClick={() => openUploadModal(asset.id)}><Upload size={16} /></button>
                                             </div>
-                                            {/* Modal Upload PDF */}
-                                            {showUploadModal && (
-                                                <div className="modal-overlay" onClick={() => setShowUploadModal(false)}>
-                                                    <div className="modal-upload-content" onClick={e => e.stopPropagation()}>
-                                                        <div className="modal-upload-title">Upload PDF Kontrak</div>
-                                                        <input
-                                                            className="modal-upload-input"
-                                                            type="file"
-                                                            accept="application/pdf"
-                                                            onChange={e => setSelectedFile(e.target.files[0])}
-                                                        />
-                                                        <button
-                                                            onClick={handleUpload}
-                                                            disabled={!selectedFile || uploading}
-                                                            className="modal-upload-btn"
-                                                        >
-                                                            {uploading ? 'Uploading...' : 'Upload'}
-                                                        </button>
-                                                        {uploadError && <div className="modal-upload-status" style={{ color: 'red' }}>{uploadError}</div>}
-                                                        {uploadSuccess && <div className="modal-upload-status" style={{ color: 'green' }}>{uploadSuccess}</div>}
-                                                    </div>
-                                                </div>
-                                            )}
+
                                         </td>
                                     </tr>
                                 ))
@@ -787,6 +811,19 @@ function ManajemenAset() {
                                         </div>
 
                                         <div className="form-group">
+                                            <label htmlFor="vendorName">Nama Vendor <span className="required">*</span></label>
+                                            <input
+                                                type="text"
+                                                id="vendorName"
+                                                name="vendorName"
+                                                value={formData.vendorName}
+                                                onChange={handleInputChange}
+                                                placeholder="Contoh: PT Elektrindo Jaya"
+                                                required
+                                            />
+                                        </div>
+
+                                        <div className="form-group">
                                             <label htmlFor="recipient">Ditujukan Kepada <span className="required">*</span></label>
                                             <input
                                                 type="text"
@@ -925,6 +962,31 @@ function ManajemenAset() {
                         </div>
                     )
                 }
+
+                {/* Modal Upload PDF */}
+                {showUploadModal && (
+                    <div className="modal-overlay" onClick={() => setShowUploadModal(false)}>
+                        <div className="modal-upload-content" onClick={e => e.stopPropagation()}>
+                            <div className="modal-upload-title">Upload PDF Kontrak</div>
+                            <input
+                                className="modal-upload-input"
+                                type="file"
+                                accept="application/pdf"
+                                onChange={e => setSelectedFile(e.target.files[0])}
+                            />
+                            <button
+                                onClick={handleUpload}
+                                disabled={!selectedFile || uploading}
+                                className="modal-upload-btn"
+                            >
+                                {uploading ? 'Uploading...' : 'Upload'}
+                            </button>
+                            {uploadError && <div className="modal-upload-status" style={{ color: 'red' }}>{uploadError}</div>}
+                            {uploadSuccess && <div className="modal-upload-status" style={{ color: 'green' }}>{uploadSuccess}</div>}
+                        </div>
+                    </div>
+                )}
+
             </>
         )
     } catch (err) {
