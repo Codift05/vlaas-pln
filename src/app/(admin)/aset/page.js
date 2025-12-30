@@ -17,6 +17,7 @@ function ManajemenAset() {
         id: true,
         name: true,
         vendorName: true,
+        amount: true, // Nilai Kontrak
         budgetType: true,
         contractType: true,
         // category: true, // kategori dihapus
@@ -243,7 +244,7 @@ function ManajemenAset() {
                                 className="column-selector-btn"
                                 onClick={() => setShowColumnSelector(!showColumnSelector)}
                             >
-                                <Eye size={18} /> Pilih Kolom ({getVisibleColumnsCount()}/9)
+                                <Eye size={18} /> Pilih Kolom ({getVisibleColumnsCount()}/10)
                             </button>
                             {showColumnSelector && (
                                 <div className="column-dropdown">
@@ -274,6 +275,14 @@ function ManajemenAset() {
                                                 onChange={() => toggleColumnVisibility('vendorName')}
                                             />
                                             <span>Nama Vendor</span>
+                                        </label>
+                                        <label className="column-option">
+                                            <input
+                                                type="checkbox"
+                                                checked={columnVisibility.amount}
+                                                onChange={() => toggleColumnVisibility('amount')}
+                                            />
+                                            <span>Nilai Kontrak</span>
                                         </label>
                                         <label className="column-option">
                                             <input
@@ -342,6 +351,7 @@ function ManajemenAset() {
                                 {columnVisibility.id && <th>Nomor Kontrak</th>}
                                 {columnVisibility.name && <th>Nama Kontrak</th>}
                                 {columnVisibility.vendorName && <th>Nama Vendor</th>}
+                                {columnVisibility.amount && <th>Nilai Kontrak</th>}
                                 {columnVisibility.budgetType && <th>Tipe Anggaran</th>}
                                 {columnVisibility.contractType && <th>Tipe Kontrak</th>}
 
@@ -359,6 +369,7 @@ function ManajemenAset() {
                                         {columnVisibility.id && <td className="asset-id">{asset.id}</td>}
                                         {columnVisibility.name && <td className="asset-name">{asset.name}</td>}
                                         {columnVisibility.vendorName && <td className="asset-vendor">{asset.vendorName}</td>}
+                                        {columnVisibility.amount && <td>{asset.amount?.toLocaleString('id-ID', { style: 'currency', currency: 'IDR' })}</td>}
                                         {columnVisibility.budgetType && (
                                             <td>
                                                 <span className={`budget-badge budget-${asset.budgetType.toLowerCase()}`}>
