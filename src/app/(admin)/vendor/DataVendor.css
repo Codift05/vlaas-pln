@@ -1,3 +1,47 @@
+.column-selector-btn-vendor:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+/* Column Selector Dropdown - More Proportional */
+.column-dropdown-vendor {
+  background: #f8fafd;
+  border-radius: 14px;
+  box-shadow: 0 2px 12px rgba(44, 62, 80, 0.10);
+  padding: 10px 16px 10px 16px;
+  min-width: 210px;
+  max-width: 260px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-family: 'Inter', sans-serif;
+}
+.column-dropdown-header-vendor {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1a2536;
+  margin-bottom: 4px;
+  text-align: left;
+}
+.column-options-vendor {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.column-option-vendor {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 15px;
+  font-weight: 500;
+  color: #222f3e;
+  padding: 2px 0;
+}
+.column-option-vendor input[type="checkbox"] {
+  accent-color: #1e5ba8;
+  width: 18px;
+  height: 18px;
+  margin-right: 2px;
+}
 /* Modal Tambah Vendor Baru - Mirip Modal Kontrak */
 .modal-overlay-vendor {
   position: fixed;
@@ -1116,14 +1160,31 @@
   padding: 8px 20px 0 20px;
 }
 
-.column-option-vendor {
+.column-selector-btn-vendor {
   display: flex;
   align-items: center;
-  gap: 10px;
-  font-size: 15px;
-  font-family: 'Inter', sans-serif;
+  gap: 8px;
+  padding: 12px 22px;
+  background: rgba(255,255,255,0.95);
   color: #1a2536;
+  border: 1px solid rgba(226, 232, 240, 0.6);
+  border-radius: 16px;
+  font-size: 16px;
   font-weight: 500;
   cursor: pointer;
-  user-select: none;
+  transition: all 0.25s;
+  font-family: 'Inter', sans-serif;
+  outline: none;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+.column-selector-btn-vendor:hover, .column-selector-btn-vendor:focus {
+  border-color: rgba(126, 185, 217, 0.5);
+  background-color: #fff;
+  color: #2196f3;
+  box-shadow: 0 2px 8px rgba(126, 185, 217, 0.12);
+  transform: scale(0.96);
+}
+.column-selector-btn-vendor:hover svg,
+.column-selector-btn-vendor:focus svg {
+  color: #2196f3;
 }
