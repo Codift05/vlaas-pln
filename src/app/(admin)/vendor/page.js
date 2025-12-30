@@ -1,5 +1,5 @@
-'use client'
-import { useState } from 'react'
+"use client"
+import { useState, useRef, useEffect } from 'react'
 import { Users, CheckCircle, Search, Eye, Edit, Trash2, PauseCircle, ClipboardList, Plus, Save, X } from 'lucide-react'
 import './DataVendor.css'
 
@@ -40,17 +40,18 @@ function DataVendor() {
     const [currentPage, setCurrentPage] = useState(1)
     const itemsPerPage = 10
     const [showModal, setShowModal] = useState(false)
-    const [formData, setFormData] = useState({
-        id: '',
-        nama: '',
-        alamat: '',
-        telepon: '',
-        email: '',
-        kategori: '',
-        kontakPerson: '',
-        status: 'Aktif',
-        tanggalRegistrasi: ''
-    })
+    // Kolom selector
+    const [showColumnSelector, setShowColumnSelector] = useState(false);
+    const [columnVisibility, setColumnVisibility] = useState({
+        id: true,
+        nama: true,
+        kategori: true,
+        kontakPerson: true,
+        telepon: true,
+        email: true,
+        status: true,
+    });
+    const columnSelectorRef = useRef(null);
 
     // Data dummy vendors - nanti bisa diganti dengan fetch dari API/database
     const vendorsData = [
@@ -255,6 +256,26 @@ function DataVendor() {
         })
     }
 
+    // Kolom selector logic
+    const toggleColumnVisibility = (column) => {
+        setColumnVisibility(prev => ({
+            ...prev,
+            [column]: !prev[column]
+        }))
+    }
+    const getVisibleColumnsCount = () => Object.values(columnVisibility).filter(Boolean).length;
+
+    // Close dropdown when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (columnSelectorRef.current && !columnSelectorRef.current.contains(event.target)) {
+                setShowColumnSelector(false)
+            }
+        }
+        document.addEventListener('mousedown', handleClickOutside)
+        return () => document.removeEventListener('mousedown', handleClickOutside)
+    }, [])
+
     return (
         <>
             {/* Stats Cards */}
@@ -323,10 +344,57 @@ function DataVendor() {
                         </span>
                     )}
                 </div>
-
-                <button className="btn-primary-vendor" onClick={() => setShowModal(true)}>
-                    <Plus size={18} /> Tambah Vendor Baru
-                </button>
+                <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                    <div className="column-selector-vendor" ref={columnSelectorRef}>
+                        <button
+                            className="column-selector-btn-vendor"
+                            onClick={() => setShowColumnSelector(!showColumnSelector)}
+                            type="button"
+                        >
+                            <Eye size={18} /> Pilih Kolom ({getVisibleColumnsCount()}/7)
+                        </button>
+                        {showColumnSelector && (
+                            <div className="column-dropdown-vendor">
+                                <div className="column-dropdown-header-vendor">
+                                    <span>Tampilkan Kolom</span>
+                                </div>
+                                <div className="column-options-vendor">
+                                    <label className="column-option-vendor">
+                                        <input type="checkbox" checked={columnVisibility.id} onChange={() => toggleColumnVisibility('id')} />
+                                        <span>ID Vendor</span>
+                                    </label>
+                                    <label className="column-option-vendor">
+                                        <input type="checkbox" checked={columnVisibility.nama} onChange={() => toggleColumnVisibility('nama')} />
+                                        <span>Nama Vendor</span>
+                                    </label>
+                                    <label className="column-option-vendor">
+                                        <input type="checkbox" checked={columnVisibility.kategori} onChange={() => toggleColumnVisibility('kategori')} />
+                                        <span>Kategori</span>
+                                    </label>
+                                    <label className="column-option-vendor">
+                                        <input type="checkbox" checked={columnVisibility.kontakPerson} onChange={() => toggleColumnVisibility('kontakPerson')} />
+                                        <span>Kontak Person</span>
+                                    </label>
+                                    <label className="column-option-vendor">
+                                        <input type="checkbox" checked={columnVisibility.telepon} onChange={() => toggleColumnVisibility('telepon')} />
+                                        <span>Telepon</span>
+                                    </label>
+                                    <label className="column-option-vendor">
+                                        <input type="checkbox" checked={columnVisibility.email} onChange={() => toggleColumnVisibility('email')} />
+                                        <span>Email</span>
+                                    </label>
+                                    <label className="column-option-vendor">
+                                        <input type="checkbox" checked={columnVisibility.status} onChange={() => toggleColumnVisibility('status')} />
+                                        <span>Status</span>
+                                    </label>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                    <button className="btn-primary-vendor" onClick={() => setShowModal(true)}>
+                        <Plus size={18} /> Tambah Vendor Baru
+                    </button>
+                </div>
             </div>
 
             {/* Vendors Table */}
@@ -334,13 +402,13 @@ function DataVendor() {
                 <table className="vendors-table">
                     <thead>
                         <tr>
-                            <th>ID Vendor</th>
-                            <th>Nama Vendor</th>
-                            <th>Kategori</th>
-                            <th>Kontak Person</th>
-                            <th>Telepon</th>
-                            <th>Email</th>
-                            <th>Status</th>
+                            {columnVisibility.id && <th>ID Vendor</th>}
+                            {columnVisibility.nama && <th>Nama Vendor</th>}
+                            {columnVisibility.kategori && <th>Kategori</th>}
+                            {columnVisibility.kontakPerson && <th>Kontak Person</th>}
+                            {columnVisibility.telepon && <th>Telepon</th>}
+                            {columnVisibility.email && <th>Email</th>}
+                            {columnVisibility.status && <th>Status</th>}
                             <th>Aksi</th>
                         </tr>
                     </thead>
@@ -348,24 +416,30 @@ function DataVendor() {
                         {currentVendors.length > 0 ? (
                             currentVendors.map((vendor) => (
                                 <tr key={vendor.id}>
-                                    <td className="vendor-id">{vendor.id}</td>
-                                    <td className="vendor-name">
-                                        <div className="vendor-name-container">
-                                            <span className="vendor-name-text">{vendor.nama}</span>
-                                            <span className="vendor-address">{vendor.alamat}</span>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <span className="kategori-badge">{vendor.kategori}</span>
-                                    </td>
-                                    <td>{vendor.kontakPerson}</td>
-                                    <td>{vendor.telepon}</td>
-                                    <td className="vendor-email">{vendor.email}</td>
-                                    <td>
-                                        <span className={`status-badge ${getStatusClass(vendor.status)}`}>
-                                            {vendor.status}
-                                        </span>
-                                    </td>
+                                    {columnVisibility.id && <td className="vendor-id">{vendor.id}</td>}
+                                    {columnVisibility.nama && (
+                                        <td className="vendor-name">
+                                            <div className="vendor-name-container">
+                                                <span className="vendor-name-text">{vendor.nama}</span>
+                                                <span className="vendor-address">{vendor.alamat}</span>
+                                            </div>
+                                        </td>
+                                    )}
+                                    {columnVisibility.kategori && (
+                                        <td>
+                                            <span className="kategori-badge">{vendor.kategori}</span>
+                                        </td>
+                                    )}
+                                    {columnVisibility.kontakPerson && <td>{vendor.kontakPerson}</td>}
+                                    {columnVisibility.telepon && <td>{vendor.telepon}</td>}
+                                    {columnVisibility.email && <td className="vendor-email">{vendor.email}</td>}
+                                    {columnVisibility.status && (
+                                        <td>
+                                            <span className={`status-badge ${getStatusClass(vendor.status)}`}>
+                                                {vendor.status}
+                                            </span>
+                                        </td>
+                                    )}
                                     <td>
                                         <div className="action-buttons-vendor">
                                             <button className="btn-icon-vendor btn-view" title="Lihat Detail"><Eye size={16} /></button>
@@ -377,7 +451,7 @@ function DataVendor() {
                             ))
                         ) : (
                             <tr>
-                                <td colSpan="8" className="no-data">
+                                <td colSpan={getVisibleColumnsCount() + 1} className="no-data">
                                     <div className="no-data-message">
                                         <span className="no-data-icon"><Search size={48} /></span>
                                         <p>Tidak ada vendor yang ditemukan</p>
