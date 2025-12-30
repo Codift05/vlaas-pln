@@ -4,6 +4,18 @@ import { Users, CheckCircle, Search, Eye, Edit, Trash2, PauseCircle, ClipboardLi
 import './DataVendor.css'
 
 function DataVendor() {
+        // State untuk form tambah/edit vendor
+        const [formData, setFormData] = useState({
+            id: '',
+            nama: '',
+            alamat: '',
+            telepon: '',
+            email: '',
+            kategori: '',
+            kontakPerson: '',
+            status: 'Aktif',
+            tanggalRegistrasi: ''
+        });
     // State untuk file yang dipilih
     const [selectedFile, setSelectedFile] = useState(null);
     // Handler saat file dipilih
@@ -512,9 +524,14 @@ function DataVendor() {
                         <form onSubmit={handleSubmit} className="modal-form-vendor">
                             <div className="form-group-vendor full-width">
                                 <label>Upload PDF Kontrak (opsional)</label>
-                                <input type="file" accept="application/pdf" onChange={handleFileChange} />
-                                <button type="button" onClick={handleUpload} style={{ marginTop: 8 }}>Upload</button>
-                                {selectedFile && <span style={{ marginLeft: 8 }}>{selectedFile.name}</span>}
+                                <div className="upload-file-group-vendor">
+                                    <input type="file" id="file-upload-vendor" accept="application/pdf" onChange={handleFileChange} style={{ display: 'none' }} />
+                                    <label htmlFor="file-upload-vendor" className="btn-upload-vendor">Pilih File</label>
+                                    <span className="file-upload-name-vendor">{selectedFile ? selectedFile.name : 'No file chosen'}</span>
+                                    {selectedFile && (
+                                        <button type="button" className="btn-upload-action-vendor" onClick={handleUpload}>Upload</button>
+                                    )}
+                                </div>
                             </div>
                             <div className="form-grid-vendor">
                                 <div className="form-group-vendor">

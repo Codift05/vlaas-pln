@@ -1,3 +1,56 @@
+/* Upload file group styling for modal vendor */
+.upload-file-group-vendor {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 4px;
+}
+.btn-upload-vendor {
+  padding: 8px 18px;
+  background: #eaf3fa;
+  color: #1a2536;
+  border: 1.5px solid #b6d6f2;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.18s;
+  font-family: 'Inter', sans-serif;
+  outline: none;
+  display: inline-block;
+}
+.btn-upload-vendor:hover, .btn-upload-vendor:focus {
+  background: #d2e6f7;
+  border-color: #7eb9d9;
+}
+.file-upload-name-vendor {
+  font-size: 13px;
+  color: #5a6d7f;
+  font-family: 'Inter', sans-serif;
+  min-width: 120px;
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: inline-block;
+}
+.btn-upload-action-vendor {
+  padding: 8px 16px;
+  background: linear-gradient(135deg, #7eb9d9 0%, #5a9dc4 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.18s;
+  font-family: 'Inter', sans-serif;
+  outline: none;
+  display: inline-block;
+}
+.btn-upload-action-vendor:hover, .btn-upload-action-vendor:focus {
+  background: linear-gradient(135deg, #5a9dc4 0%, #7eb9d9 100%);
+}
 /* --- COLUMN SELECTOR VENDOR --- */
 .column-selector-vendor {
   position: relative;
