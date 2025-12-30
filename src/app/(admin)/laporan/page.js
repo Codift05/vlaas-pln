@@ -202,7 +202,8 @@ function Laporan() {
             </div>
 
             {/* KPI Cards */}
-            <div className="stats-grid">
+            {/* KPI Cards */}
+            <div className="kpi-section">
                 {[
                     {
                         title: 'Rata-rata Waktu Proses',
@@ -238,16 +239,17 @@ function Laporan() {
                     },
                 ].map((stat, index) => {
                     const IconComponent = stat.icon;
+                    const cardClass = index === 0 ? 'blue' : index === 1 ? 'green' : index === 2 ? 'purple' : 'orange';
                     return (
-                        <div key={index} className="stat-card">
-                            <div className="stat-icon-wrapper" style={{ background: stat.bgColor }}>
-                                <IconComponent className="stat-icon-svg" style={{ color: stat.color }} strokeWidth={2.5} size={28} />
+                        <div key={index} className={`kpi-card ${cardClass}`}>
+                            <div className="kpi-icon">
+                                <IconComponent size={24} />
                             </div>
-                            <div className="stat-info">
-                                <h3 className="stat-value">{stat.value}</h3>
-                                <p className="stat-title">{stat.title}</p>
+                            <div className="kpi-content">
+                                <h3 className="kpi-value">{stat.value}</h3>
+                                <div className="kpi-label">{stat.title}</div>
                                 {stat.badge && (
-                                    <span className={`stat-badge ${stat.badge.type}`}>{stat.badge.text}</span>
+                                    <span className={`kpi-trend ${stat.badge.type}`}>{stat.badge.text}</span>
                                 )}
                             </div>
                         </div>

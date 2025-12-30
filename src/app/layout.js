@@ -25,7 +25,7 @@ export const metadata = {
 export default function RootLayout({ children }) {
     return (
         <html lang="id">
-            <body className={`${inter.variable} ${outfit.variable}`}>
+            <body className={`${inter.variable} ${outfit.variable}`} suppressHydrationWarning={true}>
                 <StyledComponentsRegistry>{children}</StyledComponentsRegistry>
             </body>
         </html>

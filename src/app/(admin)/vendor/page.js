@@ -258,7 +258,8 @@ function DataVendor() {
     return (
         <>
             {/* Stats Cards */}
-            <div className="stats-grid">
+            {/* Stats Cards */}
+            <div className="stats-grid-vendor">
                 {[
                     {
                         title: 'Total Vendor',
@@ -291,13 +292,13 @@ function DataVendor() {
                 ].map((stat, index) => {
                     const IconComponent = stat.icon;
                     return (
-                        <div key={index} className="stat-card">
-                            <div className="stat-icon-wrapper" style={{ background: stat.bgColor }}>
-                                <IconComponent className="stat-icon-svg" style={{ color: stat.color }} strokeWidth={2.5} size={28} />
+                        <div key={index} className="stat-card-vendor">
+                            <div className="stat-icon-wrapper-vendor" style={{ background: stat.bgColor }}>
+                                <IconComponent className="stat-icon-svg-vendor" style={{ color: stat.color }} strokeWidth={2.5} size={28} />
                             </div>
-                            <div className="stat-info">
-                                <h3 className="stat-value">{stat.value}</h3>
-                                <p className="stat-title">{stat.title}</p>
+                            <div className="stat-info-vendor">
+                                <h3 className="stat-value-vendor">{stat.value}</h3>
+                                <p className="stat-title-vendor">{stat.title}</p>
                             </div>
                         </div>
                     );
