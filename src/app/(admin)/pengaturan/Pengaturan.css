@@ -24,6 +24,8 @@
   align-items: center;
   gap: 8px;
   letter-spacing: 0.2px;
+  outline: none !important;
+  box-shadow: none !important;
 }
 
 .tab-btn:hover {
@@ -31,9 +33,16 @@
   background: rgba(126, 185, 217, 0.08);
 }
 
+.tab-btn:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
 .tab-btn.active {
   color: #5a9dc4;
   border-bottom-color: #7eb9d9;
+  outline: none !important;
+  box-shadow: none !important;
 }
 
 /* Settings Content */
