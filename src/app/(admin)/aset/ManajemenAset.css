@@ -685,7 +685,7 @@
   background: white;
   border-radius: 16px;
   width: 90%;
-  max-width: 700px;
+  max-width: 850px;
   max-height: 90vh;
   overflow-y: auto;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
@@ -718,7 +718,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 25px 30px;
+  padding: 30px 40px;
   border-bottom: 1px solid #e9ecef;
 }
 
@@ -749,8 +749,12 @@
   color: #333;
 }
 
+.modal-body {
+  padding: 30px 40px;
+}
+
 .modal-form {
-  padding: 30px;
+  padding: 30px 40px;
 }
 
 .form-grid {
@@ -936,6 +940,15 @@
 }
 
 /* Modern Detail Modal Styles */
+.modal-overlay {
+  font-family: var(--font-inter), sans-serif;
+}
+
+.modal-header h2 {
+  font-family: var(--font-outfit), sans-serif;
+  letter-spacing: -0.5px;
+}
+
 .detail-section-title {
   margin-bottom: 24px;
   color: #1e5ba8;
@@ -946,12 +959,13 @@
   display: flex;
   align-items: center;
   gap: 10px;
+  font-family: var(--font-outfit), sans-serif;
 }
 
 .detail-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 24px;
+  gap: 32px;
 }
 
 .detail-item {
@@ -967,9 +981,10 @@
 .detail-label {
   font-size: 13px;
   color: #64748b;
-  font-weight: 500;
+  font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  font-family: var(--font-inter), sans-serif;
 }
 
 .detail-value {
@@ -980,6 +995,7 @@
   padding: 10px 14px;
   border-radius: 8px;
   border: 1px solid #e2e8f0;
+  font-family: var(--font-inter), sans-serif;
 }
 
 .detail-value-lg {
@@ -988,21 +1004,23 @@
   background: white;
   padding: 0;
   border: none;
+  font-family: var(--font-outfit), sans-serif;
 }
 
 .time-range-title {
   margin: 32px 0 16px 0;
   font-size: 15px;
   color: #475569;
-  font-weight: 600;
+  font-weight: 700;
   display: flex;
   align-items: center;
   gap: 8px;
+  font-family: var(--font-outfit), sans-serif;
 }
 
 .time-range-container {
   background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
-  padding: 24px;
+  padding: 32px;
   border-radius: 16px;
   border: 1px solid #e2e8f0;
   display: flex;
@@ -1033,15 +1051,17 @@
   font-size: 12px;
   color: #64748b;
   margin-bottom: 6px;
-  font-weight: 500;
+  font-weight: 600;
   text-transform: uppercase;
+  font-family: var(--font-inter), sans-serif;
+  letter-spacing: 0.5px;
 }
 
 .time-value {
   font-weight: 700;
   color: #0f172a;
-  font-size: 16px;
-  font-family: 'Outfit', sans-serif;
+  font-size: 18px;
+  font-family: var(--font-outfit), sans-serif;
 }
 
 .time-arrow {
@@ -1063,6 +1083,7 @@
   width: 100%;
   font-size: 14px;
   border-collapse: collapse;
+  font-family: var(--font-inter), sans-serif;
 }
 
 .detail-table tr {
