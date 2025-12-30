@@ -520,7 +520,6 @@ function DataVendor() {
                             <h2>Tambah Vendor Baru</h2>
                             <button className="modal-close-vendor" onClick={handleCloseModal}>✕</button>
                         </div>
-
                         <form onSubmit={handleSubmit} className="modal-form-vendor">
                             <div className="form-group-vendor full-width">
                                 <label>Upload PDF Kontrak (opsional)</label>
@@ -546,7 +545,6 @@ function DataVendor() {
                                         required
                                     />
                                 </div>
-
                                 <div className="form-group-vendor">
                                     <label htmlFor="nama">Nama Vendor <span className="required-vendor">*</span></label>
                                     <input
@@ -559,7 +557,6 @@ function DataVendor() {
                                         required
                                     />
                                 </div>
-
                                 <div className="form-group-vendor full-width">
                                     <label htmlFor="alamat">Alamat <span className="required-vendor">*</span></label>
                                     <textarea
@@ -572,7 +569,6 @@ function DataVendor() {
                                         required
                                     />
                                 </div>
-
                                 <div className="form-group-vendor">
                                     <label htmlFor="telepon">Telepon <span className="required-vendor">*</span></label>
                                     <input
@@ -585,7 +581,6 @@ function DataVendor() {
                                         required
                                     />
                                 </div>
-
                                 <div className="form-group-vendor">
                                     <label htmlFor="email">Email <span className="required-vendor">*</span></label>
                                     <input
@@ -598,7 +593,6 @@ function DataVendor() {
                                         required
                                     />
                                 </div>
-
                                 <div className="form-group-vendor">
                                     <label htmlFor="kategori">Kategori <span className="required-vendor">*</span></label>
                                     <select
@@ -617,7 +611,6 @@ function DataVendor() {
                                         <option value="Lainnya">Lainnya</option>
                                     </select>
                                 </div>
-
                                 <div className="form-group-vendor">
                                     <label htmlFor="kontakPerson">Kontak Person <span className="required-vendor">*</span></label>
                                     <input
@@ -630,7 +623,6 @@ function DataVendor() {
                                         required
                                     />
                                 </div>
-
                                 <div className="form-group-vendor">
                                     <label htmlFor="status">Status <span className="required-vendor">*</span></label>
                                     <select
@@ -644,7 +636,6 @@ function DataVendor() {
                                         <option value="Tidak Aktif">Tidak Aktif</option>
                                     </select>
                                 </div>
-
                                 <div className="form-group-vendor">
                                     <label htmlFor="tanggalRegistrasi">Tanggal Registrasi <span className="required-vendor">*</span></label>
                                     <input
@@ -657,7 +648,6 @@ function DataVendor() {
                                     />
                                 </div>
                             </div>
-
                             <div className="modal-footer-vendor">
                                 <button type="button" className="btn-cancel-vendor" onClick={handleCloseModal}>
                                     Batal
