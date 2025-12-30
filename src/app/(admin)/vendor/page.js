@@ -11,7 +11,6 @@ function DataVendor() {
             alamat: '',
             telepon: '',
             email: '',
-            kategori: '',
             kontakPerson: '',
             status: 'Aktif',
             tanggalRegistrasi: ''
@@ -57,7 +56,6 @@ function DataVendor() {
     const [columnVisibility, setColumnVisibility] = useState({
         id: true,
         nama: true,
-        kategori: true,
         kontakPerson: true,
         telepon: true,
         email: true,
@@ -73,7 +71,6 @@ function DataVendor() {
             alamat: 'Jl. Sudirman No. 123, Jakarta',
             telepon: '021-5551234',
             email: 'info@elektrindo.com',
-            kategori: 'Peralatan Listrik',
             kontakPerson: 'Budi Santoso',
             status: 'Aktif',
             tanggalRegistrasi: '15/01/2024'
@@ -84,7 +81,6 @@ function DataVendor() {
             alamat: 'Jl. Gatot Subroto No. 45, Bandung',
             telepon: '022-7771234',
             email: 'contact@majubersama.com',
-            kategori: 'Transformator',
             kontakPerson: 'Siti Nurhaliza',
             status: 'Aktif',
             tanggalRegistrasi: '20/02/2024'
@@ -95,7 +91,6 @@ function DataVendor() {
             alamat: 'Jl. Ahmad Yani No. 78, Surabaya',
             telepon: '031-8881234',
             email: 'sales@sentosagen.com',
-            kategori: 'Generator',
             kontakPerson: 'Agus Wijaya',
             status: 'Aktif',
             tanggalRegistrasi: '05/03/2024'
@@ -106,7 +101,6 @@ function DataVendor() {
             alamat: 'Jl. Diponegoro No. 90, Semarang',
             telepon: '024-6661234',
             email: 'info@kabelutama.com',
-            kategori: 'Kabel & Aksesoris',
             kontakPerson: 'Rina Melati',
             status: 'Tidak Aktif',
             tanggalRegistrasi: '10/04/2024'
@@ -117,7 +111,6 @@ function DataVendor() {
             alamat: 'Jl. Pemuda No. 234, Yogyakarta',
             telepon: '0274-5551234',
             email: 'support@teknindopower.com',
-            kategori: 'Panel Distribusi',
             kontakPerson: 'Dedi Kurniawan',
             status: 'Aktif',
             tanggalRegistrasi: '25/04/2024'
@@ -128,7 +121,6 @@ function DataVendor() {
             alamat: 'Jl. Veteran No. 56, Medan',
             telepon: '061-4441234',
             email: 'cs@harapanelektrindo.com',
-            kategori: 'Peralatan Listrik',
             kontakPerson: 'Lina Wijayanti',
             status: 'Aktif',
             tanggalRegistrasi: '12/05/2024'
@@ -139,7 +131,6 @@ function DataVendor() {
             alamat: 'Jl. Imam Bonjol No. 67, Palembang',
             telepon: '0711-3331234',
             email: 'info@grahatrafo.com',
-            kategori: 'Transformator',
             kontakPerson: 'Bambang Sutrisno',
             status: 'Aktif',
             tanggalRegistrasi: '18/06/2024'
@@ -150,7 +141,6 @@ function DataVendor() {
             alamat: 'Jl. Pahlawan No. 89, Malang',
             telepon: '0341-2221234',
             email: 'sales@karyamandiri.com',
-            kategori: 'Generator',
             kontakPerson: 'Dewi Lestari',
             status: 'Tidak Aktif',
             tanggalRegistrasi: '03/07/2024'
@@ -161,7 +151,6 @@ function DataVendor() {
             alamat: 'Jl. Gajah Mada No. 112, Denpasar',
             telepon: '0361-7771234',
             email: 'contact@nusantaracable.com',
-            kategori: 'Kabel & Aksesoris',
             kontakPerson: 'Made Suartika',
             status: 'Aktif',
             tanggalRegistrasi: '22/08/2024'
@@ -172,7 +161,6 @@ function DataVendor() {
             alamat: 'Jl. Hayam Wuruk No. 145, Makassar',
             telepon: '0411-5551234',
             email: 'info@berkahpanel.com',
-            kategori: 'Panel Distribusi',
             kontakPerson: 'Abdul Rahman',
             status: 'Aktif',
             tanggalRegistrasi: '15/09/2024'
@@ -183,7 +171,6 @@ function DataVendor() {
             alamat: 'Jl. Thamrin No. 200, Jakarta',
             telepon: '021-9991234',
             email: 'info@mitraenergi.com',
-            kategori: 'Peralatan Listrik',
             kontakPerson: 'Iwan Setiawan',
             status: 'Aktif',
             tanggalRegistrasi: '10/10/2024'
@@ -194,7 +181,6 @@ function DataVendor() {
             alamat: 'Jl. Asia Afrika No. 88, Bandung',
             telepon: '022-8881234',
             email: 'sales@sejahterapower.com',
-            kategori: 'Generator',
             kontakPerson: 'Sri Handayani',
             status: 'Aktif',
             tanggalRegistrasi: '05/11/2024'
@@ -315,13 +301,7 @@ function DataVendor() {
                         color: '#e74c3c',
                         bgColor: '#ffebee',
                     },
-                    {
-                        title: 'Kategori Vendor',
-                        value: [...new Set(vendorsData.map(v => v.kategori))].length,
-                        icon: ClipboardList,
-                        color: '#9b59b6',
-                        bgColor: '#f3e5f5',
-                    },
+                    // ...existing stat cards only, no empty object...
                 ].map((stat, index) => {
                     const IconComponent = stat.icon;
                     return (
@@ -364,7 +344,7 @@ function DataVendor() {
                             onClick={() => setShowColumnSelector(!showColumnSelector)}
                             type="button"
                         >
-                            <Eye size={18} /> Pilih Kolom ({getVisibleColumnsCount()}/7)
+                            <Eye size={18} /> Pilih Kolom ({getVisibleColumnsCount()}/6)
                         </button>
                         {showColumnSelector && (
                             <div className="column-dropdown-vendor">
@@ -379,10 +359,6 @@ function DataVendor() {
                                     <label className="column-option-vendor">
                                         <input type="checkbox" checked={columnVisibility.nama} onChange={() => toggleColumnVisibility('nama')} />
                                         <span>Nama Vendor</span>
-                                    </label>
-                                    <label className="column-option-vendor">
-                                        <input type="checkbox" checked={columnVisibility.kategori} onChange={() => toggleColumnVisibility('kategori')} />
-                                        <span>Kategori</span>
                                     </label>
                                     <label className="column-option-vendor">
                                         <input type="checkbox" checked={columnVisibility.kontakPerson} onChange={() => toggleColumnVisibility('kontakPerson')} />
@@ -438,11 +414,7 @@ function DataVendor() {
                                             </div>
                                         </td>
                                     )}
-                                    {columnVisibility.kategori && (
-                                        <td>
-                                            <span className="kategori-badge">{vendor.kategori}</span>
-                                        </td>
-                                    )}
+                                    {/* Removed Kategori column */}
                                     {columnVisibility.kontakPerson && <td>{vendor.kontakPerson}</td>}
                                     {columnVisibility.telepon && <td>{vendor.telepon}</td>}
                                     {columnVisibility.email && <td className="vendor-email">{vendor.email}</td>}
