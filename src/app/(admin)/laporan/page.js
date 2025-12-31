@@ -1,7 +1,8 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Select from 'react-select'
-import { FileDown, FileText, Clock, CheckCircle, BarChart2, Users, ClipboardList, Hourglass, Target } from 'lucide-react'
+import { FileDown, FileText, Clock, CheckCircle, BarChart2, ClipboardList, Hourglass, Target } from 'lucide-react'
+import { contractService } from '@/services/contractService'
 import './Laporan.css'
 
 function Laporan() {
@@ -11,52 +12,78 @@ function Laporan() {
     const [startDate, setStartDate] = useState('')
     const [endDate, setEndDate] = useState('')
 
-    // Data dummy untuk KPI
-    const kpiData = {
-        avgCycleTime: 2.5,
-        approvalRate: 85,
-        totalDocuments: 156,
-        pendingDocuments: 12
+    const [loading, setLoading] = useState(true)
+    const [kpiData, setKpiData] = useState({
+        avgCycleTime: 0,
+        approvalRate: 0,
+        totalDocuments: 0,
+        pendingDocuments: 0
+    })
+    const [monthlyData, setMonthlyData] = useState([])
+    const [statusData, setStatusData] = useState({ approved: 0, rejected: 0, pending: 0 })
+
+    useEffect(() => {
+        fetchData()
+    }, [])
+
+    const fetchData = async () => {
+        try {
+            setLoading(true)
+            const { data, success } = await contractService.getAllContracts()
+
+            if (success && data) {
+                processAnalytics(data)
+            }
+        } catch (err) {
+            console.error('Failed to fetch analytics:', err)
+        } finally {
+            setLoading(false)
+        }
     }
 
-    // Data dummy untuk grafik volume bulanan
-    const monthlyData = [
-        { month: 'Jan', count: 45 },
-        { month: 'Feb', count: 52 },
-        { month: 'Mar', count: 48 },
-        { month: 'Apr', count: 61 },
-        { month: 'Mei', count: 55 },
-        { month: 'Jun', count: 58 },
-        { month: 'Jul', count: 63 },
-        { month: 'Agu', count: 59 },
-        { month: 'Sep', count: 67 },
-        { month: 'Okt', count: 71 },
-        { month: 'Nov', count: 68 },
-        { month: 'Des', count: 73 }
-    ]
+    const processAnalytics = (contracts) => {
+        // 1. KPI Calculations
+        const total = contracts.length
+        const approved = contracts.filter(c => c.status === 'Approved').length
+        const rejected = contracts.filter(c => c.status === 'Rejected').length
+        const pending = contracts.filter(c => c.status === 'Pending').length
 
-    // Data dummy untuk pie chart
-    const statusData = {
-        approved: 133,
-        rejected: 23,
-        pending: 12
+        const rate = total > 0 ? ((approved / total) * 100).toFixed(0) : 0
+
+        setKpiData({
+            avgCycleTime: 2.5,
+            approvalRate: rate,
+            totalDocuments: total,
+            pendingDocuments: pending
+        })
+
+        setStatusData({ approved, rejected, pending })
+
+        // 2. Monthly Volume
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des']
+        const volumeByMonth = new Array(12).fill(0)
+
+        contracts.forEach(c => {
+            const date = new Date(c.created_at)
+            const monthIdx = date.getMonth()
+            volumeByMonth[monthIdx]++
+        })
+
+        const chartData = months.map((month, idx) => ({
+            month,
+            count: volumeByMonth[idx]
+        }))
+        setMonthlyData(chartData)
     }
 
     const totalStatus = statusData.approved + statusData.rejected + statusData.pending
-    const approvedPercent = ((statusData.approved / totalStatus) * 100).toFixed(1)
-    const rejectedPercent = ((statusData.rejected / totalStatus) * 100).toFixed(1)
-    const pendingPercent = ((statusData.pending / totalStatus) * 100).toFixed(1)
+    const approvedPercent = totalStatus ? ((statusData.approved / totalStatus) * 100).toFixed(1) : 0
+    const rejectedPercent = totalStatus ? ((statusData.rejected / totalStatus) * 100).toFixed(1) : 0
+    const pendingPercent = totalStatus ? ((statusData.pending / totalStatus) * 100).toFixed(1) : 0
 
-    // Data dummy untuk top vendor
-    const topVendors = [
-        { nama: 'PT Elektrindo Jaya', totalSurat: 28, ditolak: 3, rate: 89 },
-        { nama: 'CV Maju Bersama Electric', totalSurat: 24, ditolak: 2, rate: 92 },
-        { nama: 'PT Sentosa Generator', totalSurat: 22, ditolak: 5, rate: 77 },
-        { nama: 'CV Kabel Utama Indonesia', totalSurat: 19, ditolak: 1, rate: 95 },
-        { nama: 'PT Teknindo Power System', totalSurat: 17, ditolak: 4, rate: 76 }
-    ]
 
-    const maxCount = Math.max(...monthlyData.map(d => d.count))
+
+    const maxCount = monthlyData.length > 0 ? Math.max(...monthlyData.map(d => d.count)) : 10
 
     const handleExport = (format) => {
         alert(`Mengekspor laporan dalam format ${format}...`)
@@ -342,56 +369,7 @@ function Laporan() {
                 </div>
             </div>
 
-            {/* Vendor Insights */}
-            <div className="vendor-insights">
-                <div className="insights-header">
-                    <h3><Users size={20} style={{ display: 'inline', marginRight: '8px' }} /> Top 5 Vendor Teraktif</h3>
-                    <span className="insights-subtitle">Vendor dengan volume dokumen tertinggi</span>
-                </div>
-                <div className="vendor-table-container">
-                    <table className="vendor-insights-table">
-                        <thead>
-                            <tr>
-                                <th>Peringkat</th>
-                                <th>Nama Vendor</th>
-                                <th>Total Surat</th>
-                                <th>Ditolak</th>
-                                <th>Success Rate</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {topVendors.map((vendor, index) => (
-                                <tr key={index}>
-                                    <td className="rank">
-                                        <span className={`rank-badge rank-${index + 1}`}>#{index + 1}</span>
-                                    </td>
-                                    <td className="vendor-name-cell">{vendor.nama}</td>
-                                    <td className="text-center">{vendor.totalSurat}</td>
-                                    <td className="text-center rejected-count">{vendor.ditolak}</td>
-                                    <td className="text-center">
-                                        <div className="rate-bar">
-                                            <div
-                                                className="rate-fill"
-                                                style={{
-                                                    width: `${vendor.rate}%`,
-                                                    backgroundColor: vendor.rate >= 90 ? '#2ecc71' : vendor.rate >= 80 ? '#f39c12' : '#e74c3c'
-                                                }}
-                                            ></div>
-                                            <span className="rate-text">{vendor.rate}%</span>
-                                        </div>
-                                    </td>
-                                    <td className="text-center">
-                                        <span className={`status-badge-vendor ${vendor.rate >= 85 ? 'excellent' : 'needs-improvement'}`}>
-                                            {vendor.rate >= 85 ? 'Excellent' : 'Needs Review'}
-                                        </span>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+
         </>
     )
 }

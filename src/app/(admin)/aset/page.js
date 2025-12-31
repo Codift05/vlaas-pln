@@ -112,19 +112,19 @@ function ManajemenAset() {
 
             // Format data sesuai struktur UI
             const formattedData = data.map(contract => ({
-                id: contract.id,
-                name: contract.name,
-                vendorName: contract.vendor_name, // Map snake_case -> camelCase
-                recipient: contract.recipient,
-                invoiceNumber: contract.invoice_number,
+                id: contract.id || '',
+                name: contract.name || '',
+                vendorName: contract.vendor_name || '', // Map snake_case -> camelCase
+                recipient: contract.recipient || '',
+                invoiceNumber: contract.invoice_number || '',
                 amount: contract.amount ? parseFloat(contract.amount) : 0,
-                budgetType: contract.budget_type,
-                contractType: contract.contract_type,
-                category: contract.category,
-                location: contract.location,
-                status: contract.status,
-                startDate: contract.start_date,
-                endDate: contract.end_date,
+                budgetType: contract.budget_type || '',
+                contractType: contract.contract_type || '',
+                category: contract.category || '',
+                location: contract.location || '',
+                status: contract.status || 'Aktif',
+                startDate: contract.start_date || '',
+                endDate: contract.end_date || '',
                 history: contract.history || []
             }))
             setAssets(formattedData)

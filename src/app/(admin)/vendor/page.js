@@ -80,14 +80,14 @@ function DataVendor() {
             // Map DB columns (snake_case) to frontend (camelCase)
             const formattedData = data.map(vendor => ({
                 id: vendor.id, // Display ID e.g VND001
-                nama: vendor.name,
-                alamat: vendor.address,
-                telepon: vendor.phone,
+                nama: vendor.name || vendor.nama, // Handle potential inconsistent naming
+                alamat: vendor.alamat || vendor.address, // Fix: use alamat from DB
+                telepon: vendor.telepon || vendor.phone,
                 email: vendor.email,
-                kategori: vendor.category || '-',
-                kontakPerson: vendor.contact_person,
+                kategori: vendor.kategori || vendor.category || '-',
+                kontakPerson: vendor.kontak_person || vendor.contact_person,
                 status: vendor.status,
-                tanggalRegistrasi: vendor.registration_date // Format if needed
+                tanggalRegistrasi: vendor.tanggal_registrasi || vendor.registration_date // Format if needed
             }))
 
             setVendors(formattedData)
@@ -148,14 +148,14 @@ function DataVendor() {
         try {
             const payload = {
                 id: formData.id,
-                name: formData.nama,
-                address: formData.alamat,
-                phone: formData.telepon,
+                nama: formData.nama, // Fix name -> nama
+                alamat: formData.alamat, // Fix address -> alamat
+                telepon: formData.telepon, // Fix phone -> telepon
                 email: formData.email,
-                category: formData.kategori,
-                contact_person: formData.kontakPerson,
+                kategori: formData.kategori, // Fix category -> kategori
+                kontak_person: formData.kontakPerson,
                 status: formData.status,
-                registration_date: formData.tanggalRegistrasi
+                tanggal_registrasi: formData.tanggalRegistrasi // Fix registration_date -> tanggal_registrasi
             }
 
             if (isEditing) {

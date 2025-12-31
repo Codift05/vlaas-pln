@@ -35,7 +35,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- Table: vendors
 CREATE TABLE vendors (
-  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  id VARCHAR(50) PRIMARY KEY,
   nama VARCHAR(255) NOT NULL,
   alamat TEXT,
   telepon VARCHAR(50),
@@ -142,6 +142,81 @@ CREATE TRIGGER update_assets_updated_at
   BEFORE UPDATE ON assets 
   FOR EACH ROW 
   EXECUTE FUNCTION update_updated_at_column();
+
+-- Table: contracts
+CREATE TABLE contracts (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  nomor_surat VARCHAR(100) NOT NULL,
+  perihal TEXT NOT NULL,
+  vendor_id UUID REFERENCES vendors(id),
+  tanggal_mulai DATE,
+  tanggal_selesai DATE,
+  status VARCHAR(50) DEFAULT 'Pending', -- Pending, Approved, Rejected
+  keterangan TEXT,
+  file_url TEXT,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Enable Row Level Security for contracts
+ALTER TABLE contracts ENABLE ROW LEVEL SECURITY;
+
+-- Allow public/anon access for contracts (Development Mode)
+CREATE POLICY "Allow public read contracts" 
+  ON contracts FOR SELECT 
+  TO anon, authenticated
+  USING (true);
+
+CREATE POLICY "Allow public insert contracts" 
+  ON contracts FOR INSERT 
+  TO anon, authenticated
+  WITH CHECK (true);
+
+CREATE POLICY "Allow public update contracts" 
+  ON contracts FOR UPDATE 
+  TO anon, authenticated
+  USING (true);
+
+CREATE POLICY "Allow public delete contracts" 
+  ON contracts FOR DELETE 
+  TO anon, authenticated
+  USING (true);
+
+-- Allow public access for contract_history
+CREATE POLICY "Allow public all contract_history"
+  ON contract_history FOR ALL
+  TO anon, authenticated
+  USING (true)
+  WITH CHECK (true);
+
+-- Allow public access for contract_files
+CREATE POLICY "Allow public all contract_files"
+  ON contract_files FOR ALL
+  TO anon, authenticated
+  USING (true)
+  WITH CHECK (true);
+
+-- Table: contract_history
+CREATE TABLE contract_history (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  contract_id TEXT REFERENCES contracts(id) ON DELETE CASCADE,
+  action TEXT NOT NULL,
+  user_name TEXT,
+  details TEXT,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Table: contract_files
+CREATE TABLE contract_files (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  contract_id TEXT REFERENCES contracts(id) ON DELETE CASCADE,
+  file_url TEXT NOT NULL,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Enable RLS for new tables
+ALTER TABLE contract_history ENABLE ROW LEVEL SECURITY;
+ALTER TABLE contract_files ENABLE ROW LEVEL SECURITY;
 ```
 
 ### 5. Buat User Admin di Authentication
@@ -163,6 +238,14 @@ INSERT INTO vendors (nama, alamat, telepon, email, kategori, kontak_person, stat
 INSERT INTO assets (asset_id, name, category, location, status, last_maintenance) VALUES
 ('AST001', 'Transformer 500KVA', 'Trafo', 'Gardu Induk Jakarta', 'Aktif', '2025-11-15'),
 ('AST002', 'Generator Set Diesel', 'Generator', 'PLTD Surabaya', 'Aktif', '2025-11-10');
+
+-- Sample contracts (Pastikan UUID vendor_id valid dari table vendors)
+-- Anda bisa mengambil UUID vendor setelah insert vendors dengan: SELECT id FROM vendors LIMIT 1;
+-- Ganti 'VENDOR_UUID_HERE' dengan UUID asli.
+-- Contoh dummy query (tidak akan jalan jika UUID tidak valid):
+-- INSERT INTO contracts (nomor_surat, perihal, vendor_id, tanggal_mulai, tanggal_selesai, status, created_at) VALUES
+-- ('SRT/001/X/2025', 'Pengadaan Trafo', 'VENDOR_UUID_HERE', '2025-01-01', '2025-12-31', 'Approved', '2025-01-15 10:00:00'),
+-- ('SRT/002/X/2025', 'Maintenance Genset', 'VENDOR_UUID_HERE', '2025-02-01', '2025-02-28', 'Pending', '2025-02-10 09:30:00');
 ```
 
 ### 7. Test Koneksi
