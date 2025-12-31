@@ -1,20 +1,24 @@
 "use client"
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { Users, CheckCircle, Search, Eye, Edit, Trash2, PauseCircle, ClipboardList, Plus, Save, X } from 'lucide-react'
+import { supabase } from '../../../lib/supabaseClient'
 import './DataVendor.css'
 
 function DataVendor() {
-        // State untuk form tambah/edit vendor
-        const [formData, setFormData] = useState({
-            id: '',
-            nama: '',
-            alamat: '',
-            telepon: '',
-            email: '',
-            kontakPerson: '',
-            status: 'Aktif',
-            tanggalRegistrasi: ''
-        });
+    const [vendors, setVendors] = useState([])
+    const [loading, setLoading] = useState(true)
+    const [error, setError] = useState(null)
+    // State untuk form tambah/edit vendor
+    const [formData, setFormData] = useState({
+        id: '',
+        nama: '',
+        alamat: '',
+        telepon: '',
+        email: '',
+        kontakPerson: '',
+        status: 'Aktif',
+        tanggalRegistrasi: ''
+    });
     // State untuk file yang dipilih
     const [selectedFile, setSelectedFile] = useState(null);
     // Handler saat file dipilih
@@ -63,129 +67,44 @@ function DataVendor() {
     });
     const columnSelectorRef = useRef(null);
 
-    // Data dummy vendors - nanti bisa diganti dengan fetch dari API/database
-    const vendorsData = [
-        {
-            id: 'VND001',
-            nama: 'PT Elektrindo Jaya',
-            alamat: 'Jl. Sudirman No. 123, Jakarta',
-            telepon: '021-5551234',
-            email: 'info@elektrindo.com',
-            kontakPerson: 'Budi Santoso',
-            status: 'Aktif',
-            tanggalRegistrasi: '15/01/2024'
-        },
-        {
-            id: 'VND002',
-            nama: 'CV Maju Bersama Electric',
-            alamat: 'Jl. Gatot Subroto No. 45, Bandung',
-            telepon: '022-7771234',
-            email: 'contact@majubersama.com',
-            kontakPerson: 'Siti Nurhaliza',
-            status: 'Aktif',
-            tanggalRegistrasi: '20/02/2024'
-        },
-        {
-            id: 'VND003',
-            nama: 'PT Sentosa Generator',
-            alamat: 'Jl. Ahmad Yani No. 78, Surabaya',
-            telepon: '031-8881234',
-            email: 'sales@sentosagen.com',
-            kontakPerson: 'Agus Wijaya',
-            status: 'Aktif',
-            tanggalRegistrasi: '05/03/2024'
-        },
-        {
-            id: 'VND004',
-            nama: 'CV Kabel Utama Indonesia',
-            alamat: 'Jl. Diponegoro No. 90, Semarang',
-            telepon: '024-6661234',
-            email: 'info@kabelutama.com',
-            kontakPerson: 'Rina Melati',
-            status: 'Tidak Aktif',
-            tanggalRegistrasi: '10/04/2024'
-        },
-        {
-            id: 'VND005',
-            nama: 'PT Teknindo Power System',
-            alamat: 'Jl. Pemuda No. 234, Yogyakarta',
-            telepon: '0274-5551234',
-            email: 'support@teknindopower.com',
-            kontakPerson: 'Dedi Kurniawan',
-            status: 'Aktif',
-            tanggalRegistrasi: '25/04/2024'
-        },
-        {
-            id: 'VND006',
-            nama: 'CV Harapan Elektrindo',
-            alamat: 'Jl. Veteran No. 56, Medan',
-            telepon: '061-4441234',
-            email: 'cs@harapanelektrindo.com',
-            kontakPerson: 'Lina Wijayanti',
-            status: 'Aktif',
-            tanggalRegistrasi: '12/05/2024'
-        },
-        {
-            id: 'VND007',
-            nama: 'PT Graha Transformer',
-            alamat: 'Jl. Imam Bonjol No. 67, Palembang',
-            telepon: '0711-3331234',
-            email: 'info@grahatrafo.com',
-            kontakPerson: 'Bambang Sutrisno',
-            status: 'Aktif',
-            tanggalRegistrasi: '18/06/2024'
-        },
-        {
-            id: 'VND008',
-            nama: 'CV Karya Mandiri Electric',
-            alamat: 'Jl. Pahlawan No. 89, Malang',
-            telepon: '0341-2221234',
-            email: 'sales@karyamandiri.com',
-            kontakPerson: 'Dewi Lestari',
-            status: 'Tidak Aktif',
-            tanggalRegistrasi: '03/07/2024'
-        },
-        {
-            id: 'VND009',
-            nama: 'PT Nusantara Cable Industry',
-            alamat: 'Jl. Gajah Mada No. 112, Denpasar',
-            telepon: '0361-7771234',
-            email: 'contact@nusantaracable.com',
-            kontakPerson: 'Made Suartika',
-            status: 'Aktif',
-            tanggalRegistrasi: '22/08/2024'
-        },
-        {
-            id: 'VND010',
-            nama: 'CV Berkah Panel Elektrik',
-            alamat: 'Jl. Hayam Wuruk No. 145, Makassar',
-            telepon: '0411-5551234',
-            email: 'info@berkahpanel.com',
-            kontakPerson: 'Abdul Rahman',
-            status: 'Aktif',
-            tanggalRegistrasi: '15/09/2024'
-        },
-        {
-            id: 'VND011',
-            nama: 'PT Mitra Energi Nusantara',
-            alamat: 'Jl. Thamrin No. 200, Jakarta',
-            telepon: '021-9991234',
-            email: 'info@mitraenergi.com',
-            kontakPerson: 'Iwan Setiawan',
-            status: 'Aktif',
-            tanggalRegistrasi: '10/10/2024'
-        },
-        {
-            id: 'VND012',
-            nama: 'CV Sejahtera Power',
-            alamat: 'Jl. Asia Afrika No. 88, Bandung',
-            telepon: '022-8881234',
-            email: 'sales@sejahterapower.com',
-            kontakPerson: 'Sri Handayani',
-            status: 'Aktif',
-            tanggalRegistrasi: '05/11/2024'
-        },
-    ]
+    const fetchVendors = useCallback(async () => {
+        try {
+            setLoading(true)
+            const { data, error } = await supabase
+                .from('vendors')
+                .select('*')
+                .order('created_at', { ascending: false })
+
+            if (error) throw error
+
+            // Map DB columns (snake_case) to frontend (camelCase)
+            const formattedData = data.map(vendor => ({
+                id: vendor.id, // Display ID e.g VND001
+                nama: vendor.name,
+                alamat: vendor.address,
+                telepon: vendor.phone,
+                email: vendor.email,
+                kategori: vendor.category || '-',
+                kontakPerson: vendor.contact_person,
+                status: vendor.status,
+                tanggalRegistrasi: vendor.registration_date // Format if needed
+            }))
+
+            setVendors(formattedData)
+        } catch (err) {
+            console.error('Error fetching vendors:', err)
+            setError('Gagal mengambil data vendor')
+        } finally {
+            setLoading(false)
+        }
+    }, [])
+
+    useEffect(() => {
+        fetchVendors()
+    }, [fetchVendors])
+
+    // Use fetched data instead of mock
+    const vendorsData = vendors
 
     // Filter vendors berdasarkan search term
     const filteredVendors = vendorsData.filter(vendor =>
@@ -219,13 +138,58 @@ function DataVendor() {
         }))
     }
 
-    const handleSubmit = (e) => {
+    const [isEditing, setIsEditing] = useState(false)
+    const [editId, setEditId] = useState(null)
+
+    const handleSubmit = async (e) => {
         e.preventDefault()
-        // Di sini nanti bisa ditambahkan logika untuk menyimpan ke database
-        console.log('Data vendor baru:', formData)
-        alert('Vendor berhasil ditambahkan!')
-        setShowModal(false)
-        // Reset form
+        setLoading(true)
+
+        try {
+            const payload = {
+                id: formData.id,
+                name: formData.nama,
+                address: formData.alamat,
+                phone: formData.telepon,
+                email: formData.email,
+                category: formData.kategori,
+                contact_person: formData.kontakPerson,
+                status: formData.status,
+                registration_date: formData.tanggalRegistrasi
+            }
+
+            if (isEditing) {
+                // Update existing vendor using editId to locate the record
+                const { error } = await supabase
+                    .from('vendors')
+                    .update(payload)
+                    .eq('id', editId)
+
+                if (error) throw error
+                // If ID was changed, we might want to warn or handle it, but for now we try to update it.
+                alert('Vendor berhasil diperbarui!')
+            } else {
+                // Insert new vendor
+                const { error } = await supabase
+                    .from('vendors')
+                    .insert([payload])
+
+                if (error) throw error
+                alert('Vendor berhasil ditambahkan!')
+            }
+
+            setShowModal(false)
+            fetchVendors() // Refresh data
+            resetForm()
+        } catch (err) {
+            console.error('Error saving vendor:', err)
+            alert('Gagal menyimpan vendor: ' + err.message)
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    const resetForm = () => {
         setFormData({
             id: '',
             nama: '',
@@ -237,21 +201,53 @@ function DataVendor() {
             status: 'Aktif',
             tanggalRegistrasi: ''
         })
+        setIsEditing(false)
+        setEditId(null)
+        setSelectedFile(null)
     }
 
     const handleCloseModal = () => {
         setShowModal(false)
+        resetForm()
+    }
+
+    const handleEdit = (vendor) => {
+        setEditId(vendor.id)
         setFormData({
-            id: '',
-            nama: '',
-            alamat: '',
-            telepon: '',
-            email: '',
-            kategori: '',
-            kontakPerson: '',
-            status: 'Aktif',
-            tanggalRegistrasi: ''
+            id: vendor.id,
+            nama: vendor.nama,
+            alamat: vendor.alamat,
+            telepon: vendor.telepon,
+            email: vendor.email,
+            kategori: vendor.kategori,
+            kontakPerson: vendor.kontakPerson,
+            status: vendor.status,
+            tanggalRegistrasi: vendor.tanggalRegistrasi
         })
+        setIsEditing(true)
+        setShowModal(true)
+    }
+
+    const handleDelete = async (id) => {
+        if (!confirm('Apakah Anda yakin ingin menghapus vendor ini?')) return
+
+        try {
+            setLoading(true)
+            const { error } = await supabase
+                .from('vendors')
+                .delete()
+                .eq('id', id)
+
+            if (error) throw error
+
+            alert('Vendor berhasil dihapus')
+            fetchVendors()
+        } catch (err) {
+            console.error('Error deleting vendor:', err)
+            alert('Gagal menghapus vendor')
+        } finally {
+            setLoading(false)
+        }
     }
 
     // Kolom selector logic
@@ -402,7 +398,11 @@ function DataVendor() {
                         </tr>
                     </thead>
                     <tbody>
-                        {currentVendors.length > 0 ? (
+                        {loading ? (
+                            <tr>
+                                <td colSpan="8" style={{ textAlign: 'center', padding: '20px' }}>Loading data...</td>
+                            </tr>
+                        ) : currentVendors.length > 0 ? (
                             currentVendors.map((vendor) => (
                                 <tr key={vendor.id}>
                                     {columnVisibility.id && <td className="vendor-id">{vendor.id}</td>}
@@ -428,8 +428,8 @@ function DataVendor() {
                                     <td>
                                         <div className="action-buttons-vendor">
                                             <button className="btn-icon-vendor btn-view" title="Lihat Detail"><Eye size={16} /></button>
-                                            <button className="btn-icon-vendor btn-edit" title="Edit"><Edit size={16} /></button>
-                                            <button className="btn-icon-vendor btn-delete" title="Hapus"><Trash2 size={16} /></button>
+                                            <button className="btn-icon-vendor btn-edit" title="Edit" onClick={() => handleEdit(vendor)}><Edit size={16} /></button>
+                                            <button className="btn-icon-vendor btn-delete" title="Hapus" onClick={() => handleDelete(vendor.id)}><Trash2 size={16} /></button>
                                         </div>
                                     </td>
                                 </tr>
