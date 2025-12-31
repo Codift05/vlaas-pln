@@ -5,6 +5,26 @@ import { FileDown, FileText, Clock, CheckCircle, BarChart2, ClipboardList, Hourg
 import { contractService } from '@/services/contractService'
 import './Laporan.css'
 
+// Define types
+interface Contract {
+    id: string
+    status: string
+    created_at: string
+    [key: string]: any
+}
+
+interface KpiData {
+    avgCycleTime: number
+    approvalRate: number | string
+    totalDocuments: number
+    pendingDocuments: number
+}
+
+interface MonthlyData {
+    month: string
+    count: number
+}
+
 function Laporan() {
     // const [sidebarOpen, setSidebarOpen] = useState(false) // Handled by layout
     const [dateRange, setDateRange] = useState({ value: 'bulan-ini', label: 'Bulan Ini' })
@@ -13,13 +33,13 @@ function Laporan() {
     const [endDate, setEndDate] = useState('')
 
     const [loading, setLoading] = useState(true)
-    const [kpiData, setKpiData] = useState({
+    const [kpiData, setKpiData] = useState<KpiData>({
         avgCycleTime: 0,
         approvalRate: 0,
         totalDocuments: 0,
         pendingDocuments: 0
     })
-    const [monthlyData, setMonthlyData] = useState([])
+    const [monthlyData, setMonthlyData] = useState<MonthlyData[]>([])
     const [statusData, setStatusData] = useState({ approved: 0, rejected: 0, pending: 0 })
 
     useEffect(() => {
@@ -32,7 +52,7 @@ function Laporan() {
             const { data, success } = await contractService.getAllContracts()
 
             if (success && data) {
-                processAnalytics(data)
+                processAnalytics(data as Contract[])
             }
         } catch (err) {
             console.error('Failed to fetch analytics:', err)
@@ -41,7 +61,7 @@ function Laporan() {
         }
     }
 
-    const processAnalytics = (contracts) => {
+    const processAnalytics = (contracts: Contract[]) => {
         // 1. KPI Calculations
         const total = contracts.length
         const approved = contracts.filter(c => c.status === 'Approved').length
@@ -77,15 +97,15 @@ function Laporan() {
     }
 
     const totalStatus = statusData.approved + statusData.rejected + statusData.pending
-    const approvedPercent = totalStatus ? ((statusData.approved / totalStatus) * 100).toFixed(1) : 0
-    const rejectedPercent = totalStatus ? ((statusData.rejected / totalStatus) * 100).toFixed(1) : 0
-    const pendingPercent = totalStatus ? ((statusData.pending / totalStatus) * 100).toFixed(1) : 0
+    const approvedPercent = totalStatus ? Number(((statusData.approved / totalStatus) * 100).toFixed(1)) : 0
+    const rejectedPercent = totalStatus ? Number(((statusData.rejected / totalStatus) * 100).toFixed(1)) : 0
+    const pendingPercent = totalStatus ? Number(((statusData.pending / totalStatus) * 100).toFixed(1)) : 0
 
 
 
     const maxCount = monthlyData.length > 0 ? Math.max(...monthlyData.map(d => d.count)) : 10
 
-    const handleExport = (format) => {
+    const handleExport = (format: string) => {
         alert(`Mengekspor laporan dalam format ${format}...`)
         // Nanti bisa ditambahkan logika untuk export ke CSV/PDF
     }
@@ -101,7 +121,7 @@ function Laporan() {
                             <Select
                                 classNamePrefix="modern-select"
                                 value={dateRange}
-                                onChange={setDateRange}
+                                onChange={(val) => setDateRange(val as any)}
                                 options={[
                                     { value: 'hari-ini', label: 'Hari Ini' },
                                     { value: 'minggu-ini', label: 'Minggu Ini' },
@@ -172,7 +192,7 @@ function Laporan() {
                             <Select
                                 classNamePrefix="modern-select"
                                 value={filterStatus}
-                                onChange={setFilterStatus}
+                                onChange={(val) => setFilterStatus(val as any)}
                                 options={[
                                     { value: 'all', label: 'Semua Status' },
                                     { value: 'approved', label: 'Approved' },
