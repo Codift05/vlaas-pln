@@ -1,3 +1,4 @@
+// ...existing code from previous patch (Next.js styled-components version)...
 'use client'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
@@ -22,7 +23,6 @@ const Overlay = styled.div`
 
   @media (max-width: 968px) {
     display: block;
-    
     &.active {
       opacity: 1;
     }
@@ -32,24 +32,24 @@ const Overlay = styled.div`
 const SidebarWrapper = styled.div`
   width: 280px;
   height: 100vh;
-  background: linear-gradient(180deg, #5a9dc4 0%, #7eb9d9 50%, #8ac4dd 100%);
+  background: var(--sidebar-gradient);
   display: flex;
   flex-direction: column;
   position: fixed;
   left: 0;
   top: 0;
-  box-shadow: 4px 0 16px rgba(0, 0, 0, 0.08);
+  box-shadow: 4px 0 16px var(--shadow-color);
   z-index: 1000;
-  transition: transform 0.3s ease;
-  border-right: 1px solid rgba(255, 255, 255, 0.2);
+  transition: transform 0.3s ease, background 0.3s;
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
 
   .sidebar-header {
     height: 80px;
     padding: 0 24px;
     display: flex;
     align-items: center;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
-    background: rgba(255, 255, 255, 0.08);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.05);
   }
 
   .sidebar-logo {
@@ -79,7 +79,7 @@ const SidebarWrapper = styled.div`
     font-weight: 800;
     color: white;
     letter-spacing: 0.5px;
-    font-family: 'Inter', sans-serif;
+    font-family: var(--font-inter);
     line-height: 1;
   }
 
@@ -87,7 +87,7 @@ const SidebarWrapper = styled.div`
     font-size: 11px;
     font-weight: 500;
     color: rgba(255, 255, 255, 0.75);
-    font-family: 'Inter', sans-serif;
+    font-family: var(--font-inter);
     letter-spacing: 0.3px;
   }
 
@@ -103,24 +103,24 @@ const SidebarWrapper = styled.div`
     gap: 14px;
     padding: 14px 24px;
     margin: 4px 12px;
-    color: rgba(255, 255, 255, 0.85);
+    color: rgba(255, 255, 255, 0.75);
     text-decoration: none;
     transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     cursor: pointer;
     border-radius: 12px;
     border-left: 3px solid transparent;
-    font-family: 'Inter', sans-serif;
+    font-family: var(--font-inter);
   }
 
   .nav-item:hover {
-    background: rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.1);
     color: white;
     transform: translateX(4px);
-    border-left-color: rgba(255, 255, 255, 0.5);
+    border-left-color: rgba(255, 255, 255, 0.3);
   }
 
   .nav-item.active {
-    background: rgba(255, 255, 255, 0.18);
+    background: rgba(255, 255, 255, 0.15);
     color: white;
     border-left-color: white;
     font-weight: 600;
@@ -182,18 +182,24 @@ const SidebarWrapper = styled.div`
   }
 
   @media (max-width: 968px) {
+    width: 80vw;
+    min-width: 220px;
+    max-width: 320px;
     transform: translateX(-100%);
-    
     &.open {
       transform: translateX(0);
     }
   }
 `;
 
-function Sidebar({ isOpen, onClose }) {
-  const pathname = usePathname()
 
-  const isActive = (path) => pathname === path ? 'active' : ''
+function Sidebar({ isOpen, onClose }) {
+  const pathname = usePathname();
+  const isActive = (path) => pathname === path ? 'active' : '';
+  // Tutup sidebar otomatis saat link diklik di mobile
+  const handleNavClick = () => {
+    if (window.innerWidth <= 968 && onClose) onClose();
+  };
 
   return (
     <>
@@ -210,29 +216,29 @@ function Sidebar({ isOpen, onClose }) {
         </div>
 
         <nav className="sidebar-nav">
-          <Link href="/dashboard" className={`nav-item ${isActive('/dashboard')}`}>
+          <Link href="/dashboard" className={`nav-item ${isActive('/dashboard')}`} onClick={handleNavClick}>
             <LayoutDashboard className="nav-icon-svg" size={20} strokeWidth={2} />
             <span className="nav-text">Dashboard</span>
           </Link>
 
-          <Link href="/aset" className={`nav-item ${isActive('/aset')}`}>
+          <Link href="/aset" className={`nav-item ${isActive('/aset')}`} onClick={handleNavClick}>
             <Package className="nav-icon-svg" size={20} strokeWidth={2} />
-            <span className="nav-text">Manajemen Aset</span>
+            <span className="nav-text">Manajemen Kontrak</span>
           </Link>
 
-          <Link href="/vendor" className={`nav-item ${isActive('/vendor')}`}>
+          <Link href="/vendor" className={`nav-item ${isActive('/vendor')}`} onClick={handleNavClick}>
             <Users className="nav-icon-svg" size={20} strokeWidth={2} />
             <span className="nav-text">Data Vendor</span>
           </Link>
 
-          <Link href="/laporan" className={`nav-item ${isActive('/laporan')}`}>
+          <Link href="/laporan" className={`nav-item ${isActive('/laporan')}`} onClick={handleNavClick}>
             <FileBarChart className="nav-icon-svg" size={20} strokeWidth={2} />
             <span className="nav-text">Laporan</span>
           </Link>
         </nav>
       </SidebarWrapper>
     </>
-  )
+  );
 }
 
-export default Sidebar
+export default Sidebar;
