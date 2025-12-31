@@ -40,7 +40,14 @@ function Laporan() {
         pendingDocuments: 0
     })
     const [monthlyData, setMonthlyData] = useState<MonthlyData[]>([])
-    const [statusData, setStatusData] = useState({ approved: 0, rejected: 0, pending: 0 })
+    const [budgetData, setBudgetData] = useState({
+        terkontrak: 0,
+        dalamProses: 0,
+        selesai: 0,
+        dalamPemeriksaan: 0,
+        telahDiperiksa: 0,
+        terbayar: 0
+    })
 
     useEffect(() => {
         fetchData()
@@ -49,10 +56,10 @@ function Laporan() {
     const fetchData = async () => {
         try {
             setLoading(true)
-            const { data, success } = await contractService.getAllContracts()
+            const result = await contractService.getAllContracts()
 
-            if (success && data) {
-                processAnalytics(data as Contract[])
+            if (result.success) {
+                processAnalytics((result as any).data as Contract[])
             }
         } catch (err) {
             console.error('Failed to fetch analytics:', err)
@@ -64,10 +71,10 @@ function Laporan() {
     const processAnalytics = (contracts: Contract[]) => {
         // 1. KPI Calculations
         const total = contracts.length
-        const approved = contracts.filter(c => c.status === 'Approved').length
-        const rejected = contracts.filter(c => c.status === 'Rejected').length
-        const pending = contracts.filter(c => c.status === 'Pending').length
+        const approved = contracts.filter(c => c.status === 'Telah Diperiksa' || c.status === 'Selesai' || c.status === 'Terbayar').length
+        const pending = contracts.filter(c => c.status === 'Dalam Pemeriksaan' || c.status === 'Dalam Proses Pekerjaan').length
 
+        // Simulating approval rate based on 'completed' vs total
         const rate = total > 0 ? ((approved / total) * 100).toFixed(0) : 0
 
         setKpiData({
@@ -77,9 +84,35 @@ function Laporan() {
             pendingDocuments: pending
         })
 
-        setStatusData({ approved, rejected, pending })
+        // 2. Budget Distribution Calculation
+        const buckets = {
+            terkontrak: 0,
+            dalamProses: 0,
+            selesai: 0,
+            dalamPemeriksaan: 0,
+            telahDiperiksa: 0,
+            terbayar: 0
+        }
 
-        // 2. Monthly Volume
+        contracts.forEach(c => {
+            const amount = Number(c.amount) || 0
+            switch (c.status) {
+                case 'Terkontrak':
+                case 'Aktif': // Handle legacy data
+                    buckets.terkontrak += amount;
+                    break;
+                case 'Dalam Proses Pekerjaan': buckets.dalamProses += amount; break;
+                case 'Selesai': buckets.selesai += amount; break;
+                case 'Dalam Pemeriksaan': buckets.dalamPemeriksaan += amount; break;
+                case 'Telah Diperiksa': buckets.telahDiperiksa += amount; break;
+                case 'Terbayar': buckets.terbayar += amount; break;
+                default: break; // Ignore unknowns or 'Aktif' legacy
+            }
+        })
+
+        setBudgetData(buckets)
+
+        // 3. Monthly Volume
         const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des']
         const volumeByMonth = new Array(12).fill(0)
 
@@ -96,10 +129,31 @@ function Laporan() {
         setMonthlyData(chartData)
     }
 
-    const totalStatus = statusData.approved + statusData.rejected + statusData.pending
-    const approvedPercent = totalStatus ? Number(((statusData.approved / totalStatus) * 100).toFixed(1)) : 0
-    const rejectedPercent = totalStatus ? Number(((statusData.rejected / totalStatus) * 100).toFixed(1)) : 0
-    const pendingPercent = totalStatus ? Number(((statusData.pending / totalStatus) * 100).toFixed(1)) : 0
+    const totalBudget = Object.values(budgetData).reduce((a, b) => a + b, 0);
+
+    const getPercent = (value: number) => {
+        if (totalBudget === 0) return 0;
+        return ((value / totalBudget) * 100);
+    };
+
+    // Calculate segments for Pie Chart
+    const segments = [
+        { label: 'Terkontrak', value: budgetData.terkontrak, color: '#3b82f6' }, // Blue
+        { label: 'Dalam Proses', value: budgetData.dalamProses, color: '#f59e0b' }, // Amber
+        { label: 'Selesai', value: budgetData.selesai, color: '#10b981' }, // Emerald
+        { label: 'Dalam Pemeriksaan', value: budgetData.dalamPemeriksaan, color: '#8b5cf6' }, // Violet
+        { label: 'Telah Diperiksa', value: budgetData.telahDiperiksa, color: '#06b6d4' }, // Cyan
+        { label: 'Terbayar', value: budgetData.terbayar, color: '#6366f1' } // Indigo
+    ];
+
+    let currentOffset = 0;
+    const pieSegments = segments.map(seg => {
+        const percent = getPercent(seg.value);
+        const strokeLength = (percent / 100) * 251.2; // 251.2 is circumference
+        const offset = currentOffset;
+        currentOffset -= strokeLength; // SVG stroke-dashoffset is counter-clockwise/negative usually
+        return { ...seg, percent, strokeLength, offset };
+    });
 
 
 
@@ -336,54 +390,46 @@ function Laporan() {
                     <div className="pie-chart-container">
                         <div className="pie-chart">
                             <svg viewBox="0 0 100 100" className="pie-svg">
-                                <circle
-                                    cx="50"
-                                    cy="50"
-                                    r="40"
-                                    fill="transparent"
-                                    stroke="#2ecc71"
-                                    strokeWidth="20"
-                                    strokeDasharray={`${approvedPercent * 2.51} ${251 - approvedPercent * 2.51}`}
-                                    strokeDashoffset="0"
-                                />
-                                <circle
-                                    cx="50"
-                                    cy="50"
-                                    r="40"
-                                    fill="transparent"
-                                    stroke="#e74c3c"
-                                    strokeWidth="20"
-                                    strokeDasharray={`${rejectedPercent * 2.51} ${251 - rejectedPercent * 2.51}`}
-                                    strokeDashoffset={`-${approvedPercent * 2.51}`}
-                                />
-                                <circle
-                                    cx="50"
-                                    cy="50"
-                                    r="40"
-                                    fill="transparent"
-                                    stroke="#f39c12"
-                                    strokeWidth="20"
-                                    strokeDasharray={`${pendingPercent * 2.51} ${251 - pendingPercent * 2.51}`}
-                                    strokeDashoffset={`-${(approvedPercent + rejectedPercent) * 2.51}`}
-                                />
+                                <g transform="rotate(-90 50 50)">
+                                    {pieSegments.map((seg, idx) => (
+                                        <circle
+                                            key={idx}
+                                            cx="50"
+                                            cy="50"
+                                            r="40"
+                                            fill="transparent"
+                                            stroke={seg.color}
+                                            strokeWidth="20"
+                                            strokeDasharray={`${seg.strokeLength} ${251.2 - seg.strokeLength}`}
+                                            strokeDashoffset={seg.offset}
+                                        />
+                                    ))}
+                                </g>
+                                {/* Center Text for Total Budget */}
+                                <text x="50" y="47" textAnchor="middle" fontSize="6px" fill="#64748b" fontWeight="500">Total Anggaran</text>
+                                <text x="50" y="55" textAnchor="middle" fontSize="7px" fill="#1e293b" fontWeight="700">
+                                    {totalBudget >= 1e9
+                                        ? `${(totalBudget / 1e9).toFixed(1)} M`
+                                        : (totalBudget >= 1e6 ? `${(totalBudget / 1e6).toFixed(1)} Jt` : `Rp ${totalBudget.toLocaleString('id-ID')}`)
+                                    }
+                                </text>
                             </svg>
                         </div>
-                        <div className="pie-legend">
-                            <div className="legend-item">
-                                <span className="legend-color approved"></span>
-                                <span className="legend-text">Approved ({approvedPercent}%)</span>
-                                <span className="legend-count">{statusData.approved}</span>
-                            </div>
-                            <div className="legend-item">
-                                <span className="legend-color rejected"></span>
-                                <span className="legend-text">Rejected ({rejectedPercent}%)</span>
-                                <span className="legend-count">{statusData.rejected}</span>
-                            </div>
-                            <div className="legend-item">
-                                <span className="legend-color pending"></span>
-                                <span className="legend-text">Pending ({pendingPercent}%)</span>
-                                <span className="legend-count">{statusData.pending}</span>
-                            </div>
+                        <div className="pie-legend" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                            {pieSegments.map((seg, idx) => (
+                                <div key={idx} className="legend-item" style={{ marginBottom: 0 }}>
+                                    <span className="legend-color" style={{ backgroundColor: seg.color }}></span>
+                                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                        <span className="legend-text" style={{ fontSize: '11px', color: '#64748b' }}>{seg.label}</span>
+                                        <span className="legend-count" style={{ fontSize: '13px', fontWeight: 600 }}>
+                                            {seg.percent.toFixed(1)}%
+                                            <span style={{ fontSize: '10px', color: '#94a3b8', marginLeft: '4px', fontWeight: 400 }}>
+                                                (Rp {(seg.value / 1e6).toFixed(0)} Jt)
+                                            </span>
+                                        </span>
+                                    </div>
+                                </div>
+                            ))}
                         </div>
                     </div>
                 </div>

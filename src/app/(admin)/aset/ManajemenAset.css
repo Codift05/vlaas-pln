@@ -485,6 +485,37 @@ textarea:focus {
   color: #c0392b;
 }
 
+/* New Statuses */
+.status-terkontrak {
+  background: rgba(59, 130, 246, 0.12);
+  color: #2563eb;
+}
+
+.status-dalam-proses-pekerjaan {
+  background: rgba(245, 158, 11, 0.12);
+  color: #d97706;
+}
+
+.status-selesai {
+  background: rgba(16, 185, 129, 0.12);
+  color: #059669;
+}
+
+.status-dalam-pemeriksaan {
+  background: rgba(139, 92, 246, 0.12);
+  color: #7c3aed;
+}
+
+.status-telah-diperiksa {
+  background: rgba(6, 182, 212, 0.12);
+  color: #0891b2;
+}
+
+.status-terbayar {
+  background: rgba(99, 102, 241, 0.12);
+  color: #4f46e5;
+}
+
 /* Budget Type Badges */
 .budget-badge {
   display: inline-block;
