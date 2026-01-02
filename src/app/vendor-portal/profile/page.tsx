@@ -202,7 +202,7 @@ function VendorProfile() {
                                         onChange={handleInputChange}
                                         placeholder="Jalan, Nomor, RT/RW, Kelurahan, Kecamatan"
                                         disabled={!isEditing}
-                                        rows="3"
+                                        rows={3}
                                         required
                                         className="form-textarea"
                                     />
@@ -245,7 +245,7 @@ function VendorProfile() {
                                         onChange={handleInputChange}
                                         placeholder="12345"
                                         disabled={!isEditing}
-                                        maxLength="5"
+                                        maxLength={5}
                                         className="form-input"
                                     />
                                 </div>

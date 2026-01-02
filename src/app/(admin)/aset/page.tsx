@@ -1,7 +1,7 @@
 'use client'
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, Fragment } from 'react'
 
-import { Eye, Edit, Trash2, Search, ChevronDown, Plus, Save, Upload, Calendar, Clock, ArrowRight, FileText } from 'lucide-react'
+import { Eye, Edit, Trash2, Search, ChevronDown, ChevronUp, Plus, Save, Upload, Calendar, Clock, ArrowRight, FileText, AlertCircle, FileCheck, History } from 'lucide-react'
 import { supabase } from '../../../lib/supabaseClient'
 import './ManajemenAset.css'
 
@@ -198,6 +198,38 @@ function ManajemenAset() {
         return () => document.removeEventListener('mousedown', handleClickOutside)
     }, [])
 
+
+    // State for expanded row (Amendment view)
+    const [expandedContractId, setExpandedContractId] = useState(null)
+
+    const toggleExpand = (id) => {
+        if (expandedContractId === id) {
+            setExpandedContractId(null)
+        } else {
+            setExpandedContractId(id)
+        }
+    }
+
+    const handleCreateAmendment = (asset) => {
+        // Calculate amendment number
+        const existingAmendments = asset.history ? asset.history.filter(h => h.action.includes('Amandemen')).length : 0;
+        const nextAmendmentNum = existingAmendments + 1;
+
+        if (confirm(`Apakah Anda yakin ingin membuat Amandemen ke-${nextAmendmentNum} untuk kontrak ini?`)) {
+            setFormData({
+                ...asset,
+                amount: asset.amount ? String(asset.amount) : '',
+                category: asset.category || '',
+                vendorName: asset.vendorName || '',
+                amendmentDocNumber: `AMD-${asset.id}-${String(nextAmendmentNum).padStart(3, '0')}`, // Auto-generate suggestion
+                amendmentDescription: ''
+            })
+            setEditId(asset.id)
+            setIsEditing(true)
+            setIsAmendment(true)
+            setShowModal(true)
+        }
+    }
 
     const toggleColumnVisibility = (column) => {
         setColumnVisibility(prev => ({
@@ -564,6 +596,7 @@ function ManajemenAset() {
                     <table className="assets-table">
                         <thead>
                             <tr>
+                                <th style={{ width: '50px', padding: '16px 8px' }}></th>
                                 {columnVisibility.id && <th>Nomor Kontrak</th>}
                                 {columnVisibility.name && <th>Nama Kontrak</th>}
                                 {columnVisibility.vendorName && <th>Nama Vendor</th>}
@@ -581,46 +614,138 @@ function ManajemenAset() {
                         <tbody>
                             {filteredAssets.length > 0 ? (
                                 filteredAssets.map((asset) => (
-                                    <tr key={asset.id}>
-                                        {columnVisibility.id && <td className="asset-id">{asset.id}</td>}
-                                        {columnVisibility.name && <td className="asset-name">{asset.name}</td>}
-                                        {columnVisibility.vendorName && <td className="asset-vendor">{asset.vendorName}</td>}
-                                        {columnVisibility.amount && <td>{asset.amount?.toLocaleString('id-ID', { style: 'currency', currency: 'IDR' })}</td>}
-                                        {columnVisibility.budgetType && (
-                                            <td>
-                                                <span className={`budget-badge budget-${asset.budgetType.toLowerCase()}`}>
-                                                    {asset.budgetType}
-                                                </span>
+                                    <Fragment key={asset.id}>
+                                        <tr style={{ background: expandedContractId === asset.id ? '#f8fafc' : undefined }}>
+                                            <td style={{ padding: '16px 8px', textAlign: 'center', width: '50px' }}>
+                                                <button
+                                                    onClick={() => toggleExpand(asset.id)}
+                                                    className="btn-icon"
+                                                    style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#64748b' }}
+                                                >
+                                                    {expandedContractId === asset.id ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                                                </button>
                                             </td>
-                                        )}
-                                        {columnVisibility.contractType && (
-                                            <td>
-                                                <span className={`contract-badge contract-${asset.contractType.toLowerCase()}`}>
-                                                    {asset.contractType}
-                                                </span>
-                                            </td>
-                                        )}
+                                            {columnVisibility.id && <td className="asset-id">{asset.id}</td>}
+                                            {columnVisibility.name && <td className="asset-name">{asset.name}</td>}
+                                            {columnVisibility.vendorName && <td className="asset-vendor">{asset.vendorName}</td>}
+                                            {columnVisibility.amount && <td>{asset.amount?.toLocaleString('id-ID', { style: 'currency', currency: 'IDR' })}</td>}
+                                            {columnVisibility.budgetType && (
+                                                <td>
+                                                    <span className={`budget-badge budget-${asset.budgetType.toLowerCase()}`}>
+                                                        {asset.budgetType}
+                                                    </span>
+                                                </td>
+                                            )}
+                                            {columnVisibility.contractType && (
+                                                <td>
+                                                    <span className={`contract-badge contract-${asset.contractType.toLowerCase()}`}>
+                                                        {asset.contractType}
+                                                    </span>
+                                                </td>
+                                            )}
 
-                                        {columnVisibility.location && <td>{asset.location}</td>}
-                                        {columnVisibility.status && (
+                                            {columnVisibility.location && <td>{asset.location}</td>}
+                                            {columnVisibility.status && (
+                                                <td>
+                                                    <span className={`status-badge ${getBadgeClass(asset.status)}`}>
+                                                        {asset.status}
+                                                    </span>
+                                                </td>
+                                            )}
+                                            {columnVisibility.startDate && <td>{asset.startDate}</td>}
+                                            {columnVisibility.endDate && <td>{asset.endDate}</td>}
                                             <td>
-                                                <span className={`status-badge ${getBadgeClass(asset.status)}`}>
-                                                    {asset.status}
-                                                </span>
-                                            </td>
-                                        )}
-                                        {columnVisibility.startDate && <td>{asset.startDate}</td>}
-                                        {columnVisibility.endDate && <td>{asset.endDate}</td>}
-                                        <td>
-                                            <div className="action-buttons">
-                                                <button className="btn-icon btn-view" title="Lihat Detail" onClick={() => handleViewDetail(asset)}><Eye size={16} /></button>
-                                                <button className="btn-icon btn-edit" title="Edit" onClick={() => handleEdit(asset)}><Edit size={16} /></button>
-                                                <button className="btn-icon btn-delete" title="Hapus" onClick={() => handleDelete(asset.id)}><Trash2 size={16} /></button>
-                                                <button className="btn-icon btn-upload" title="Upload PDF" onClick={() => openUploadModal(asset.id)}><Upload size={16} /></button>
-                                            </div>
+                                                <div className="action-buttons">
+                                                    <button className="btn-icon btn-view" title="Lihat Detail" onClick={() => handleViewDetail(asset)}><Eye size={16} /></button>
+                                                    <button className="btn-icon btn-edit" title="Edit" onClick={() => handleEdit(asset)}><Edit size={16} /></button>
+                                                    <button className="btn-icon btn-delete" title="Hapus" onClick={() => handleDelete(asset.id)}><Trash2 size={16} /></button>
+                                                    <button className="btn-icon btn-upload" title="Upload PDF" onClick={() => openUploadModal(asset.id)}><Upload size={16} /></button>
+                                                </div>
 
-                                        </td>
-                                    </tr>
+                                            </td>
+                                        </tr>
+                                        {expandedContractId === asset.id && (
+                                            <tr className="expanded-row-content">
+                                                <td colSpan={getVisibleColumnsCount() + 2} style={{ padding: '0 24px 24px 24px', background: '#f8fafc', borderBottom: '2px solid #e2e8f0' }}>
+                                                    <div className="amendment-card-container" style={{ background: 'white', borderRadius: '12px', border: '1px solid #e2e8f0', padding: '24px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)' }}>
+                                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                                                            <div>
+                                                                <h4 style={{ margin: 0, fontSize: '18px', fontWeight: 700, color: '#1e293b', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                                                    <div style={{ background: '#eff6ff', padding: '8px', borderRadius: '8px', display: 'flex' }}>
+                                                                        <FileText size={20} className="text-blue-500" style={{ color: '#3b82f6' }} />
+                                                                    </div>
+                                                                    Riwayat Amandemen & Perubahan
+                                                                </h4>
+                                                                <p style={{ margin: '4px 0 0 0', fontSize: '14px', color: '#64748b', marginLeft: '48px' }}>
+                                                                    Kelola riwayat perubahan dan amandemen untu kontrak ini
+                                                                </p>
+                                                            </div>
+                                                            <button
+                                                                className="btn-primary"
+                                                                onClick={() => handleCreateAmendment(asset)}
+                                                                style={{ padding: '10px 18px', fontSize: '14px' }}
+                                                            >
+                                                                <Plus size={18} /> Buat Amandemen
+                                                            </button>
+                                                        </div>
+
+                                                        <div className="amendment-list" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                                            {asset.history && asset.history.filter(h => h.action.includes('Amandemen') || h.details.includes('Amandemen')).length > 0 ? (
+                                                                asset.history
+                                                                    .filter(h => h.action.includes('Amandemen') || h.details.includes('Amandemen'))
+                                                                    .slice().reverse()
+                                                                    .map((log, idx) => (
+                                                                        <div key={idx} className="amendment-item" style={{ display: 'flex', gap: '20px', padding: '16px', borderRadius: '12px', border: '1px solid #f1f5f9', background: '#fff', transition: 'all 0.2s', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' }}>
+                                                                            <div style={{ minWidth: '140px', fontSize: '13px', color: '#64748b', borderRight: '1px solid #f1f5f9', paddingRight: '16px' }}>
+                                                                                <div style={{ fontWeight: 600, color: '#334155', fontSize: '14px' }}>{log.date}</div>
+                                                                                <div style={{ fontSize: '12px', marginTop: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                                                    <div style={{ width: '20px', height: '20px', background: '#f1f5f9', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '10px', color: '#64748b' }}>
+                                                                                        {(log.user || 'Admin').charAt(0).toUpperCase()}
+                                                                                    </div>
+                                                                                    {log.user || 'Admin'}
+                                                                                </div>
+                                                                            </div>
+                                                                            <div style={{ flex: 1 }}>
+                                                                                <div style={{ fontWeight: 700, color: '#0f172a', marginBottom: '8px', fontSize: '15px' }}>{log.action}</div>
+                                                                                <div style={{ fontSize: '14px', color: '#475569', lineHeight: '1.6', background: '#f8fafc', padding: '12px', borderRadius: '8px' }}>
+                                                                                    {/* Simple rendering of details, can be enhanced like in modal */}
+                                                                                    {log.details.split('Perubahan:').map((part, i) => (
+                                                                                        <div key={i} style={{ marginBottom: i === 0 ? '4px' : '0' }}>
+                                                                                            {i === 1 ? (
+                                                                                                <div>
+                                                                                                    <span style={{ fontWeight: 600, color: '#334155' }}>Perubahan: </span>
+                                                                                                    {part}
+                                                                                                </div>
+                                                                                            ) : part}
+                                                                                        </div>
+                                                                                    ))}
+                                                                                </div>
+                                                                            </div>
+                                                                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', justifyContent: 'center', gap: '8px' }}>
+                                                                                <span style={{ fontSize: '12px', padding: '6px 12px', background: '#eff6ff', color: '#2563eb', borderRadius: '20px', fontWeight: 600, border: '1px solid #dbeafe' }}>
+                                                                                    Dokumen Tersimpan
+                                                                                </span>
+                                                                                <button style={{ fontSize: '12px', color: '#64748b', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>
+                                                                                    Lihat Detail
+                                                                                </button>
+                                                                            </div>
+                                                                        </div>
+                                                                    ))
+                                                            ) : (
+                                                                <div style={{ textAlign: 'center', padding: '40px 24px', color: '#94a3b8', background: '#f8fafc', borderRadius: '12px', border: '1px dashed #cbd5e1' }}>
+                                                                    <div style={{ display: 'inline-flex', padding: '16px', background: '#f1f5f9', borderRadius: '50%', marginBottom: '16px' }}>
+                                                                        <History size={32} style={{ opacity: 0.5 }} />
+                                                                    </div>
+                                                                    <p style={{ margin: 0, fontWeight: 500 }}>Belum ada amandemen</p>
+                                                                    <p style={{ margin: '4px 0 0 0', fontSize: '13px', opacity: 0.8 }}>Klik tombol "Buat Amandemen" untuk memulai revisi kontrak.</p>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        )}
+                                    </Fragment>
                                 ))
                             ) : (
                                 <tr>

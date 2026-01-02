@@ -18,7 +18,7 @@ function VendorPengajuan() {
 
     const [selectedFile, setSelectedFile] = useState(null)
     const [uploadProgress, setUploadProgress] = useState(0)
-    const [errors, setErrors] = useState({})
+    const [errors, setErrors] = useState<Record<string, string>>({})
     const [isDragging, setIsDragging] = useState(false)
     const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -125,7 +125,7 @@ function VendorPengajuan() {
     }
 
     const validateForm = () => {
-        const newErrors = {}
+        const newErrors: Record<string, string> = {}
 
         if (!formData.nomorSurat) {
             newErrors.nomorSurat = 'Nomor surat wajib diisi'
@@ -297,7 +297,7 @@ function VendorPengajuan() {
                                         value={formData.keterangan}
                                         onChange={handleInputChange}
                                         placeholder="Tambahkan keterangan atau catatan jika diperlukan..."
-                                        rows="4"
+                                        rows={4}
                                         className="form-textarea"
                                     />
                                 </div>
