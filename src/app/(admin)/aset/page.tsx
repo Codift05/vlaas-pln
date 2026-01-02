@@ -1174,74 +1174,70 @@ function ManajemenAset() {
 
                                     </div>
 
-                                    {isEditing && (
+                                    {isAmendment && (
                                         <div className="amendment-section" style={{ marginTop: '20px', padding: '16px', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
-                                            <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', gap: '10px', fontSize: '15px', fontWeight: 600, color: '#1e293b', marginBottom: isAmendment ? '16px' : '0' }}>
-                                                <input
-                                                    type="checkbox"
-                                                    checked={isAmendment}
-                                                    onChange={(e) => setIsAmendment(e.target.checked)}
-                                                    style={{ width: '18px', height: '18px', cursor: 'pointer', accentColor: '#2563eb' }}
-                                                />
-                                                Buat Amandemen Kontrak?
-                                            </label>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px', borderBottom: '1px solid #e2e8f0', paddingBottom: '12px' }}>
+                                                <div style={{ background: '#dbeafe', padding: '6px', borderRadius: '6px' }}>
+                                                    <FileText size={18} color="#2563eb" />
+                                                </div>
+                                                <h4 style={{ margin: 0, fontSize: '16px', color: '#1e293b' }}>Detail Amandemen</h4>
+                                            </div>
 
-                                            {isAmendment && (
-                                                <div className="amendment-fields" style={{ animation: 'fadeIn 0.3s ease-in-out' }}>
-                                                    <div className="form-group" style={{ marginBottom: '12px' }}>
-                                                        <label style={{ fontSize: '13px', color: '#64748b', marginBottom: '4px', display: 'block' }}>Nomor Surat Amandemen <span className="required">*</span></label>
+                                            <div className="amendment-fields" style={{ animation: 'fadeIn 0.3s ease-in-out' }}>
+                                                <div className="form-group" style={{ marginBottom: '12px' }}>
+                                                    <label style={{ fontSize: '13px', color: '#64748b', marginBottom: '4px', display: 'block' }}>Nomor Surat Amandemen <span className="required">*</span></label>
+                                                    <input
+                                                        type="text"
+                                                        name="amendmentDocNumber"
+                                                        value={formData.amendmentDocNumber}
+                                                        onChange={handleInputChange}
+                                                        placeholder="Contoh: AMD/001/2025"
+                                                        style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '14px' }}
+                                                        required={isAmendment}
+                                                    />
+                                                </div>
+
+                                                <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '12px' }}>
+                                                    <div className="form-group" style={{ marginBottom: '0' }}>
+                                                        <label style={{ fontSize: '13px', color: '#64748b', marginBottom: '4px', display: 'block' }}>Tanggal Mulai <span className="required">*</span></label>
                                                         <input
-                                                            type="text"
-                                                            name="amendmentDocNumber"
-                                                            value={formData.amendmentDocNumber}
+                                                            type="date"
+                                                            id="startDate"
+                                                            name="startDate"
+                                                            value={formData.startDate}
                                                             onChange={handleInputChange}
-                                                            placeholder="Contoh: AMD/001/2025"
                                                             style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '14px' }}
                                                             required={isAmendment}
                                                         />
                                                     </div>
-                                                    
-                                                    <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '12px' }}>
-                                                        <div className="form-group" style={{ marginBottom: '0' }}>
-                                                            <label style={{ fontSize: '13px', color: '#64748b', marginBottom: '4px', display: 'block' }}>Tanggal Mulai <span className="required">*</span></label>
-                                                            <input
-                                                                type="date"
-                                                                id="startDate"
-                                                                name="startDate"
-                                                                value={formData.startDate}
-                                                                onChange={handleInputChange}
-                                                                style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '14px' }}
-                                                                required={isAmendment}
-                                                            />
-                                                        </div>
-
-                                                        <div className="form-group" style={{ marginBottom: '0' }}>
-                                                            <label style={{ fontSize: '13px', color: '#64748b', marginBottom: '4px', display: 'block' }}>Tanggal Selesai <span className="required">*</span></label>
-                                                            <input
-                                                                type="date"
-                                                                id="endDate"
-                                                                name="endDate"
-                                                                value={formData.endDate}
-                                                                onChange={handleInputChange}
-                                                                style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '14px' }}
-                                                                required={isAmendment}
-                                                            />
-                                                        </div>
-                                                    </div>
 
                                                     <div className="form-group" style={{ marginBottom: '0' }}>
-                                                        <label style={{ fontSize: '13px', color: '#64748b', marginBottom: '4px', display: 'block' }}>Keterangan / Alasan Perubahan <span className="required">*</span></label>
-                                                        <textarea
-                                                            name="amendmentDescription"
-                                                            value={formData.amendmentDescription}
+                                                        <label style={{ fontSize: '13px', color: '#64748b', marginBottom: '4px', display: 'block' }}>Tanggal Selesai <span className="required">*</span></label>
+                                                        <input
+                                                            type="date"
+                                                            id="endDate"
+                                                            name="endDate"
+                                                            value={formData.endDate}
                                                             onChange={handleInputChange}
-                                                            placeholder="Jelaskan alasan amandemen (misal: Perpanjangan waktu, penambahan nilai, dll)"
-                                                            style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '14px', minHeight: '80px', fontFamily: 'inherit' }}
+                                                            style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '14px' }}
                                                             required={isAmendment}
                                                         />
                                                     </div>
                                                 </div>
-                                            )}
+
+                                                <div className="form-group" style={{ marginBottom: '0' }}>
+                                                    <label style={{ fontSize: '13px', color: '#64748b', marginBottom: '4px', display: 'block' }}>Keterangan / Alasan Perubahan <span className="required">*</span></label>
+                                                    <textarea
+                                                        name="amendmentDescription"
+                                                        value={formData.amendmentDescription}
+                                                        onChange={handleInputChange}
+                                                        placeholder="Jelaskan alasan amandemen (misal: Perpanjangan waktu, penambahan nilai, dll)"
+                                                        style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '14px', minHeight: '80px', fontFamily: 'inherit' }}
+                                                        required={isAmendment}
+                                                    />
+                                                </div>
+                                            </div>
+
                                         </div>
                                     )}
 
