@@ -343,7 +343,7 @@ const LogoGroup = styled.div`
 
   /* Danantara Logo - Maximize for 80px Header */
   .logo-danantara {
-    height: 90px;
+    height: 28px;
     width: auto;
     object-fit: contain;
     transition: transform 0.2s;
@@ -427,7 +427,7 @@ function Header({ onMenuClick }) {
       <div className="header-right">
         <LogoGroup>
           <img src="/images/Logo_PLN.png" alt="Logo PLN" className="logo-pln" />
-          <img src="/images/logo_danantara.png" alt="Logo Danantara" className="logo-danantara" />
+          <img src="/images/Logo_Danantara (2).png" alt="Logo Danantara" className="logo-danantara" />
           <div className="logo-text">
             <strong>PLN (Persero)</strong>
             <span>UPT Manado</span>
