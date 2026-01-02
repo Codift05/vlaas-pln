@@ -56,12 +56,12 @@ function Pengaturan() {
         { id: 5, user: 'Verifikator 1', action: 'Mengubah status dokumen #AST003', timestamp: '15/12/2025 11:30:45', ipAddress: '192.168.1.101' }
     ]
 
-    const handleProfileUpdate = (e) => {
+    const handleProfileUpdate = (e: any) => {
         e.preventDefault()
         alert('Profil berhasil diperbarui!')
     }
 
-    const handlePasswordChange = (e) => {
+    const handlePasswordChange = (e: any) => {
         e.preventDefault()
         if (passwordData.newPassword !== passwordData.confirmPassword) {
             alert('Password baru dan konfirmasi tidak cocok!')
@@ -71,7 +71,7 @@ function Pengaturan() {
         setPasswordData({ oldPassword: '', newPassword: '', confirmPassword: '' })
     }
 
-    const handleAddUser = (e) => {
+    const handleAddUser = (e: any) => {
         e.preventDefault()
         console.log('Menambah user baru:', newUserData)
         alert('User baru berhasil ditambahkan!')
@@ -79,7 +79,7 @@ function Pengaturan() {
         setNewUserData({ email: '', namaLengkap: '', role: 'Verifikator' })
     }
 
-    const handleDeactivateUser = (userId, userName) => {
+    const handleDeactivateUser = (userId: any, userName: any) => {
         if (window.confirm(`Apakah Anda yakin ingin menonaktifkan akses ${userName}?`)) {
             alert(`Akses ${userName} berhasil dinonaktifkan!`)
         }
@@ -294,7 +294,7 @@ function Pengaturan() {
                                         <input
                                             type="number"
                                             value={systemConfig.retentionMonths}
-                                            onChange={(e) => setSystemConfig({ ...systemConfig, retentionMonths: e.target.value })}
+                                            onChange={(e) => setSystemConfig({ ...systemConfig, retentionMonths: parseInt(e.target.value) || 0 })}
                                             min="1"
                                             max="36"
                                         />
@@ -325,7 +325,7 @@ function Pengaturan() {
                                             <textarea
                                                 value={systemConfig.approvedTemplate}
                                                 onChange={(e) => setSystemConfig({ ...systemConfig, approvedTemplate: e.target.value })}
-                                                rows="4"
+                                                rows={4}
                                                 placeholder="Template email untuk dokumen yang disetujui"
                                             />
                                         </div>
@@ -334,7 +334,7 @@ function Pengaturan() {
                                             <textarea
                                                 value={systemConfig.rejectedTemplate}
                                                 onChange={(e) => setSystemConfig({ ...systemConfig, rejectedTemplate: e.target.value })}
-                                                rows="4"
+                                                rows={4}
                                                 placeholder="Template email untuk dokumen yang ditolak"
                                             />
                                         </div>

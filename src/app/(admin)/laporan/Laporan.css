@@ -10,20 +10,24 @@
   letter-spacing: 0.1px;
   background: #f4f6fa;
   color: #6b7685;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
 }
+
 .stat-badge.positive {
   background: #e0f7e9;
   color: #219150;
 }
+
 .stat-badge.neutral {
   background: #f4f6fa;
   color: #6b7685;
 }
+
 .stat-badge.warning {
   background: #fff9e1;
   color: #b8860b;
 }
+
 /* Laporan Header & Filters */
 .laporan-header {
   background: rgba(255, 255, 255, 0.65);
@@ -388,7 +392,6 @@
 .pie-svg {
   width: 100%;
   height: 100%;
-  transform: rotate(-90deg);
 }
 
 .pie-legend {
@@ -656,19 +659,23 @@
     gap: 16px;
     padding: 16px;
   }
+
   .filter-controls {
     flex-direction: column;
     align-items: stretch;
     gap: 12px;
   }
+
   .export-buttons {
     justify-content: flex-start;
     width: 100%;
   }
+
   .stats-grid {
     grid-template-columns: 1fr;
     gap: 16px;
   }
+
   .charts-container {
     flex-direction: column;
     gap: 16px;
@@ -693,13 +700,18 @@
     padding: 8px;
     border-radius: 12px;
   }
-  .filter-controls, .export-buttons {
+
+  .filter-controls,
+  .export-buttons {
     gap: 8px;
   }
+
   .stats-grid {
     gap: 8px;
   }
-  .charts-container, .vendor-insights {
+
+  .charts-container,
+  .vendor-insights {
     padding: 0;
   }
 }

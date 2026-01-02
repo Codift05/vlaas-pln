@@ -83,14 +83,17 @@ function ManajemenAset() {
         name: '',
         recipient: '',
         invoiceNumber: '',
+        vendorName: '', // added missing field
         amount: '',
         budgetType: '',
         contractType: '',
-        // category: '', // kategori dihapus
+        category: '', // added missing field
         location: '',
         status: 'Aktif',
         startDate: '',
-        endDate: ''
+        endDate: '',
+        amendmentDocNumber: '', // New field
+        amendmentDescription: '' // New field
     });
 
     // State untuk data aset (dari Supabase)
@@ -138,9 +141,21 @@ function ManajemenAset() {
         fetchContracts()
     }, [])
 
+    const getBadgeClass = (status) => {
+        if (!status) return ''
+        const normalized = status.toLowerCase()
+        if (normalized === 'aktif') return 'status-active' // Legacy mapping
+        if (normalized === 'perbaikan') return 'status-maintenance'
+        if (normalized === 'tidak aktif') return 'status-inactive'
+
+        // Slugify for new statuses
+        return `status-${normalized.replace(/\s+/g, '-')}`
+    }
+
     // State untuk mode edit
     const [isEditing, setIsEditing] = useState(false);
     const [editId, setEditId] = useState(null);
+    const [isAmendment, setIsAmendment] = useState(false); // State for amendment option
 
     // Countdown timer for detail modal
     const [timeRemaining, setTimeRemaining] = useState('');
@@ -156,7 +171,7 @@ function ManajemenAset() {
                 end = new Date(selectedAsset.endDate);
             }
 
-            const diff = end - now;
+            const diff = end.getTime() - now.getTime();
             if (diff <= 0) {
                 setTimeRemaining('Sudah melewati tenggat!');
                 return;
@@ -222,25 +237,15 @@ function ManajemenAset() {
     const handleEdit = (asset) => {
         setFormData({
             ...asset,
-            // Re-map camelCase -> form names if needed, but our form uses camelCase mostly
-            // except vendorName need check input
+            amount: asset.amount ? String(asset.amount) : '', // Ensure amount is string for input
+            category: asset.category || '',
+            vendorName: asset.vendorName || '',
+            amendmentDocNumber: '',
+            amendmentDescription: ''
         })
-        // Note: Our form uses 'id', 'name', 'budgetType', etc.
-        // We need to ensure formData matches.
-        // Asset structure: vendorName. Form input? 
-        // Let's check form input... it uses 'vendorName' ? NO, waiting to check form inputs below
-        // Form doesn't have vendorName input in the visible code previously? 
-        // Wait, looking at lines 530+ of current file...
-        // ... I don't see Vendor Name input in lines 530-556. 
-        // Ah, it was missing in the original code too? 
-        // Let's check the viewed file content at Step 394 (lines 530+).
-        // It has 'Nomor Kontrak' (id), 'Nama Kontrak' (name), 'Tipe Anggaran', etc.
-        // It DOES NOT have Vendor Name input! 
-        // I should probably add it or else it will be null.
-        // For now I will focus on Supabase integration and fix Vendor input later if missing.
-
         setEditId(asset.id)
         setIsEditing(true)
+        setIsAmendment(false) // Reset amendment state
         setShowModal(true)
     }
 
@@ -278,8 +283,8 @@ function ManajemenAset() {
                     if (oldData.name !== formData.name) changeDetails.push(`Nama Kontrak: "${oldData.name}" ➝ "${formData.name}"`)
                     if (oldData.vendorName !== formData.vendorName) changeDetails.push(`Vendor: "${oldData.vendorName}" ➝ "${formData.vendorName}"`)
 
-                    const oldAmount = parseFloat(oldData.amount || 0)
-                    const newAmount = parseFloat(formData.amount || 0)
+                    const oldAmount = Number(oldData.amount || 0)
+                    const newAmount = Number(formData.amount || 0)
                     if (oldAmount !== newAmount) {
                         changeDetails.push(`Nilai: ${oldAmount.toLocaleString('id-ID')} ➝ ${newAmount.toLocaleString('id-ID')}`)
                     }
@@ -290,10 +295,19 @@ function ManajemenAset() {
                     if (oldData.location !== formData.location) changeDetails.push(`Lokasi: "${oldData.location}" ➝ "${formData.location}"`)
                 }
 
-                const actionTitle = changeDetails.length > 0 ? 'Amandemen Kontrak' : 'Update Data'
-                const actionDetails = changeDetails.length > 0
-                    ? `Perubahan: ${changeDetails.join(', ')}`
-                    : `Update data kontrak ${editId} tanpa perubahan signifikan`
+                const actionTitle = isAmendment
+                    ? `Amandemen Kontrak ${formData.amendmentDocNumber ? `(No. ${formData.amendmentDocNumber})` : ''}`
+                    : (changeDetails.length > 0 ? 'Update Data' : 'Update Data (Tanpa Perubahan)')
+
+                let actionDetails = ''
+                if (isAmendment) {
+                    const changes = changeDetails.length > 0 ? ` Perubahan: ${changeDetails.join(', ')}` : ''
+                    actionDetails = `${formData.amendmentDescription ? `Ket: ${formData.amendmentDescription}.` : ''}${changes}` || 'Amandemen tercatat.'
+                } else {
+                    actionDetails = changeDetails.length > 0
+                        ? `Perubahan: ${changeDetails.join(', ')}`
+                        : `Update data kontrak ${editId} tanpa perubahan signifikan`
+                }
 
                 const { error: historyError } = await supabase
                     .from('contract_history')
@@ -385,6 +399,7 @@ function ManajemenAset() {
         setShowModal(false)
         setIsEditing(false)
         setEditId(null)
+        setIsAmendment(false)
         setFormData({
             id: '',
             name: '',
@@ -398,7 +413,9 @@ function ManajemenAset() {
             location: '',
             status: 'Aktif',
             startDate: '',
-            endDate: ''
+            endDate: '',
+            amendmentDocNumber: '',
+            amendmentDescription: ''
         })
     }
 
@@ -414,9 +431,12 @@ function ManajemenAset() {
                             className="filter-select"
                         >
                             <option value="all">Semua Status</option>
-                            <option value="Aktif">Aktif</option>
-                            <option value="Perbaikan">Perbaikan</option>
-                            <option value="Tidak Aktif">Tidak Aktif</option>
+                            <option value="Terkontrak">Terkontrak</option>
+                            <option value="Dalam Proses Pekerjaan">Dalam Proses Pekerjaan</option>
+                            <option value="Selesai">Selesai</option>
+                            <option value="Dalam Pemeriksaan">Dalam Pemeriksaan</option>
+                            <option value="Telah Diperiksa">Telah Diperiksa</option>
+                            <option value="Terbayar">Terbayar</option>
                         </select>
 
                         <input
@@ -584,7 +604,7 @@ function ManajemenAset() {
                                         {columnVisibility.location && <td>{asset.location}</td>}
                                         {columnVisibility.status && (
                                             <td>
-                                                <span className={`status-badge ${getStatusClass(asset.status)}`}>
+                                                <span className={`status-badge ${getBadgeClass(asset.status)}`}>
                                                     {asset.status}
                                                 </span>
                                             </td>
@@ -658,7 +678,7 @@ function ManajemenAset() {
                                             <div className="detail-item">
                                                 <label className="detail-label">Status Saat Ini</label>
                                                 <div>
-                                                    <span className={`status-badge ${getStatusClass(selectedAsset.status)}`}>
+                                                    <span className={`status-badge ${getBadgeClass(selectedAsset.status)}`}>
                                                         {selectedAsset.status}
                                                     </span>
                                                 </div>
@@ -751,9 +771,78 @@ function ManajemenAset() {
                                                                         • {log.user}
                                                                     </span>
                                                                 </div>
-                                                                <div style={{ color: '#475569', fontSize: '14px', lineHeight: '1.4' }}>
-                                                                    {log.details}
-                                                                </div>
+                                                                {(() => {
+                                                                    const details = log.details || '';
+                                                                    let note = '';
+                                                                    let changes = [];
+
+                                                                    // Parse "Ket:"
+                                                                    const ketMatch = details.match(/Ket:\s*(.*?)(?=\.?\s*Perubahan:|$)/);
+                                                                    if (ketMatch) note = ketMatch[1];
+
+                                                                    // Parse "Perubahan:"
+                                                                    const changesMatch = details.match(/Perubahan:\s*(.*)/);
+                                                                    if (changesMatch) {
+                                                                        // Split by comma, but be careful of commas inside values? 
+                                                                        // Assuming our generator uses ", " to separate fields.
+                                                                        // A better split might be needed if values contain commas. 
+                                                                        // complex regex: split by comma that is likely a separator (followed by space and Uppercase usually? no field names are varied)
+                                                                        // For now simpler split:
+                                                                        changes = changesMatch[1].split(', ').map(c => c.trim());
+                                                                    } else if (!ketMatch && details) {
+                                                                        // Fallback if no specific format
+                                                                        note = details;
+                                                                    }
+
+                                                                    return (
+                                                                        <div style={{ marginTop: '4px' }}>
+                                                                            {note && (
+                                                                                <div style={{
+                                                                                    background: '#f1f5f9',
+                                                                                    padding: '8px 12px',
+                                                                                    borderRadius: '6px',
+                                                                                    fontSize: '13px',
+                                                                                    color: '#334155',
+                                                                                    marginBottom: changes.length > 0 ? '8px' : '0',
+                                                                                    display: 'inline-block',
+                                                                                    border: '1px solid #e2e8f0'
+                                                                                }}>
+                                                                                    <span style={{ fontWeight: 600 }}>Catatan:</span> {note}
+                                                                                </div>
+                                                                            )}
+
+                                                                            {changes.length > 0 && (
+                                                                                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                                                                    {changes.map((change, i) => {
+                                                                                        // Highlight values: "Field: Old -> New"
+                                                                                        const parts = change.split('➝');
+                                                                                        if (parts.length === 2) {
+                                                                                            const fieldPart = parts[0].split(':');
+                                                                                            const fieldName = fieldPart[0].trim();
+                                                                                            const oldValue = fieldPart[1] ? fieldPart[1].trim() : '';
+                                                                                            const newValue = parts[1].trim();
+                                                                                            return (
+                                                                                                <div key={i} style={{ fontSize: '13.5px', color: '#475569', display: 'flex', alignItems: 'center', flexWrap: 'wrap' }}>
+                                                                                                    <span style={{ minWidth: '8px', marginRight: '8px', color: '#cbd5e1' }}>•</span>
+                                                                                                    <span style={{ fontWeight: 500, marginRight: '6px', color: '#1e293b' }}>{fieldName}:</span>
+                                                                                                    <span style={{ color: '#ef4444', textDecoration: 'line-through', marginRight: '6px', fontSize: '13px', background: '#fef2f2', padding: '0 4px', borderRadius: '4px' }}>{oldValue.replace(/^"|"$/g, '')}</span>
+                                                                                                    <span style={{ color: '#cbd5e1', margin: '0 6px' }}>➝</span>
+                                                                                                    <span style={{ color: '#22c55e', fontWeight: 600, background: '#f0fdf4', padding: '0 4px', borderRadius: '4px' }}>{newValue.replace(/^"|"$/g, '')}</span>
+                                                                                                </div>
+                                                                                            )
+                                                                                        }
+                                                                                        return (
+                                                                                            <div key={i} style={{ fontSize: '13.5px', color: '#475569', display: 'flex', alignItems: 'start' }}>
+                                                                                                <span style={{ minWidth: '8px', marginRight: '8px', color: '#cbd5e1', marginTop: '4px' }}>•</span>
+                                                                                                {change}
+                                                                                            </div>
+                                                                                        )
+                                                                                    })}
+                                                                                </div>
+                                                                            )}
+                                                                        </div>
+                                                                    )
+                                                                })()}
                                                             </div>
                                                         </div>
                                                     ))
@@ -777,7 +866,7 @@ function ManajemenAset() {
                         <div className="modal-overlay" onClick={handleCloseModal}>
                             <div className="modal-content" onClick={(e) => e.stopPropagation()}>
                                 <div className="modal-header">
-                                    <h2>Tambah Kontrak Baru</h2>
+                                    <h2>{isEditing ? 'Edit Kontrak' : 'Tambah Kontrak Baru'}</h2>
                                     <button className="modal-close" onClick={handleCloseModal}>✕</button>
                                 </div>
 
@@ -794,6 +883,8 @@ function ManajemenAset() {
                                                 onChange={handleInputChange}
                                                 placeholder="Contoh: KTR007"
                                                 required
+                                                readOnly={isEditing}
+                                                style={isEditing ? { backgroundColor: '#f1f5f9', cursor: 'not-allowed' } : {}}
                                             />
                                         </div>
 
@@ -918,9 +1009,12 @@ function ManajemenAset() {
                                                 onChange={handleInputChange}
                                                 required
                                             >
-                                                <option value="Aktif">Aktif</option>
-                                                <option value="Perbaikan">Perbaikan</option>
-                                                <option value="Tidak Aktif">Tidak Aktif</option>
+                                                <option value="Terkontrak">Terkontrak</option>
+                                                <option value="Dalam Proses Pekerjaan">Dalam Proses Pekerjaan</option>
+                                                <option value="Selesai">Selesai</option>
+                                                <option value="Dalam Pemeriksaan">Dalam Pemeriksaan</option>
+                                                <option value="Telah Diperiksa">Telah Diperiksa</option>
+                                                <option value="Terbayar">Terbayar</option>
                                             </select>
                                         </div>
 
@@ -949,12 +1043,54 @@ function ManajemenAset() {
                                         </div>
                                     </div>
 
+                                    {isEditing && (
+                                        <div className="amendment-section" style={{ marginTop: '20px', padding: '16px', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                                            <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', gap: '10px', fontSize: '15px', fontWeight: 600, color: '#1e293b', marginBottom: isAmendment ? '16px' : '0' }}>
+                                                <input
+                                                    type="checkbox"
+                                                    checked={isAmendment}
+                                                    onChange={(e) => setIsAmendment(e.target.checked)}
+                                                    style={{ width: '18px', height: '18px', cursor: 'pointer', accentColor: '#2563eb' }}
+                                                />
+                                                Buat Amandemen Kontrak?
+                                            </label>
+
+                                            {isAmendment && (
+                                                <div className="amendment-fields" style={{ animation: 'fadeIn 0.3s ease-in-out' }}>
+                                                    <div className="form-group" style={{ marginBottom: '12px' }}>
+                                                        <label style={{ fontSize: '13px', color: '#64748b', marginBottom: '4px', display: 'block' }}>Nomor Surat Amandemen <span className="required">*</span></label>
+                                                        <input
+                                                            type="text"
+                                                            name="amendmentDocNumber"
+                                                            value={formData.amendmentDocNumber}
+                                                            onChange={handleInputChange}
+                                                            placeholder="Contoh: AMD/001/2025"
+                                                            style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '14px' }}
+                                                            required={isAmendment}
+                                                        />
+                                                    </div>
+                                                    <div className="form-group" style={{ marginBottom: '0' }}>
+                                                        <label style={{ fontSize: '13px', color: '#64748b', marginBottom: '4px', display: 'block' }}>Keterangan / Alasan Perubahan <span className="required">*</span></label>
+                                                        <textarea
+                                                            name="amendmentDescription"
+                                                            value={formData.amendmentDescription}
+                                                            onChange={handleInputChange}
+                                                            placeholder="Jelaskan alasan amandemen (misal: Perpanjangan waktu, penambahan nilai, dll)"
+                                                            style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '14px', minHeight: '80px', fontFamily: 'inherit' }}
+                                                            required={isAmendment}
+                                                        />
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+
                                     <div className="modal-footer">
                                         <button type="button" className="btn-cancel" onClick={handleCloseModal}>
                                             Batal
                                         </button>
                                         <button type="submit" className="btn-submit">
-                                            <Save size={18} /> Simpan Kontrak
+                                            <Save size={18} /> {isAmendment ? 'Simpan Amandemen' : 'Simpan Kontrak'}
                                         </button>
                                     </div>
                                 </form>
