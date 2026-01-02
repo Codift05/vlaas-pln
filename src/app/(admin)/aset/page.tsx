@@ -1018,29 +1018,35 @@ function ManajemenAset() {
                                             </select>
                                         </div>
 
-                                        <div className="form-group">
-                                            <label htmlFor="startDate">Tanggal Mulai <span className="required">*</span></label>
-                                            <input
-                                                type="date"
-                                                id="startDate"
-                                                name="startDate"
-                                                value={formData.startDate}
-                                                onChange={handleInputChange}
-                                                required
-                                            />
-                                        </div>
+                                        {/* Tanggal hanya muncul di form tambah, di edit akan masuk ke amandemen */}
+                                        {!isEditing && (
+                                            <>
+                                                <div className="form-group">
+                                                    <label htmlFor="startDate">Tanggal Mulai <span className="required">*</span></label>
+                                                    <input
+                                                        type="date"
+                                                        id="startDate"
+                                                        name="startDate"
+                                                        value={formData.startDate}
+                                                        onChange={handleInputChange}
+                                                        required
+                                                    />
+                                                </div>
 
-                                        <div className="form-group">
-                                            <label htmlFor="endDate">Tanggal Selesai <span className="required">*</span></label>
-                                            <input
-                                                type="date"
-                                                id="endDate"
-                                                name="endDate"
-                                                value={formData.endDate}
-                                                onChange={handleInputChange}
-                                                required
-                                            />
-                                        </div>
+                                                <div className="form-group">
+                                                    <label htmlFor="endDate">Tanggal Selesai <span className="required">*</span></label>
+                                                    <input
+                                                        type="date"
+                                                        id="endDate"
+                                                        name="endDate"
+                                                        value={formData.endDate}
+                                                        onChange={handleInputChange}
+                                                        required
+                                                    />
+                                                </div>
+                                            </>
+                                        )}
+
                                     </div>
 
                                     {isEditing && (
@@ -1069,6 +1075,35 @@ function ManajemenAset() {
                                                             required={isAmendment}
                                                         />
                                                     </div>
+                                                    
+                                                    <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '12px' }}>
+                                                        <div className="form-group" style={{ marginBottom: '0' }}>
+                                                            <label style={{ fontSize: '13px', color: '#64748b', marginBottom: '4px', display: 'block' }}>Tanggal Mulai <span className="required">*</span></label>
+                                                            <input
+                                                                type="date"
+                                                                id="startDate"
+                                                                name="startDate"
+                                                                value={formData.startDate}
+                                                                onChange={handleInputChange}
+                                                                style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '14px' }}
+                                                                required={isAmendment}
+                                                            />
+                                                        </div>
+
+                                                        <div className="form-group" style={{ marginBottom: '0' }}>
+                                                            <label style={{ fontSize: '13px', color: '#64748b', marginBottom: '4px', display: 'block' }}>Tanggal Selesai <span className="required">*</span></label>
+                                                            <input
+                                                                type="date"
+                                                                id="endDate"
+                                                                name="endDate"
+                                                                value={formData.endDate}
+                                                                onChange={handleInputChange}
+                                                                style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '14px' }}
+                                                                required={isAmendment}
+                                                            />
+                                                        </div>
+                                                    </div>
+
                                                     <div className="form-group" style={{ marginBottom: '0' }}>
                                                         <label style={{ fontSize: '13px', color: '#64748b', marginBottom: '4px', display: 'block' }}>Keterangan / Alasan Perubahan <span className="required">*</span></label>
                                                         <textarea
