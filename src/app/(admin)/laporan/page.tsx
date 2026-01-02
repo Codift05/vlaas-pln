@@ -39,6 +39,13 @@ function Laporan() {
         totalDocuments: 0,
         pendingDocuments: 0
     })
+    // Untuk chart perbandingan status per bulan
+    interface MonthlyCompareData {
+        month: string;
+        dalamProses: number;
+        terbayar: number;
+    }
+    const [monthlyCompareData, setMonthlyCompareData] = useState<MonthlyCompareData[]>([])
     const [monthlyData, setMonthlyData] = useState<MonthlyData[]>([])
     const [budgetData, setBudgetData] = useState({
         terkontrak: 0,
@@ -112,14 +119,18 @@ function Laporan() {
 
         setBudgetData(buckets)
 
-        // 3. Monthly Volume
+        // 3. Monthly Volume & Perbandingan Status
         const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des']
         const volumeByMonth = new Array(12).fill(0)
+        // Untuk chart perbandingan
+        const compareByMonth = Array.from({ length: 12 }, () => ({ dalamProses: 0, terbayar: 0 }))
 
         contracts.forEach(c => {
             const date = new Date(c.created_at)
             const monthIdx = date.getMonth()
             volumeByMonth[monthIdx]++
+            if (c.status === 'Dalam Proses Pekerjaan') compareByMonth[monthIdx].dalamProses++
+            if (c.status === 'Terbayar') compareByMonth[monthIdx].terbayar++
         })
 
         const chartData = months.map((month, idx) => ({
@@ -127,6 +138,13 @@ function Laporan() {
             count: volumeByMonth[idx]
         }))
         setMonthlyData(chartData)
+
+        const compareChartData = months.map((month, idx) => ({
+            month,
+            dalamProses: compareByMonth[idx].dalamProses,
+            terbayar: compareByMonth[idx].terbayar
+        }))
+        setMonthlyCompareData(compareChartData)
     }
 
     const totalBudget = Object.values(budgetData).reduce((a, b) => a + b, 0);
@@ -157,7 +175,8 @@ function Laporan() {
 
 
 
-    const maxCount = monthlyData.length > 0 ? Math.max(...monthlyData.map(d => d.count)) : 10
+    // Untuk chart perbandingan, ambil max dari kedua status
+    const maxCompareCount = monthlyCompareData.length > 0 ? Math.max(...monthlyCompareData.map(d => Math.max(d.dalamProses, d.terbayar))) : 10
 
     const handleExport = (format: string) => {
         alert(`Mengekspor laporan dalam format ${format}...`)
@@ -360,24 +379,62 @@ function Laporan() {
 
             {/* Charts Section */}
             <div className="charts-container">
-                {/* Bar Chart - Volume Bulanan */}
+                {/* Bar Chart - Perbandingan Dalam Proses & Terbayar */}
                 <div className="chart-card large">
                     <div className="chart-header">
-                        <h3><BarChart2 size={20} style={{ display: 'inline', marginRight: '8px' }} /> Volume Dokumen Bulanan</h3>
-                        <span className="chart-subtitle">Tren beban kerja sepanjang tahun</span>
+                        <h3><BarChart2 size={20} style={{ display: 'inline', marginRight: '8px' }} /> Jumlah Kontrak Bulanan</h3>
+                        <span className="chart-subtitle">Perbandingan "Dalam Proses" & "Terbayar"</span>
                     </div>
-                    <div className="bar-chart-container">
-                        {monthlyData.map((data, index) => (
-                            <div key={index} className="bar-wrapper">
-                                <div
-                                    className="bar-laporan"
-                                    style={{ height: `${(data.count / maxCount) * 100}%` }}
-                                >
-                                    <span className="bar-value">{data.count}</span>
+                    <div className="bar-chart-container" style={{ display: 'flex', alignItems: 'end', height: 220, background: 'transparent', padding: '0 8px', borderRadius: 18 }}>
+                        {monthlyCompareData.map((data, index) => (
+                            <div key={index} className="bar-wrapper" style={{ width: 44, margin: '0 6px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'end' }}>
+                                <div style={{ display: 'flex', width: '100%', gap: 4, alignItems: 'end', height: 180, justifyContent: 'center' }}>
+                                    {/* Dalam Proses */}
+                                    <div
+                                        className="bar-laporan"
+                                        style={{
+                                            height: `${maxCompareCount ? (data.dalamProses / maxCompareCount) * 100 : 0}%`,
+                                            width: 16,
+                                            background: 'linear-gradient(180deg, #fbbf24 0%, #f59e0b 100%)',
+                                                borderRadius: 0,
+                                            marginRight: 2,
+                                            position: 'relative',
+                                            boxShadow: '0 2px 8px rgba(251,191,36,0.08)',
+                                            transition: 'height 0.3s',
+                                            display: 'flex',
+                                            alignItems: 'flex-end',
+                                            justifyContent: 'center',
+                                        }}
+                                    >
+                                        {data.dalamProses > 0 && <span className="bar-value" style={{ fontSize: 13, color: '#f59e0b', fontWeight: 700, position: 'absolute', top: -22, left: '50%', transform: 'translateX(-50%)', opacity: 0.7 }}>{data.dalamProses}</span>}
+                                    </div>
+                                    {/* Terbayar */}
+                                    <div
+                                        className="bar-laporan"
+                                        style={{
+                                            height: `${maxCompareCount ? (data.terbayar / maxCompareCount) * 100 : 0}%`,
+                                            width: 16,
+                                            background: 'linear-gradient(180deg, #a5b4fc 0%, #6366f1 100%)',
+                                                borderRadius: 0,
+                                            marginLeft: 2,
+                                            position: 'relative',
+                                            boxShadow: '0 2px 8px rgba(99,102,241,0.08)',
+                                            transition: 'height 0.3s',
+                                            display: 'flex',
+                                            alignItems: 'flex-end',
+                                            justifyContent: 'center',
+                                        }}
+                                    >
+                                        {data.terbayar > 0 && <span className="bar-value" style={{ fontSize: 13, color: '#6366f1', fontWeight: 700, position: 'absolute', top: -22, left: '50%', transform: 'translateX(-50%)', opacity: 0.7 }}>{data.terbayar}</span>}
+                                    </div>
                                 </div>
-                                <span className="bar-label">{data.month}</span>
+                                <span className="bar-label" style={{ fontSize: 15, marginTop: 10, color: '#334155', fontWeight: 500, letterSpacing: 0 }}>{data.month}</span>
                             </div>
                         ))}
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'center', gap: 18, marginTop: 10 }}>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}><span style={{ width: 14, height: 8, background: '#f59e0b', borderRadius: 4, display: 'inline-block' }}></span> Dalam Proses</span>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}><span style={{ width: 14, height: 8, background: '#6366f1', borderRadius: 4, display: 'inline-block' }}></span> Terbayar</span>
                     </div>
                 </div>
 
