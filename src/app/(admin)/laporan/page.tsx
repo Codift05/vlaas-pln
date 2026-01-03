@@ -253,7 +253,7 @@ setMonthlyData(chartData)
 
     // const maxCount = monthlyData.length > 0 ? Math.max(...monthlyData.map(d => d.count)) : 10
 
-    const handleExport = (format: string) => {
+    const handleExport = async (format: string) => {
         if (format === 'CSV') {
             const headers = ['ID', 'Nama Kontrak', 'Vendor', 'Status', 'Nilai', 'Tgl Buat', 'Tgl Mulai']
             const rows = allContracts.map(c => [
@@ -280,8 +280,120 @@ setMonthlyData(chartData)
             document.body.appendChild(link)
             link.click()
             document.body.removeChild(link)
-        } else {
-            alert('Export PDF belum tersedia. Silakan gunakan Export CSV.')
+        } else if (format === 'PDF') {
+            try {
+                // Dynamic import to avoid SSR issues
+                const jsPDF = (await import('jspdf')).default
+                const autoTable = (await import('jspdf-autotable')).default
+
+                const doc = new jsPDF()
+
+                // Header
+                doc.setFontSize(18)
+                doc.setFont('helvetica', 'bold')
+                doc.text('LAPORAN KONTRAK', 14, 20)
+
+                doc.setFontSize(10)
+                doc.setFont('helvetica', 'normal')
+                doc.text('PLN (Persero) UPT Manado', 14, 28)
+                doc.text(`Tanggal: ${new Date().toLocaleDateString('id-ID')}`, 14, 34)
+
+                // KPI Summary Box
+                doc.setFillColor(240, 248, 255)
+                doc.rect(14, 40, 182, 30, 'F')
+                doc.setFontSize(9)
+                doc.setFont('helvetica', 'bold')
+                doc.text('RINGKASAN KPI', 16, 46)
+                doc.setFont('helvetica', 'normal')
+                doc.text(`Total Dokumen: ${kpiData.totalDocuments}`, 16, 52)
+                doc.text(`Rata-rata Waktu Proses: ${kpiData.avgCycleTime} hari`, 16, 58)
+                doc.text(`Rasio Persetujuan: ${kpiData.approvalRate}%`, 70, 52)
+                doc.text(`Menunggu Review: ${kpiData.pendingDocuments}`, 70, 58)
+                doc.text(`Filter: ${filterStatus.label}`, 130, 52)
+                doc.text(`Periode: ${dateRange.label}`, 130, 58)
+
+                // Budget Distribution
+                doc.setFontSize(12)
+                doc.setFont('helvetica', 'bold')
+                doc.text('Distribusi Anggaran per Status', 14, 78)
+                
+                const budgetHeaders = [['Status', 'Nilai (Rp)', 'Persentase']]
+                const budgetRows = [
+                    ['Terkontrak', budgetData.terkontrak.toLocaleString('id-ID'), `${getPercent(budgetData.terkontrak).toFixed(1)}%`],
+                    ['Dalam Proses', budgetData.dalamProses.toLocaleString('id-ID'), `${getPercent(budgetData.dalamProses).toFixed(1)}%`],
+                    ['Selesai', budgetData.selesai.toLocaleString('id-ID'), `${getPercent(budgetData.selesai).toFixed(1)}%`],
+                    ['Dalam Pemeriksaan', budgetData.dalamPemeriksaan.toLocaleString('id-ID'), `${getPercent(budgetData.dalamPemeriksaan).toFixed(1)}%`],
+                    ['Telah Diperiksa', budgetData.telahDiperiksa.toLocaleString('id-ID'), `${getPercent(budgetData.telahDiperiksa).toFixed(1)}%`],
+                    ['Terbayar', budgetData.terbayar.toLocaleString('id-ID'), `${getPercent(budgetData.terbayar).toFixed(1)}%`],
+                ]
+
+                autoTable(doc, {
+                    head: budgetHeaders,
+                    body: budgetRows,
+                    startY: 82,
+                    theme: 'grid',
+                    headStyles: { fillColor: [94, 157, 196], fontSize: 9 },
+                    bodyStyles: { fontSize: 8 },
+                    columnStyles: {
+                        1: { halign: 'right' },
+                        2: { halign: 'center' }
+                    }
+                })
+
+                // Contract List
+                const finalY = (doc as any).lastAutoTable.finalY || 130
+                doc.setFontSize(12)
+                doc.setFont('helvetica', 'bold')
+                doc.text('Daftar Kontrak', 14, finalY + 10)
+
+                const contractHeaders = [['No', 'ID', 'Nama Kontrak', 'Vendor', 'Status', 'Nilai (Rp)']]
+                const contractRows = allContracts.map((c, idx) => [
+                    (idx + 1).toString(),
+                    c.id || '-',
+                    (c.name || '-').substring(0, 30),
+                    (c.vendor_name || '-').substring(0, 25),
+                    c.status || '-',
+                    (c.amount || 0).toLocaleString('id-ID')
+                ])
+
+                autoTable(doc, {
+                    head: contractHeaders,
+                    body: contractRows,
+                    startY: finalY + 14,
+                    theme: 'striped',
+                    headStyles: { fillColor: [94, 157, 196], fontSize: 8 },
+                    bodyStyles: { fontSize: 7 },
+                    columnStyles: {
+                        0: { cellWidth: 10, halign: 'center' },
+                        1: { cellWidth: 20 },
+                        2: { cellWidth: 50 },
+                        3: { cellWidth: 40 },
+                        4: { cellWidth: 30, halign: 'center' },
+                        5: { cellWidth: 30, halign: 'right' }
+                    },
+                    margin: { left: 14, right: 14 }
+                })
+
+                // Footer
+                const pageCount = doc.getNumberOfPages()
+                for (let i = 1; i <= pageCount; i++) {
+                    doc.setPage(i)
+                    doc.setFontSize(8)
+                    doc.setFont('helvetica', 'italic')
+                    doc.text(
+                        `Halaman ${i} dari ${pageCount}`,
+                        doc.internal.pageSize.width / 2,
+                        doc.internal.pageSize.height - 10,
+                        { align: 'center' }
+                    )
+                }
+
+                // Save PDF
+                doc.save(`Laporan_Kontrak_${new Date().toISOString().slice(0, 10)}.pdf`)
+            } catch (error) {
+                console.error('Error generating PDF:', error)
+                alert('Gagal membuat PDF. Silakan coba lagi.')
+            }
         }
     }
 
