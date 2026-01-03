@@ -784,16 +784,32 @@ function ManajemenAset() {
                             Menampilkan 1-{filteredAssets.length} dari {filteredAssets.length} data
                         </span>
                         <div className="pagination-controls">
-                            <button className="pagination-btn">‹ Sebelumnya</button>
-                            <button className="pagination-btn active">1</button>
-                            <button className="pagination-btn">2</button>
-                            <button className="pagination-btn">3</button>
-                            <button className="pagination-btn">Selanjutnya ›</button>
+                            <button
+                                className={`pagination-btn${filteredAssets.length <= 10 ? ' disabled-btn' : ''}`}
+                                disabled={filteredAssets.length <= 10}
+                                style={{ cursor: filteredAssets.length <= 10 ? 'not-allowed' : 'pointer', opacity: filteredAssets.length <= 10 ? 0.5 : 1, position: 'relative', textAlign: 'center', justifyContent: 'center', alignItems: 'center', display: 'flex' }}
+                            >
+                                ‹ Sebelumnya
+                            </button>
+                            {filteredAssets.length > 10 ? (
+                                <>
+                                    <button className="pagination-btn active">1</button>
+                                    <button className="pagination-btn">2</button>
+                                    <button className="pagination-btn">3</button>
+                                </>
+                            ) : (
+                                <button className="pagination-btn active">1</button>
+                            )}
+                            <button
+                                className={`pagination-btn${filteredAssets.length <= 10 ? ' disabled-btn' : ''}`}
+                                disabled={filteredAssets.length <= 10}
+                                style={{ cursor: filteredAssets.length <= 10 ? 'not-allowed' : 'pointer', opacity: filteredAssets.length <= 10 ? 0.5 : 1, position: 'relative', textAlign: 'center', justifyContent: 'center', alignItems: 'center', display: 'flex' }}
+                            >
+                                Selanjutnya ›
+                            </button>
                         </div>
                     </div>
-
-                )
-                }
+                )}
 
                 {/* Modal Detail Kontrak */}
                 {

@@ -1,8 +1,9 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
-import { Search, Bell, Settings, LogOut, ChevronDown, ChevronUp } from 'lucide-react'
+import { Search, Bell, Settings, LogOut, ChevronDown, ChevronUp, FileText, UserPlus, Clock } from 'lucide-react'
 import styled from 'styled-components'
+import { supabase } from '../lib/supabaseClient'
 
 const HeaderContainer = styled.header`
   height: 80px;
@@ -148,6 +149,135 @@ const HeaderContainer = styled.header`
     text-align: center;
     box-shadow: 0 2px 6px rgba(238, 90, 82, 0.3);
     font-family: var(--font-inter);
+  }
+
+  /* Notification Dropdown */
+  .notification-dropdown {
+    position: absolute;
+    top: calc(100% + 10px);
+    right: -80px;
+    background: var(--bg-card);
+    backdrop-filter: blur(10px);
+    border-radius: 16px;
+    box-shadow: var(--shadow-lg);
+    border: 1px solid var(--border-color);
+    min-width: 380px;
+    max-width: 420px;
+    z-index: 1000;
+    animation: slideDown 0.3s ease;
+    overflow: hidden;
+  }
+
+  .notification-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .notification-header h3 {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0;
+  }
+
+  .notification-header .mark-read {
+    font-size: 12px;
+    color: #5a9dc4;
+    cursor: pointer;
+    font-weight: 600;
+  }
+
+  .notification-header .mark-read:hover {
+    text-decoration: underline;
+  }
+
+  .notification-list {
+    max-height: 400px;
+    overflow-y: auto;
+  }
+
+  .notification-item {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border-color);
+    cursor: pointer;
+    transition: background 0.2s;
+    display: flex;
+    gap: 12px;
+  }
+
+  .notification-item:hover {
+    background: var(--bg-hover);
+  }
+
+  .notification-item:last-child {
+    border-bottom: none;
+  }
+
+  .notification-icon-wrapper {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .notification-icon-wrapper.contract {
+    background: #eff6ff;
+    color: #3b82f6;
+  }
+
+  .notification-icon-wrapper.vendor {
+    background: #f0fdf4;
+    color: #22c55e;
+  }
+
+  .notification-icon-wrapper.amendment {
+    background: #fef3c7;
+    color: #f59e0b;
+  }
+
+  .notification-content {
+    flex: 1;
+  }
+
+  .notification-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+  }
+
+  .notification-desc {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+    line-height: 1.4;
+  }
+
+  .notification-time {
+    font-size: 11px;
+    color: #94a3b8;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .notification-empty {
+    padding: 40px 20px;
+    text-align: center;
+    color: var(--text-muted);
+  }
+
+  .notification-empty-icon {
+    width: 48px;
+    height: 48px;
+    margin: 0 auto 12px;
+    opacity: 0.3;
   }
 
   .user-profile {
@@ -379,8 +509,87 @@ const LogoGroup = styled.div`
 
 function Header({ onMenuClick }) {
   const [showProfileMenu, setShowProfileMenu] = useState(false)
+  const [showNotifications, setShowNotifications] = useState(false)
+  const [notifications, setNotifications] = useState([])
+  const [notificationCount, setNotificationCount] = useState(0)
   const router = useRouter()
   const pathname = usePathname()
+
+  // Fetch notifications
+  useEffect(() => {
+    fetchNotifications()
+  }, [])
+
+  const fetchNotifications = async () => {
+    try {
+      // Fetch contract history for recent amendments
+      const { data: contractHistory, error: historyError } = await supabase
+        .from('contract_history')
+        .select('*, contracts(name)')
+        .order('created_at', { ascending: false })
+        .limit(5)
+
+      // Fetch recent vendors
+      const { data: vendors, error: vendorError } = await supabase
+        .from('vendors')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(3)
+
+      const notifs = []
+
+      // Add contract history notifications
+      if (contractHistory) {
+        contractHistory.forEach(history => {
+          notifs.push({
+            id: `contract-${history.id}`,
+            type: history.action.includes('Amandemen') ? 'amendment' : 'contract',
+            title: history.action,
+            description: `${history.contracts?.name || 'Kontrak'} - ${history.details?.substring(0, 50)}...`,
+            time: getRelativeTime(history.created_at),
+            icon: FileText
+          })
+        })
+      }
+
+      // Add vendor notifications
+      if (vendors) {
+        vendors.forEach(vendor => {
+          notifs.push({
+            id: `vendor-${vendor.id}`,
+            type: 'vendor',
+            title: 'Vendor Baru Ditambahkan',
+            description: `${vendor.nama || vendor.name} telah terdaftar di sistem`,
+            time: getRelativeTime(vendor.created_at),
+            icon: UserPlus
+          })
+        })
+      }
+
+      // Sort by time and limit
+      notifs.sort((a, b) => b.id.localeCompare(a.id))
+      setNotifications(notifs.slice(0, 8))
+      setNotificationCount(notifs.length)
+    } catch (err) {
+      console.error('Error fetching notifications:', err)
+    }
+  }
+
+  const getRelativeTime = (dateString) => {
+    if (!dateString) return 'Baru saja'
+    const date = new Date(dateString)
+    const now = new Date()
+    const diffMs = now - date
+    const diffMins = Math.floor(diffMs / 60000)
+    const diffHours = Math.floor(diffMs / 3600000)
+    const diffDays = Math.floor(diffMs / 86400000)
+
+    if (diffMins < 1) return 'Baru saja'
+    if (diffMins < 60) return `${diffMins} menit yang lalu`
+    if (diffHours < 24) return `${diffHours} jam yang lalu`
+    if (diffDays < 7) return `${diffDays} hari yang lalu`
+    return date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
+  }
 
   const getPageTitle = () => {
     switch (pathname) {
@@ -433,9 +642,44 @@ function Header({ onMenuClick }) {
             <span>UPT Manado</span>
           </div>
         </LogoGroup>
-        <div className="notification-icon">
+        <div className="notification-icon" onClick={() => setShowNotifications(!showNotifications)}>
           <Bell size={22} strokeWidth={2} />
-          <span className="notification-badge">3</span>
+          {notificationCount > 0 && <span className="notification-badge">{notificationCount}</span>}
+          {showNotifications && (
+            <div className="notification-dropdown" onClick={e => e.stopPropagation()}>
+              <div className="notification-header">
+                <h3>Notifikasi</h3>
+                <span className="mark-read" onClick={() => setNotificationCount(0)}>Tandai sudah dibaca</span>
+              </div>
+              <div className="notification-list">
+                {notifications.length > 0 ? (
+                  notifications.map(notif => {
+                    const IconComponent = notif.icon
+                    return (
+                      <div key={notif.id} className="notification-item">
+                        <div className={`notification-icon-wrapper ${notif.type}`}>
+                          <IconComponent size={18} strokeWidth={2} />
+                        </div>
+                        <div className="notification-content">
+                          <div className="notification-title">{notif.title}</div>
+                          <div className="notification-desc">{notif.description}</div>
+                          <div className="notification-time">
+                            <Clock size={11} />
+                            {notif.time}
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })
+                ) : (
+                  <div className="notification-empty">
+                    <Bell className="notification-empty-icon" size={48} strokeWidth={1.5} />
+                    <p>Tidak ada notifikasi</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
         <div className="user-profile" onClick={toggleProfileMenu}>
           <div className="user-avatar">A</div>

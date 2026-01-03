@@ -457,27 +457,39 @@ function DataVendor() {
                     </span>
                     <div className="pagination-controls-vendor">
                         <button
-                            className="pagination-btn-vendor"
+                            className={`pagination-btn-vendor${totalPages <= 1 ? ' disabled-btn' : ''}`}
                             onClick={() => handlePageChange(currentPage - 1)}
-                            disabled={currentPage === 1}
+                            disabled={totalPages <= 1 || currentPage === 1}
+                            style={{ cursor: totalPages <= 1 ? 'not-allowed' : 'pointer', opacity: totalPages <= 1 ? 0.5 : 1, textAlign: 'center', justifyContent: 'center', alignItems: 'center', display: 'flex' }}
                         >
                             ‹ Sebelumnya
                         </button>
 
-                        {[...Array(totalPages)].map((_, index) => (
+                        {totalPages > 1 ? (
+                            [...Array(totalPages)].map((_, index) => (
+                                <button
+                                    key={index + 1}
+                                    className={`pagination-btn-vendor ${currentPage === index + 1 ? 'active' : ''}`}
+                                    onClick={() => handlePageChange(index + 1)}
+                                >
+                                    {index + 1}
+                                </button>
+                            ))
+                        ) : (
                             <button
-                                key={index + 1}
-                                className={`pagination-btn-vendor ${currentPage === index + 1 ? 'active' : ''}`}
-                                onClick={() => handlePageChange(index + 1)}
+                                className="pagination-btn-vendor active"
+                                style={{ textAlign: 'center', justifyContent: 'center', alignItems: 'center', display: 'flex' }}
+                                disabled
                             >
-                                {index + 1}
+                                1
                             </button>
-                        ))}
+                        )}
 
                         <button
-                            className="pagination-btn-vendor"
+                            className={`pagination-btn-vendor${totalPages <= 1 ? ' disabled-btn' : ''}`}
                             onClick={() => handlePageChange(currentPage + 1)}
-                            disabled={currentPage === totalPages}
+                            disabled={totalPages <= 1 || currentPage === totalPages}
+                            style={{ cursor: totalPages <= 1 ? 'not-allowed' : 'pointer', opacity: totalPages <= 1 ? 0.5 : 1, textAlign: 'center', justifyContent: 'center', alignItems: 'center', display: 'flex' }}
                         >
                             Selanjutnya ›
                         </button>

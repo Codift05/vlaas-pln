@@ -520,9 +520,8 @@ setMonthlyData(chartData)
         })}
     </div>
     <div style={{ display: 'flex', justifyContent: 'center', gap: 18, marginTop: 10 }}>
-        <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}><span style={{ width: 14, height: 8, background: '#10b981', borderRadius: 4, display: 'inline-block' }}></span> Selesai/Aktif</span>
-        <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}><span style={{ width: 14, height: 8, background: '#f59e0b', borderRadius: 4, display: 'inline-block' }}></span> Proses/Rev</span>
-        <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}><span style={{ width: 14, height: 8, background: '#ef4444', borderRadius: 4, display: 'inline-block' }}></span> Batal/Lain</span>
+        <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}><span style={{ width: 14, height: 8, background: '#f59e0b', borderRadius: 4, display: 'inline-block' }}></span> Dalam Proses</span>
+        <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}><span style={{ width: 14, height: 8, background: '#6366f1', borderRadius: 4, display: 'inline-block' }}></span> Terbayar</span>
     </div>
 </div>
 
