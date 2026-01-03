@@ -18,6 +18,12 @@ const HeaderContainer = styled.header`
   top: 0;
   z-index: 100;
   transition: background 0.3s, border-color 0.3s;
+/* ... skipping unchanged styled components lines if possible or including them contextually ... */
+/* I will assume I need to replace the specific blocks */
+
+/* Since replace_file_content requires contiguous block, I will do two edits if they are far apart, 
+   but Header definition is at top and LogoGroup at bottom. */
+
 
   .header-left {
     flex: 1;
@@ -308,6 +314,67 @@ const HeaderContainer = styled.header`
       font-size: 20px;
     }
   }
+    .notification-icon {
+      font-size: 20px;
+    }
+  }
+`;
+
+const LogoGroup = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-right: 16px;
+  padding-right: 24px;
+  border-right: 1px solid rgba(0, 0, 0, 0.08);
+  height: 50px;
+
+  @media (max-width: 1200px) {
+    display: none;
+  }
+
+  /* PLN Logo - Standard Size */
+  .logo-pln {
+    height: 42px;
+    width: auto;
+    object-fit: contain;
+    transition: transform 0.2s;
+  }
+
+  /* Danantara Logo - Maximize for 80px Header */
+  .logo-danantara {
+    height: 28px;
+    width: auto;
+    object-fit: contain;
+    transition: transform 0.2s;
+  }
+  
+  img:hover {
+      transform: scale(1.05);
+  }
+  
+  .logo-text {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      line-height: 1.2;
+      border-left: 1px solid rgba(0,0,0,0.1);
+      padding-left: 16px;
+      margin-left: 0px;
+      
+      strong {
+          font-size: 15px;
+          color: #334155;
+          font-weight: 700;
+          letter-spacing: -0.01em;
+      }
+      span {
+          font-size: 12px;
+          color: #64748b;
+          font-weight: 500;
+          letter-spacing: 0.02em;
+      }
+  }
 `;
 
 function Header({ onMenuClick }) {
@@ -358,10 +425,14 @@ function Header({ onMenuClick }) {
         <h1 className="header-title">{getPageTitle()}</h1>
       </div>
       <div className="header-right">
-        <div className="search-box">
-          <Search className="search-icon-svg" size={18} strokeWidth={2} />
-          <input className="search-input" type="text" placeholder="Cari..." />
-        </div>
+        <LogoGroup>
+          <img src="/images/Logo_PLN.png" alt="Logo PLN" className="logo-pln" />
+          <img src="/images/Logo_Danantara (2).png" alt="Logo Danantara" className="logo-danantara" />
+          <div className="logo-text">
+            <strong>PLN (Persero)</strong>
+            <span>UPT Manado</span>
+          </div>
+        </LogoGroup>
         <div className="notification-icon">
           <Bell size={22} strokeWidth={2} />
           <span className="notification-badge">3</span>

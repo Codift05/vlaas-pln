@@ -22,12 +22,16 @@ interface KpiData {
 
 interface MonthlyData {
     month: string
-    count: number
+    active: number
+    warning: number
+    danger: number
+    total: number
+    count?: number // Keep optional for backward compatibility if needed, or remove
 }
 
 function Laporan() {
     // const [sidebarOpen, setSidebarOpen] = useState(false) // Handled by layout
-    const [dateRange, setDateRange] = useState({ value: 'bulan-ini', label: 'Bulan Ini' })
+    const [dateRange, setDateRange] = useState({ value: 'tahun-ini', label: 'Tahun Ini' })
     const [filterStatus, setFilterStatus] = useState({ value: 'all', label: 'Semua Status' })
     const [startDate, setStartDate] = useState('')
     const [endDate, setEndDate] = useState('')
@@ -39,14 +43,9 @@ function Laporan() {
         totalDocuments: 0,
         pendingDocuments: 0
     })
-    // Untuk chart perbandingan status per bulan
-    interface MonthlyCompareData {
-        month: string;
-        dalamProses: number;
-        terbayar: number;
-    }
-    const [monthlyCompareData, setMonthlyCompareData] = useState<MonthlyCompareData[]>([])
+    // (removed grouped bar chart logic, keep only stacked bar logic)
     const [monthlyData, setMonthlyData] = useState<MonthlyData[]>([])
+    const [allContracts, setAllContracts] = useState<Contract[]>([])
     const [budgetData, setBudgetData] = useState({
         terkontrak: 0,
         dalamProses: 0,
@@ -66,7 +65,9 @@ function Laporan() {
             const result = await contractService.getAllContracts()
 
             if (result.success) {
-                processAnalytics((result as any).data as Contract[])
+                const data = (result as any).data as Contract[]
+                setAllContracts(data)
+                // processAnalytics(data) // Removed to prevent flicker. useEffect will trigger applyFilters.
             }
         } catch (err) {
             console.error('Failed to fetch analytics:', err)
@@ -75,18 +76,92 @@ function Laporan() {
         }
     }
 
+    // Effect to re-process analytics when filters change
+    useEffect(() => {
+        if (allContracts.length > 0) {
+            applyFilters()
+        }
+    }, [dateRange, filterStatus, startDate, endDate, allContracts])
+
+    const applyFilters = () => {
+        let filtered = [...allContracts]
+
+        // 1. Filter by Status
+        if (filterStatus.value !== 'all') {
+            filtered = filtered.filter(c => {
+                const s = (c.status || '').toLowerCase()
+                if (filterStatus.value === 'approved') return ['selesai', 'terbayar', 'telah diperiksa', 'aktif'].includes(s)
+                if (filterStatus.value === 'rejected') return ['batal', 'ditolak', 'masalah'].includes(s)
+                if (filterStatus.value === 'pending') return ['proses', 'pemeriksaan', 'amandemen', 'terkontrak'].some(k => s.includes(k))
+                return true
+            })
+        }
+
+        // 2. Filter by Date (Periode) - using created_at
+        const now = new Date()
+        filtered = filtered.filter(c => {
+            if (!c.created_at) return false
+            const date = new Date(c.created_at)
+
+            if (dateRange.value === 'hari-ini') {
+                return date.toDateString() === now.toDateString()
+            }
+            if (dateRange.value === 'minggu-ini') {
+                const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+                return date >= oneWeekAgo
+            }
+            if (dateRange.value === 'bulan-ini') {
+                return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear()
+            }
+            if (dateRange.value === 'tahun-ini') {
+                return date.getFullYear() === now.getFullYear()
+            }
+            if (dateRange.value === 'custom' && startDate && endDate) {
+                const start = new Date(startDate)
+                const end = new Date(endDate)
+                end.setHours(23, 59, 59) // End of day
+                return date >= start && date <= end
+            }
+            return true
+        })
+
+        processAnalytics(filtered)
+    }
+
     const processAnalytics = (contracts: Contract[]) => {
         // 1. KPI Calculations
         const total = contracts.length
-        const approved = contracts.filter(c => c.status === 'Telah Diperiksa' || c.status === 'Selesai' || c.status === 'Terbayar').length
-        const pending = contracts.filter(c => c.status === 'Dalam Pemeriksaan' || c.status === 'Dalam Proses Pekerjaan').length
 
-        // Simulating approval rate based on 'completed' vs total
-        const rate = total > 0 ? ((approved / total) * 100).toFixed(0) : 0
+        // Real Approval Rate: (Approved / Total) * 100
+        const approvedCount = contracts.filter(c => {
+            const s = (c.status || '').toLowerCase()
+            return ['selesai', 'terbayar', 'telah diperiksa', 'aktif'].includes(s)
+        }).length
+        const approvalRate = total > 0 ? ((approvedCount / total) * 100).toFixed(0) : 0
+
+        // Real Average Cycle Time: (Start Date - Created Date)
+        let totalDays = 0
+        let countWithDates = 0
+        contracts.forEach(c => {
+            if (c.created_at && c.start_date) {
+                const start = new Date(c.created_at).getTime()
+                const end = new Date(c.start_date).getTime()
+                const diffTime = Math.abs(end - start)
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+                totalDays += diffDays
+                countWithDates++
+            }
+        })
+        const avgTime = countWithDates > 0 ? (totalDays / countWithDates).toFixed(1) : 0
+
+        const pending = contracts.filter(c => {
+            const s = (c.status || '').toLowerCase()
+            return ['proses', 'pemeriksaan', 'amandemen'].some(k => s.includes(k))
+        }).length
 
         setKpiData({
-            avgCycleTime: 2.5,
-            approvalRate: rate,
+            avgCycleTime: Number(avgTime),
+            approvalRate: approvalRate,
             totalDocuments: total,
             pendingDocuments: pending
         })
@@ -105,7 +180,7 @@ function Laporan() {
             const amount = Number(c.amount) || 0
             switch (c.status) {
                 case 'Terkontrak':
-                case 'Aktif': // Handle legacy data
+                case 'Aktif':
                     buckets.terkontrak += amount;
                     break;
                 case 'Dalam Proses Pekerjaan': buckets.dalamProses += amount; break;
@@ -113,39 +188,40 @@ function Laporan() {
                 case 'Dalam Pemeriksaan': buckets.dalamPemeriksaan += amount; break;
                 case 'Telah Diperiksa': buckets.telahDiperiksa += amount; break;
                 case 'Terbayar': buckets.terbayar += amount; break;
-                default: break; // Ignore unknowns or 'Aktif' legacy
+                default: break;
             }
         })
 
         setBudgetData(buckets)
 
-        // 3. Monthly Volume & Perbandingan Status
-        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des']
-        const volumeByMonth = new Array(12).fill(0)
-        // Untuk chart perbandingan
-        const compareByMonth = Array.from({ length: 12 }, () => ({ dalamProses: 0, terbayar: 0 }))
+// 3. Monthly Volume (Stacked Data)
+const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des']
+const chartData = months.map(m => ({ month: m, active: 0, warning: 0, danger: 0, total: 0 }))
 
-        contracts.forEach(c => {
-            const date = new Date(c.created_at)
-            const monthIdx = date.getMonth()
-            volumeByMonth[monthIdx]++
-            if (c.status === 'Dalam Proses Pekerjaan') compareByMonth[monthIdx].dalamProses++
-            if (c.status === 'Terbayar') compareByMonth[monthIdx].terbayar++
-        })
+contracts.forEach(c => {
+    if (!c.start_date) return
 
-        const chartData = months.map((month, idx) => ({
-            month,
-            count: volumeByMonth[idx]
-        }))
-        setMonthlyData(chartData)
+    const date = new Date(c.start_date)
+    const monthIdx = date.getMonth()
 
-        const compareChartData = months.map((month, idx) => ({
-            month,
-            dalamProses: compareByMonth[idx].dalamProses,
-            terbayar: compareByMonth[idx].terbayar
-        }))
-        setMonthlyCompareData(compareChartData)
+    if (monthIdx >= 0 && monthIdx < 12) {
+        const status = (c.status || '').toLowerCase()
+
+        if (['selesai', 'terbayar', 'telah diperiksa', 'aktif'].includes(status)) {
+            chartData[monthIdx].active += 1
+        } else if (
+            ['proses', 'pemeriksaan', 'terkontrak', 'amandemen', 'perbaikan'].some(k => status.includes(k))
+        ) {
+            chartData[monthIdx].warning += 1
+        } else {
+            chartData[monthIdx].danger += 1
+        }
+        chartData[monthIdx].total += 1
     }
+})
+
+setMonthlyData(chartData)
+} // <-- Add this closing brace to end processAnalytics
 
     const totalBudget = Object.values(budgetData).reduce((a, b) => a + b, 0);
 
@@ -175,12 +251,38 @@ function Laporan() {
 
 
 
-    // Untuk chart perbandingan, ambil max dari kedua status
-    const maxCompareCount = monthlyCompareData.length > 0 ? Math.max(...monthlyCompareData.map(d => Math.max(d.dalamProses, d.terbayar))) : 10
+    // const maxCount = monthlyData.length > 0 ? Math.max(...monthlyData.map(d => d.count)) : 10
 
     const handleExport = (format: string) => {
-        alert(`Mengekspor laporan dalam format ${format}...`)
-        // Nanti bisa ditambahkan logika untuk export ke CSV/PDF
+        if (format === 'CSV') {
+            const headers = ['ID', 'Nama Kontrak', 'Vendor', 'Status', 'Nilai', 'Tgl Buat', 'Tgl Mulai']
+            const rows = allContracts.map(c => [
+                c.id,
+                `"${c.name || ''}"`, // Quote to handle commas
+                `"${c.vendor_name || ''}"`,
+                c.status,
+                c.amount,
+                c.created_at ? new Date(c.created_at).toLocaleDateString() : '',
+                c.start_date ? new Date(c.start_date).toLocaleDateString() : ''
+            ])
+
+            const csvContent = [
+                headers.join(','),
+                ...rows.map(row => row.join(','))
+            ].join('\n')
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+            const url = URL.createObjectURL(blob)
+            const link = document.createElement('a')
+            link.setAttribute('href', url)
+            link.setAttribute('download', `laporan_kontrak_${new Date().toISOString().slice(0, 10)}.csv`)
+            link.style.visibility = 'hidden'
+            document.body.appendChild(link)
+            link.click()
+            document.body.removeChild(link)
+        } else {
+            alert('Export PDF belum tersedia. Silakan gunakan Export CSV.')
+        }
     }
 
     return (
@@ -196,6 +298,7 @@ function Laporan() {
                                 value={dateRange}
                                 onChange={(val) => setDateRange(val as any)}
                                 options={[
+                                    { value: 'semua', label: 'Semua Waktu' },
                                     { value: 'hari-ini', label: 'Hari Ini' },
                                     { value: 'minggu-ini', label: 'Minggu Ini' },
                                     { value: 'bulan-ini', label: 'Bulan Ini' },
@@ -381,62 +484,47 @@ function Laporan() {
             <div className="charts-container">
                 {/* Bar Chart - Perbandingan Dalam Proses & Terbayar */}
                 <div className="chart-card large">
-                    <div className="chart-header">
-                        <h3><BarChart2 size={20} style={{ display: 'inline', marginRight: '8px' }} /> Jumlah Kontrak Bulanan</h3>
-                        <span className="chart-subtitle">Perbandingan "Dalam Proses" & "Terbayar"</span>
+    <div className="chart-header">
+        <h3><BarChart2 size={20} style={{ display: 'inline', marginRight: '8px' }} /> Tren Kontrak Bulanan</h3>
+        <span className="chart-subtitle">Distribusi status kontrak per bulan</span>
+    </div>
+    <div className="bar-chart-container">
+        {(monthlyData as any[]).map((data, index) => {
+            const maxTotal = monthlyData.length > 0 ? Math.max(...(monthlyData as any[]).map(d => d.total), 1) : 10;
+            const heightPercentage = maxTotal > 0 ? (data.total / maxTotal) * 100 : 0;
+
+            const activeHeigth = data.total > 0 ? (data.active / data.total) * 100 : 0;
+            const warningHeight = data.total > 0 ? (data.warning / data.total) * 100 : 0;
+            const dangerHeight = data.total > 0 ? (data.danger / data.total) * 100 : 0;
+
+            return (
+                <div key={index} className="bar-wrapper">
+                    <div className="bar-stack-container" style={{ height: `${heightPercentage}%`, minHeight: data.total > 0 ? '4px' : '0' }}>
+                        {/* Tooltip */}
+                        <div className="bar-tooltip">
+                            <div className="tooltip-header">{data.month}</div>
+                            <div className="tooltip-row"><span className="dot active"></span> Selesai/Aktif: {data.active}</div>
+                            <div className="tooltip-row"><span className="dot warning"></span> Proses/Rev: {data.warning}</div>
+                            <div className="tooltip-row"><span className="dot danger"></span> Batal/Lain: {data.danger}</div>
+                            <div className="tooltip-total">Total: {data.total}</div>
+                        </div>
+
+                        {/* Segments (Reverse order: Danger Bottom, Warning Middle, Active Top) */}
+                        {data.danger > 0 && <div className="bar-segment danger" style={{ height: `${dangerHeight}%` }}></div>}
+                        {data.warning > 0 && <div className="bar-segment warning" style={{ height: `${warningHeight}%` }}></div>}
+                        {data.active > 0 && <div className="bar-segment active" style={{ height: `${activeHeigth}%` }}></div>}
                     </div>
-                    <div className="bar-chart-container" style={{ display: 'flex', alignItems: 'end', height: 220, background: 'transparent', padding: '0 8px', borderRadius: 18 }}>
-                        {monthlyCompareData.map((data, index) => (
-                            <div key={index} className="bar-wrapper" style={{ width: 44, margin: '0 6px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'end' }}>
-                                <div style={{ display: 'flex', width: '100%', gap: 4, alignItems: 'end', height: 180, justifyContent: 'center' }}>
-                                    {/* Dalam Proses */}
-                                    <div
-                                        className="bar-laporan"
-                                        style={{
-                                            height: `${maxCompareCount ? (data.dalamProses / maxCompareCount) * 100 : 0}%`,
-                                            width: 16,
-                                            background: 'linear-gradient(180deg, #fbbf24 0%, #f59e0b 100%)',
-                                                borderRadius: 0,
-                                            marginRight: 2,
-                                            position: 'relative',
-                                            boxShadow: '0 2px 8px rgba(251,191,36,0.08)',
-                                            transition: 'height 0.3s',
-                                            display: 'flex',
-                                            alignItems: 'flex-end',
-                                            justifyContent: 'center',
-                                        }}
-                                    >
-                                        {data.dalamProses > 0 && <span className="bar-value" style={{ fontSize: 13, color: '#f59e0b', fontWeight: 700, position: 'absolute', top: -22, left: '50%', transform: 'translateX(-50%)', opacity: 0.7 }}>{data.dalamProses}</span>}
-                                    </div>
-                                    {/* Terbayar */}
-                                    <div
-                                        className="bar-laporan"
-                                        style={{
-                                            height: `${maxCompareCount ? (data.terbayar / maxCompareCount) * 100 : 0}%`,
-                                            width: 16,
-                                            background: 'linear-gradient(180deg, #a5b4fc 0%, #6366f1 100%)',
-                                                borderRadius: 0,
-                                            marginLeft: 2,
-                                            position: 'relative',
-                                            boxShadow: '0 2px 8px rgba(99,102,241,0.08)',
-                                            transition: 'height 0.3s',
-                                            display: 'flex',
-                                            alignItems: 'flex-end',
-                                            justifyContent: 'center',
-                                        }}
-                                    >
-                                        {data.terbayar > 0 && <span className="bar-value" style={{ fontSize: 13, color: '#6366f1', fontWeight: 700, position: 'absolute', top: -22, left: '50%', transform: 'translateX(-50%)', opacity: 0.7 }}>{data.terbayar}</span>}
-                                    </div>
-                                </div>
-                                <span className="bar-label" style={{ fontSize: 15, marginTop: 10, color: '#334155', fontWeight: 500, letterSpacing: 0 }}>{data.month}</span>
-                            </div>
-                        ))}
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'center', gap: 18, marginTop: 10 }}>
-                        <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}><span style={{ width: 14, height: 8, background: '#f59e0b', borderRadius: 4, display: 'inline-block' }}></span> Dalam Proses</span>
-                        <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}><span style={{ width: 14, height: 8, background: '#6366f1', borderRadius: 4, display: 'inline-block' }}></span> Terbayar</span>
-                    </div>
+                    <span className="bar-label">{data.month}</span>
                 </div>
+            )
+        })}
+    </div>
+    <div style={{ display: 'flex', justifyContent: 'center', gap: 18, marginTop: 10 }}>
+        <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}><span style={{ width: 14, height: 8, background: '#10b981', borderRadius: 4, display: 'inline-block' }}></span> Selesai/Aktif</span>
+        <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}><span style={{ width: 14, height: 8, background: '#f59e0b', borderRadius: 4, display: 'inline-block' }}></span> Proses/Rev</span>
+        <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}><span style={{ width: 14, height: 8, background: '#ef4444', borderRadius: 4, display: 'inline-block' }}></span> Batal/Lain</span>
+    </div>
+</div>
 
                 {/* Pie Chart - Komposisi Keputusan */}
                 <div className="chart-card">
@@ -444,9 +532,9 @@ function Laporan() {
                         <h3><Target size={20} style={{ display: 'inline', marginRight: '8px' }} /> Komposisi Keputusan</h3>
                         <span className="chart-subtitle">Distribusi status dokumen</span>
                     </div>
-                    <div className="pie-chart-container">
-                        <div className="pie-chart">
-                            <svg viewBox="0 0 100 100" className="pie-svg">
+                    <div className="laporan-pie-chart-container">
+                        <div className="laporan-pie-chart">
+                            <svg viewBox="0 0 100 100" className="laporan-pie-svg">
                                 <g transform="rotate(-90 50 50)">
                                     {pieSegments.map((seg, idx) => (
                                         <circle

@@ -1,7 +1,7 @@
 'use client'
 import { useState, useRef, useEffect, Fragment } from 'react'
 
-import { Eye, Edit, Trash2, Search, ChevronDown, ChevronUp, Plus, Save, Upload, Calendar, Clock, ArrowRight, FileText, AlertCircle, FileCheck, History } from 'lucide-react'
+import { Eye, Edit, Trash2, Search, ChevronDown, ChevronUp, Plus, Save, Upload, Calendar, Clock, ArrowRight, FileText, AlertCircle, AlertTriangle, FileCheck, History } from 'lucide-react'
 import { supabase } from '../../../lib/supabaseClient'
 import './ManajemenAset.css'
 
@@ -210,25 +210,40 @@ function ManajemenAset() {
         }
     }
 
+    // State for Custom Confirmation Modal
+    const [showConfirmModal, setShowConfirmModal] = useState(false)
+    const [pendingAmendment, setPendingAmendment] = useState(null)
+
     const handleCreateAmendment = (asset) => {
         // Calculate amendment number
         const existingAmendments = asset.history ? asset.history.filter(h => h.action.includes('Amandemen')).length : 0;
         const nextAmendmentNum = existingAmendments + 1;
 
-        if (confirm(`Apakah Anda yakin ingin membuat Amandemen ke-${nextAmendmentNum} untuk kontrak ini?`)) {
-            setFormData({
-                ...asset,
-                amount: asset.amount ? String(asset.amount) : '',
-                category: asset.category || '',
-                vendorName: asset.vendorName || '',
-                amendmentDocNumber: `AMD-${asset.id}-${String(nextAmendmentNum).padStart(3, '0')}`, // Auto-generate suggestion
-                amendmentDescription: ''
-            })
-            setEditId(asset.id)
-            setIsEditing(true)
-            setIsAmendment(true)
-            setShowModal(true)
-        }
+        setPendingAmendment({ asset, nextAmendmentNum })
+        setShowConfirmModal(true)
+    }
+
+    const handleConfirmAmendment = () => {
+        if (!pendingAmendment) return
+
+        const { asset, nextAmendmentNum } = pendingAmendment
+
+        setFormData({
+            ...asset,
+            amount: asset.amount ? String(asset.amount) : '',
+            category: asset.category || '',
+            vendorName: asset.vendorName || '',
+            amendmentDocNumber: `AMD-${asset.id}-${String(nextAmendmentNum).padStart(3, '0')}`, // Auto-generate suggestion
+            amendmentDescription: ''
+        })
+        setEditId(asset.id)
+        setIsEditing(true)
+        setIsAmendment(true)
+        setShowModal(true)
+
+        // Close confirmation modal
+        setShowConfirmModal(false)
+        setPendingAmendment(null)
     }
 
     const toggleColumnVisibility = (column) => {
@@ -1275,6 +1290,56 @@ function ManajemenAset() {
                             </button>
                             {uploadError && <div className="modal-upload-status" style={{ color: 'red' }}>{uploadError}</div>}
                             {uploadSuccess && <div className="modal-upload-status" style={{ color: 'green' }}>{uploadSuccess}</div>}
+                        </div>
+                    </div>
+                )}
+
+                {/* Confirm Amendment Modal */}
+                {showConfirmModal && (
+                    <div className="modal-overlay" style={{ zIndex: 1100, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setShowConfirmModal(false)}>
+                        <div
+                            className="bg-white rounded-2xl p-6 shadow-2xl max-w-md w-full mx-4 transform transition-all scale-100"
+                            style={{ maxWidth: '420px', background: 'white', borderRadius: '16px', padding: '24px', animation: 'scaleIn 0.2s cubic-bezier(0.16, 1, 0.3, 1)' }}
+                            onClick={e => e.stopPropagation()}
+                        >
+                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
+                                <div style={{
+                                    width: '64px', height: '64px', borderRadius: '50%', background: '#fff7ed',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px',
+                                    border: '6px solid #ffedd5'
+                                }}>
+                                    <AlertTriangle size={32} color="#f97316" />
+                                </div>
+                                <h3 style={{ margin: '0 0 8px 0', fontSize: '18px', fontWeight: 700, color: '#111827' }}>
+                                    Konfirmasi Amandemen
+                                </h3>
+                                <p style={{ margin: '0 0 24px 0', fontSize: '14px', color: '#6b7280', lineHeight: '1.5' }}>
+                                    Apakah Anda yakin ingin membuat <strong>Amandemen ke-{pendingAmendment?.nextAmendmentNum}</strong> untuk kontrak ini?
+                                    <br /><br />
+                                    Tindakan ini akan membuka editor kontrak dalam mode amandemen.
+                                </p>
+                                <div style={{ display: 'flex', gap: '12px', width: '100%' }}>
+                                    <button
+                                        onClick={() => setShowConfirmModal(false)}
+                                        style={{
+                                            flex: 1, padding: '10px', borderRadius: '8px', border: '1px solid #d1d5db',
+                                            background: 'white', color: '#374151', fontSize: '14px', fontWeight: 600, cursor: 'pointer'
+                                        }}
+                                    >
+                                        Batal
+                                    </button>
+                                    <button
+                                        onClick={handleConfirmAmendment}
+                                        style={{
+                                            flex: 1, padding: '10px', borderRadius: '8px', border: 'none',
+                                            background: '#f97316', color: 'white', fontSize: '14px', fontWeight: 600, cursor: 'pointer',
+                                            boxShadow: '0 4px 6px -1px rgba(249, 115, 22, 0.2)'
+                                        }}
+                                    >
+                                        Ya, Buat Amandemen
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 )}
