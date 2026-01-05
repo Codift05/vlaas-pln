@@ -562,10 +562,13 @@ textarea:focus {
   border: 1px solid rgba(241, 196, 15, 0.3);
 }
 
-.contract-po {
-  background: rgba(52, 73, 94, 0.15);
-  color: #34495e;
-  border: 1px solid rgba(52, 73, 94, 0.3);
+
+.contract-non-po {
+  background: #e5e8ec;
+  color: #1e293b;
+  border: 1px solid #cfd8dc;
+  font-weight: 700;
+  letter-spacing: 0.3px;
 }
 
 /* Action Buttons */

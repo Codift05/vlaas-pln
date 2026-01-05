@@ -214,6 +214,16 @@ function ManajemenAset() {
     const [showConfirmModal, setShowConfirmModal] = useState(false)
     const [pendingAmendment, setPendingAmendment] = useState(null)
 
+    // State for Progress Tracker
+    const [showProgressModal, setShowProgressModal] = useState(false)
+    const [progressFormData, setProgressFormData] = useState({
+        contractId: '',
+        title: '',
+        description: '',
+        status: 'In Progress'
+    })
+    const [activeHistoryTab, setActiveHistoryTab] = useState('all') // 'all', 'amendments', 'progress'
+
     const handleCreateAmendment = (asset) => {
         // Calculate amendment number
         const existingAmendments = asset.history ? asset.history.filter(h => h.action.includes('Amandemen')).length : 0;
@@ -244,6 +254,46 @@ function ManajemenAset() {
         // Close confirmation modal
         setShowConfirmModal(false)
         setPendingAmendment(null)
+    }
+
+    const handleCreateProgressTracker = (asset) => {
+        setProgressFormData({
+            contractId: asset.id,
+            title: '',
+            description: '',
+            status: 'In Progress'
+        })
+        setShowProgressModal(true)
+    }
+
+    const handleProgressSubmit = async (e) => {
+        e.preventDefault()
+
+        try {
+            const { error } = await supabase
+                .from('contract_history')
+                .insert([{
+                    contract_id: progressFormData.contractId,
+                    action: `Progress Tracker: ${progressFormData.title}`,
+                    user_name: 'Admin',
+                    details: `Status: ${progressFormData.status}. ${progressFormData.description || 'Tidak ada keterangan tambahan.'}`
+                }])
+
+            if (error) throw error
+
+            alert('Progress tracker berhasil ditambahkan!')
+            fetchContracts()
+            setShowProgressModal(false)
+            setProgressFormData({
+                contractId: '',
+                title: '',
+                description: '',
+                status: 'In Progress'
+            })
+        } catch (err) {
+            console.error('Error adding progress tracker:', err)
+            alert('Gagal menambahkan progress tracker: ' + err.message)
+        }
     }
 
     const toggleColumnVisibility = (column) => {
@@ -654,7 +704,7 @@ function ManajemenAset() {
                                             {columnVisibility.contractType && (
                                                 <td>
                                                     <span className={`contract-badge contract-${asset.contractType.toLowerCase()}`}>
-                                                        {asset.contractType}
+                                                        {asset.contractType === 'NON-PO' ? 'NON-PO' : asset.contractType}
                                                     </span>
                                                 </td>
                                             )}
@@ -692,69 +742,143 @@ function ManajemenAset() {
                                                                     Riwayat Amandemen & Perubahan
                                                                 </h4>
                                                                 <p style={{ margin: '4px 0 0 0', fontSize: '14px', color: '#64748b', marginLeft: '48px' }}>
-                                                                    Kelola riwayat perubahan dan amandemen untu kontrak ini
+                                                                    Kelola riwayat perubahan dan amandemen untuk kontrak ini
                                                                 </p>
                                                             </div>
+                                                            <div style={{ display: 'flex', gap: '12px' }}>
+                                                                <button
+                                                                    className="btn-primary"
+                                                                    onClick={() => handleCreateProgressTracker(asset)}
+                                                                    style={{ padding: '10px 18px', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}
+                                                                >
+                                                                    <Plus size={18} /> Buat Progress Tracker
+                                                                </button>
+                                                                <button
+                                                                    className="btn-primary"
+                                                                    onClick={() => handleCreateAmendment(asset)}
+                                                                    style={{ padding: '10px 18px', fontSize: '14px' }}
+                                                                >
+                                                                    <Plus size={18} /> Buat Amandemen
+                                                                </button>
+                                                            </div>
+                                                        </div>
+
+                                                        {/* Tab Filter */}
+                                                        <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', borderBottom: '2px solid #e2e8f0', paddingBottom: '8px' }}>
                                                             <button
-                                                                className="btn-primary"
-                                                                onClick={() => handleCreateAmendment(asset)}
-                                                                style={{ padding: '10px 18px', fontSize: '14px' }}
+                                                                onClick={() => setActiveHistoryTab('all')}
+                                                                style={{
+                                                                    padding: '8px 16px',
+                                                                    background: activeHistoryTab === 'all' ? '#3b82f6' : 'transparent',
+                                                                    color: activeHistoryTab === 'all' ? 'white' : '#64748b',
+                                                                    border: 'none',
+                                                                    borderRadius: '8px',
+                                                                    fontSize: '14px',
+                                                                    fontWeight: 600,
+                                                                    cursor: 'pointer',
+                                                                    transition: 'all 0.2s'
+                                                                }}
                                                             >
-                                                                <Plus size={18} /> Buat Amandemen
+                                                                Semua
+                                                            </button>
+                                                            <button
+                                                                onClick={() => setActiveHistoryTab('amendments')}
+                                                                style={{
+                                                                    padding: '8px 16px',
+                                                                    background: activeHistoryTab === 'amendments' ? '#3b82f6' : 'transparent',
+                                                                    color: activeHistoryTab === 'amendments' ? 'white' : '#64748b',
+                                                                    border: 'none',
+                                                                    borderRadius: '8px',
+                                                                    fontSize: '14px',
+                                                                    fontWeight: 600,
+                                                                    cursor: 'pointer',
+                                                                    transition: 'all 0.2s'
+                                                                }}
+                                                            >
+                                                                Amandemen
+                                                            </button>
+                                                            <button
+                                                                onClick={() => setActiveHistoryTab('progress')}
+                                                                style={{
+                                                                    padding: '8px 16px',
+                                                                    background: activeHistoryTab === 'progress' ? '#3b82f6' : 'transparent',
+                                                                    color: activeHistoryTab === 'progress' ? 'white' : '#64748b',
+                                                                    border: 'none',
+                                                                    borderRadius: '8px',
+                                                                    fontSize: '14px',
+                                                                    fontWeight: 600,
+                                                                    cursor: 'pointer',
+                                                                    transition: 'all 0.2s'
+                                                                }}
+                                                            >
+                                                                Progress Tracker
                                                             </button>
                                                         </div>
 
                                                         <div className="amendment-list" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                                                            {asset.history && asset.history.filter(h => h.action.includes('Amandemen') || h.details.includes('Amandemen')).length > 0 ? (
-                                                                asset.history
-                                                                    .filter(h => h.action.includes('Amandemen') || h.details.includes('Amandemen'))
-                                                                    .slice().reverse()
-                                                                    .map((log, idx) => (
-                                                                        <div key={idx} className="amendment-item" style={{ display: 'flex', gap: '20px', padding: '16px', borderRadius: '12px', border: '1px solid #f1f5f9', background: '#fff', transition: 'all 0.2s', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' }}>
-                                                                            <div style={{ minWidth: '140px', fontSize: '13px', color: '#64748b', borderRight: '1px solid #f1f5f9', paddingRight: '16px' }}>
-                                                                                <div style={{ fontWeight: 600, color: '#334155', fontSize: '14px' }}>{log.date}</div>
-                                                                                <div style={{ fontSize: '12px', marginTop: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                                                                    <div style={{ width: '20px', height: '20px', background: '#f1f5f9', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '10px', color: '#64748b' }}>
-                                                                                        {(log.user || 'Admin').charAt(0).toUpperCase()}
-                                                                                    </div>
-                                                                                    {log.user || 'Admin'}
-                                                                                </div>
-                                                                            </div>
-                                                                            <div style={{ flex: 1 }}>
-                                                                                <div style={{ fontWeight: 700, color: '#0f172a', marginBottom: '8px', fontSize: '15px' }}>{log.action}</div>
-                                                                                <div style={{ fontSize: '14px', color: '#475569', lineHeight: '1.6', background: '#f8fafc', padding: '12px', borderRadius: '8px' }}>
-                                                                                    {/* Simple rendering of details, can be enhanced like in modal */}
-                                                                                    {log.details.split('Perubahan:').map((part, i) => (
-                                                                                        <div key={i} style={{ marginBottom: i === 0 ? '4px' : '0' }}>
-                                                                                            {i === 1 ? (
-                                                                                                <div>
-                                                                                                    <span style={{ fontWeight: 600, color: '#334155' }}>Perubahan: </span>
-                                                                                                    {part}
-                                                                                                </div>
-                                                                                            ) : part}
+                                                            {
+                                                                (() => {
+                                                                    let filteredHistory = asset.history || [];
+                                                                    if (activeHistoryTab === 'amendments') {
+                                                                        filteredHistory = filteredHistory.filter(h => h.action.includes('Amandemen'));
+                                                                    } else if (activeHistoryTab === 'progress') {
+                                                                        filteredHistory = filteredHistory.filter(h => h.action.includes('Progress Tracker'));
+                                                                    }
+                                                                    if (filteredHistory.length > 0) {
+                                                                        return filteredHistory.slice().reverse().map((log, idx) => (
+                                                                            <div key={idx} className="amendment-item" style={{ display: 'flex', gap: '20px', padding: '16px', borderRadius: '12px', border: '1px solid #f1f5f9', background: '#fff', transition: 'all 0.2s', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' }}>
+                                                                                <div style={{ minWidth: '140px', fontSize: '13px', color: '#64748b', borderRight: '1px solid #f1f5f9', paddingRight: '16px' }}>
+                                                                                    <div style={{ fontWeight: 600, color: '#334155', fontSize: '14px' }}>{log.date}</div>
+                                                                                    <div style={{ fontSize: '12px', marginTop: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                                                        <div style={{ width: '20px', height: '20px', background: '#f1f5f9', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '10px', color: '#64748b' }}>
+                                                                                            {(log.user || 'Admin').charAt(0).toUpperCase()}
                                                                                         </div>
-                                                                                    ))}
+                                                                                        {log.user || 'Admin'}
+                                                                                    </div>
+                                                                                </div>
+                                                                                <div style={{ flex: 1 }}>
+                                                                                    <div style={{ fontWeight: 700, color: '#0f172a', marginBottom: '8px', fontSize: '15px' }}>{log.action}</div>
+                                                                                    <div style={{ fontSize: '14px', color: '#475569', lineHeight: '1.6', background: '#f8fafc', padding: '12px', borderRadius: '8px' }}>
+                                                                                        {/* Simple rendering of details, can be enhanced like in modal */}
+                                                                                        {log.details.split('Perubahan:').map((part, i) => (
+                                                                                            <div key={i} style={{ marginBottom: i === 0 ? '4px' : '0' }}>
+                                                                                                {i === 1 ? (
+                                                                                                    <div>
+                                                                                                        <span style={{ fontWeight: 600, color: '#334155' }}>Perubahan: </span>
+                                                                                                        {part}
+                                                                                                    </div>
+                                                                                                ) : part}
+                                                                                            </div>
+                                                                                        ))}
+                                                                                    </div>
+                                                                                </div>
+                                                                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', justifyContent: 'center', gap: '8px' }}>
+                                                                                    <span style={{ fontSize: '12px', padding: '6px 12px', background: '#eff6ff', color: '#2563eb', borderRadius: '20px', fontWeight: 600, border: '1px solid #dbeafe' }}>
+                                                                                        Dokumen Tersimpan
+                                                                                    </span>
+                                                                                    <button style={{ fontSize: '12px', color: '#64748b', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>
+                                                                                        Lihat Detail
+                                                                                    </button>
                                                                                 </div>
                                                                             </div>
-                                                                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', justifyContent: 'center', gap: '8px' }}>
-                                                                                <span style={{ fontSize: '12px', padding: '6px 12px', background: '#eff6ff', color: '#2563eb', borderRadius: '20px', fontWeight: 600, border: '1px solid #dbeafe' }}>
-                                                                                    Dokumen Tersimpan
-                                                                                </span>
-                                                                                <button style={{ fontSize: '12px', color: '#64748b', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>
-                                                                                    Lihat Detail
-                                                                                </button>
+                                                                        ));
+                                                                    } else {
+                                                                        return (
+                                                                            <div style={{ textAlign: 'center', padding: '40px 24px', color: '#94a3b8', background: '#f8fafc', borderRadius: '12px', border: '1px dashed #cbd5e1' }}>
+                                                                                <div style={{ display: 'inline-flex', padding: '16px', background: '#f1f5f9', borderRadius: '50%', marginBottom: '16px' }}>
+                                                                                    <History size={32} style={{ opacity: 0.5 }} />
+                                                                                </div>
+                                                                                <p style={{ margin: 0, fontWeight: 500 }}>
+                                                                                    {activeHistoryTab === 'amendments' ? 'Belum ada amandemen' : activeHistoryTab === 'progress' ? 'Belum ada progress tracker' : 'Belum ada riwayat'}
+                                                                                </p>
+                                                                                <p style={{ margin: '4px 0 0 0', fontSize: '13px', opacity: 0.8 }}>
+                                                                                    {activeHistoryTab === 'amendments' ? 'Klik tombol "Buat Amandemen" untuk memulai revisi kontrak.' : activeHistoryTab === 'progress' ? 'Klik tombol "Buat Progress Tracker" untuk menambahkan progress.' : 'Klik tombol di atas untuk menambahkan riwayat.'}
+                                                                                </p>
                                                                             </div>
-                                                                        </div>
-                                                                    ))
-                                                            ) : (
-                                                                <div style={{ textAlign: 'center', padding: '40px 24px', color: '#94a3b8', background: '#f8fafc', borderRadius: '12px', border: '1px dashed #cbd5e1' }}>
-                                                                    <div style={{ display: 'inline-flex', padding: '16px', background: '#f1f5f9', borderRadius: '50%', marginBottom: '16px' }}>
-                                                                        <History size={32} style={{ opacity: 0.5 }} />
-                                                                    </div>
-                                                                    <p style={{ margin: 0, fontWeight: 500 }}>Belum ada amandemen</p>
-                                                                    <p style={{ margin: '4px 0 0 0', fontSize: '13px', opacity: 0.8 }}>Klik tombol "Buat Amandemen" untuk memulai revisi kontrak.</p>
-                                                                </div>
-                                                            )}
+                                                                        );
+                                                                    }
+                                                                })()
+                                                            }
                                                         </div>
                                                     </div>
                                                 </td>
@@ -877,13 +1001,17 @@ function ManajemenAset() {
                                                 <div className="time-value">{selectedAsset.endDate}</div>
                                             </div>
                                         </div>
-                                        <div className="time-remaining-info" style={{ marginTop: 8, fontWeight: 500, color: timeRemaining.includes('melewati') ? 'red' : '#219150' }}>
-                                            Sisa waktu: {timeRemaining}
-                                        </div>
-                                        {timeRemaining.includes('melewati') && (
-                                            <div className="deadline-notif" style={{ color: 'red', fontWeight: 700, marginTop: 4 }}>
-                                                ⚠️ Kontrak ini sudah melewati tenggat waktu!
-                                            </div>
+                                        {selectedAsset.status?.toLowerCase() !== 'selesai' && selectedAsset.status?.toLowerCase() !== 'terbayar' && (
+                                            <>
+                                                <div className="time-remaining-info" style={{ marginTop: 8, fontWeight: 500, color: timeRemaining.includes('melewati') ? 'red' : '#219150' }}>
+                                                    Sisa waktu: {timeRemaining}
+                                                </div>
+                                                {timeRemaining.includes('melewati') && (
+                                                    <div className="deadline-notif" style={{ color: 'red', fontWeight: 700, marginTop: 4 }}>
+                                                        ⚠️ Kontrak ini sudah melewati tenggat waktu!
+                                                    </div>
+                                                )}
+                                            </>
                                         )}
 
                                         <div className="detail-table-wrapper">
@@ -1052,7 +1180,7 @@ function ManajemenAset() {
                                                 name="name"
                                                 value={formData.name}
                                                 onChange={handleInputChange}
-                                                placeholder="Contoh: Kontrak Pemeliharaan Transformer"
+                                                placeholder="Contoh: Pekerjaan Jasa Pembangunan Gardu Induk"
                                                 required
                                             />
                                         </div>
@@ -1137,7 +1265,7 @@ function ManajemenAset() {
                                                 <option value="">Pilih Tipe Kontrak</option>
                                                 <option value="PJ">PJ (Perjanjian)</option>
                                                 <option value="SPK">SPK (Surat Perintah Kerja)</option>
-                                                <option value="PO">PO (Purchase Order)</option>
+                                                <option value="NON-PO">NON-PO</option>
                                             </select>
                                         </div>
 
@@ -1356,6 +1484,69 @@ function ManajemenAset() {
                                     </button>
                                 </div>
                             </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Progress Tracker Modal */}
+                {showProgressModal && (
+                    <div className="modal-overlay" onClick={() => setShowProgressModal(false)}>
+                        <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '500px' }}>
+                            <div className="modal-header">
+                                <h2>Buat Progress Tracker</h2>
+                                <button className="modal-close" onClick={() => setShowProgressModal(false)}>✕</button>
+                            </div>
+                            <form onSubmit={handleProgressSubmit} className="modal-form">
+                                <div className="form-group">
+                                    <label htmlFor="progressTitle">Judul Progress <span className="required">*</span></label>
+                                    <input
+                                        type="text"
+                                        id="progressTitle"
+                                        name="title"
+                                        value={progressFormData.title}
+                                        onChange={(e) => setProgressFormData({ ...progressFormData, title: e.target.value })}
+                                        placeholder="Contoh: Pengerjaan Tahap 1 Selesai"
+                                        required
+                                    />
+                                </div>
+
+                                <div className="form-group">
+                                    <label htmlFor="progressStatus">Status <span className="required">*</span></label>
+                                    <select
+                                        id="progressStatus"
+                                        name="status"
+                                        value={progressFormData.status}
+                                        onChange={(e) => setProgressFormData({ ...progressFormData, status: e.target.value })}
+                                        required
+                                    >
+                                        <option value="In Progress">In Progress</option>
+                                        <option value="Completed">Completed</option>
+                                        <option value="On Hold">On Hold</option>
+                                        <option value="Delayed">Delayed</option>
+                                    </select>
+                                </div>
+
+                                <div className="form-group">
+                                    <label htmlFor="progressDescription">Keterangan (Opsional)</label>
+                                    <textarea
+                                        id="progressDescription"
+                                        name="description"
+                                        value={progressFormData.description}
+                                        onChange={(e) => setProgressFormData({ ...progressFormData, description: e.target.value })}
+                                        placeholder="Tambahkan keterangan lebih lanjut tentang progress ini..."
+                                        rows={4}
+                                    />
+                                </div>
+
+                                <div className="modal-footer">
+                                    <button type="button" className="btn-cancel" onClick={() => setShowProgressModal(false)}>
+                                        Batal
+                                    </button>
+                                    <button type="submit" className="btn-submit">
+                                        <Save size={18} /> Simpan Progress
+                                    </button>
+                                </div>
+                            </form>
                         </div>
                     </div>
                 )}
