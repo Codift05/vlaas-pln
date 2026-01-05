@@ -24,10 +24,10 @@ export default function DashboardPage() {
     const [recentActivities, setRecentActivities] = useState<any[]>([])
     const [recentVendors, setRecentVendors] = useState<any[]>([])
     const [contractStatusDist, setContractStatusDist] = useState({
-        active: 0,
-        completed: 0,
-        pending: 0,
-        problem: 0,
+        terkontrak: 0,
+        onprogress: 0,
+        selesai: 0,
+        terbayar: 0,
         total: 0
     })
 
@@ -85,20 +85,20 @@ export default function DashboardPage() {
         let pendingContracts = 0
 
         // Status breakdown for Pie Chart
-        let dist = { active: 0, completed: 0, pending: 0, problem: 0, total: totalContracts }
+        let dist = { terkontrak: 0, onprogress: 0, selesai: 0, terbayar: 0, total: totalContracts }
 
         contracts.forEach(c => {
             const status = (c.status || '').toLowerCase()
-            if (status === 'aktif' || status === 'terkontrak') {
+            if (status === 'terkontrak') {
                 activeContracts++
-                dist.active++
-            } else if (status.includes('selesai') || status.includes('terbayar') || status.includes('diperiksa')) {
-                dist.completed++
-            } else if (status.includes('proses') || status.includes('perbaikan') || status.includes('amandemen')) {
+                dist.terkontrak++
+            } else if (status.includes('proses') || status.includes('pekerjaan') || status.includes('pemeriksaan') || status.includes('diperiksa')) {
                 pendingContracts++
-                dist.pending++
-            } else {
-                dist.problem++
+                dist.onprogress++
+            } else if (status === 'selesai') {
+                dist.selesai++
+            } else if (status === 'terbayar') {
+                dist.terbayar++
             }
         })
 
@@ -162,10 +162,10 @@ export default function DashboardPage() {
     // Pie Slices (Simplified for visual distribution)
     // We will use CSS Conic Gradients for a cleaner multi-segment donut
     const pieGradient = `conic-gradient(
-        #2ecc71 0% ${getPieRotation((contractStatusDist.active / contractStatusDist.total) * 100 || 0)}deg, 
-        #3b82f6 ${getPieRotation((contractStatusDist.active / contractStatusDist.total) * 100 || 0)}deg ${getPieRotation(((contractStatusDist.active + contractStatusDist.completed) / contractStatusDist.total) * 100 || 0)}deg,
-        #f39c12 ${getPieRotation(((contractStatusDist.active + contractStatusDist.completed) / contractStatusDist.total) * 100 || 0)}deg ${getPieRotation(((contractStatusDist.active + contractStatusDist.completed + contractStatusDist.pending) / contractStatusDist.total) * 100 || 0)}deg,
-        #e74c3c ${getPieRotation(((contractStatusDist.active + contractStatusDist.completed + contractStatusDist.pending) / contractStatusDist.total) * 100 || 0)}deg 100%
+        #2ecc71 0% ${getPieRotation((contractStatusDist.terkontrak / contractStatusDist.total) * 100 || 0)}deg, 
+        #3b82f6 ${getPieRotation((contractStatusDist.terkontrak / contractStatusDist.total) * 100 || 0)}deg ${getPieRotation(((contractStatusDist.terkontrak + contractStatusDist.selesai) / contractStatusDist.total) * 100 || 0)}deg,
+        #f39c12 ${getPieRotation(((contractStatusDist.terkontrak + contractStatusDist.selesai) / contractStatusDist.total) * 100 || 0)}deg ${getPieRotation(((contractStatusDist.terkontrak + contractStatusDist.selesai + contractStatusDist.onprogress) / contractStatusDist.total) * 100 || 0)}deg,
+        #e74c3c ${getPieRotation(((contractStatusDist.terkontrak + contractStatusDist.selesai + contractStatusDist.onprogress) / contractStatusDist.total) * 100 || 0)}deg 100%
     )`
 
     return (
@@ -243,23 +243,23 @@ export default function DashboardPage() {
                     <div className="pie-legend">
                         <div className="legend-item">
                             <span className="legend-color" style={{ background: '#2ecc71' }}></span>
-                            <span className="legend-text">Aktif</span>
-                            <span className="legend-value">{contractStatusDist.active}</span>
+                            <span className="legend-text">Terkontrak</span>
+                            <span className="legend-value">{contractStatusDist.terkontrak}</span>
                         </div>
                         <div className="legend-item">
                             <span className="legend-color" style={{ background: '#3b82f6' }}></span>
                             <span className="legend-text">Selesai</span>
-                            <span className="legend-value">{contractStatusDist.completed}</span>
+                            <span className="legend-value">{contractStatusDist.selesai}</span>
                         </div>
                         <div className="legend-item">
                             <span className="legend-color" style={{ background: '#f39c12' }}></span>
-                            <span className="legend-text">Proses</span>
-                            <span className="legend-value">{contractStatusDist.pending}</span>
+                            <span className="legend-text">OnProgress</span>
+                            <span className="legend-value">{contractStatusDist.onprogress}</span>
                         </div>
                         <div className="legend-item">
                             <span className="legend-color" style={{ background: '#e74c3c' }}></span>
-                            <span className="legend-text">Masalah</span>
-                            <span className="legend-value">{contractStatusDist.problem}</span>
+                            <span className="legend-text">Terbayar</span>
+                            <span className="legend-value">{contractStatusDist.terbayar}</span>
                         </div>
                     </div>
                 </div>
