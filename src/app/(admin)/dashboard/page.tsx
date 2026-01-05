@@ -6,11 +6,11 @@ import * as vendorService from '../../../services/vendorService'
 import './Dashboard.css'
 
 export default function DashboardPage() {
+    const currentYear = new Date().getFullYear()
+    const [selectedYear, setSelectedYear] = useState(currentYear)
+    const [allVendors, setAllVendors] = useState<any[]>([])
     const [chartData, setChartData] = useState(Array(12).fill(null).map((_, i) => ({
         month: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'][i],
-        active: 0,
-        warning: 0,
-        danger: 0,
         total: 0
     })))
 
@@ -50,12 +50,15 @@ export default function DashboardPage() {
         const result = await vendorService.getAllVendors()
         if (result.success && 'data' in result) {
             const vendors = result.data as any[]
+            setAllVendors(vendors)
             setStats(prev => ({
                 ...prev,
                 totalVendors: vendors.length
             }))
             // Take top 5 vendors
             setRecentVendors(vendors.slice(0, 5))
+            // Process vendor chart data
+            processVendorChartData(vendors, selectedYear)
         }
     }
 
@@ -70,7 +73,6 @@ export default function DashboardPage() {
 
             if (data) {
                 console.log('Dashboard Data:', data) // Debug log
-                processChartData(data)
                 processStatsAndActivities(data)
             }
         } catch (error) {
@@ -122,31 +124,41 @@ export default function DashboardPage() {
         setRecentActivities(latest)
     }
 
-    const processChartData = (contracts: any[]) => {
+    const processVendorChartData = (vendors: any[], year: number) => {
         const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des']
-        const newChartData = months.map(m => ({ month: m, active: 0, warning: 0, danger: 0, total: 0 }))
+        const newChartData = months.map(m => ({ month: m, total: 0 }))
 
-        contracts.forEach(contract => {
-            if (!contract.start_date) return
+        vendors.forEach(vendor => {
+            if (!vendor.created_at) return
 
-            const date = new Date(contract.start_date)
+            const date = new Date(vendor.created_at)
+            const vendorYear = date.getFullYear()
             const monthIndex = date.getMonth() // 0-11
 
-            if (monthIndex >= 0 && monthIndex < 12) {
-                const status = (contract.status || '').toLowerCase()
-
-                if (['aktif', 'selesai', 'terbayar', 'telah diperiksa'].includes(status)) {
-                    newChartData[monthIndex].active += 1
-                } else if (status.includes('proses') || status.includes('perbaikan') || status.includes('amandemen') || status.includes('terkontrak')) {
-                    newChartData[monthIndex].warning += 1
-                } else {
-                    newChartData[monthIndex].danger += 1
-                }
+            if (vendorYear === year && monthIndex >= 0 && monthIndex < 12) {
                 newChartData[monthIndex].total += 1
             }
         })
 
         setChartData(newChartData)
+    }
+
+    const handleYearChange = (year: number) => {
+        setSelectedYear(year)
+        processVendorChartData(allVendors, year)
+    }
+
+    // Generate available years from vendor data
+    const getAvailableYears = () => {
+        const years = new Set<number>()
+        allVendors.forEach(vendor => {
+            if (vendor.created_at) {
+                years.add(new Date(vendor.created_at).getFullYear())
+            }
+        })
+        const yearArray = Array.from(years).sort((a, b) => b - a)
+        if (yearArray.length === 0) yearArray.push(currentYear)
+        return yearArray
     }
 
     const statCards = [
@@ -192,31 +204,49 @@ export default function DashboardPage() {
             <div className="charts-section">
                 <div className="chart-card">
                     <div className="card-header">
-                        <h3 className="card-title">Tren Kontrak Bulanan</h3>
-                        <TrendingUp size={20} className="card-icon" />
+                        <h3 className="card-title">Tren Vendor Baru Bulanan</h3>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                            <select 
+                                value={selectedYear} 
+                                onChange={(e) => handleYearChange(Number(e.target.value))}
+                                style={{
+                                    padding: '6px 12px',
+                                    borderRadius: '8px',
+                                    border: '1px solid #e2e8f0',
+                                    fontSize: '14px',
+                                    fontWeight: 600,
+                                    color: '#334155',
+                                    background: '#fff',
+                                    cursor: 'pointer',
+                                    outline: 'none'
+                                }}
+                            >
+                                {getAvailableYears().map(year => (
+                                    <option key={year} value={year}>{year}</option>
+                                ))}
+                            </select>
+                            <TrendingUp size={20} className="card-icon" />
+                        </div>
                     </div>
                     <div className="chart-placeholder">
                         <div className="bar-chart">
                             {chartData.map((data, index) => {
                                 const maxTotal = Math.max(...chartData.map(d => d.total), 1);
                                 const heightPercentage = maxTotal > 0 ? (data.total / maxTotal) * 100 : 0;
-                                const activeHeigth = data.total > 0 ? (data.active / data.total) * 100 : 0;
-                                const warningHeight = data.total > 0 ? (data.warning / data.total) * 100 : 0;
-                                const dangerHeight = data.total > 0 ? (data.danger / data.total) * 100 : 0;
+                                // Dynamic minHeight based on data value
+                                const dynamicMinHeight = data.total > 0 ? Math.max(data.total * 8, 12) : 0;
 
                                 return (
                                     <div key={index} className="bar-wrapper">
-                                        <div className="bar-stack-container" style={{ height: `${heightPercentage}%`, minHeight: data.total > 0 ? '4px' : '0' }}>
+                                        <div className="bar-stack-container" style={{ 
+                                            height: `${heightPercentage}%`, 
+                                            minHeight: data.total > 0 ? `${dynamicMinHeight}px` : '0' 
+                                        }}>
                                             <div className="bar-tooltip">
-                                                <div className="tooltip-header">{data.month}</div>
-                                                <div className="tooltip-row"><span className="dot active"></span> Selesai/Aktif: {data.active}</div>
-                                                <div className="tooltip-row"><span className="dot warning"></span> Proses/Rev: {data.warning}</div>
-                                                <div className="tooltip-row"><span className="dot danger"></span> Batal/Masalah: {data.danger}</div>
-                                                <div className="tooltip-total">Total: {data.total}</div>
+                                                <div className="tooltip-header">{data.month} {selectedYear}</div>
+                                                <div className="tooltip-total">Vendor Baru: {data.total}</div>
                                             </div>
-                                            {data.danger > 0 && <div className="bar-segment danger" style={{ height: `${dangerHeight}%` }}></div>}
-                                            {data.warning > 0 && <div className="bar-segment warning" style={{ height: `${warningHeight}%` }}></div>}
-                                            {data.active > 0 && <div className="bar-segment active" style={{ height: `${activeHeigth}%` }}></div>}
+                                            {data.total > 0 && <div className="bar-segment active" style={{ height: '100%' }}></div>}
                                         </div>
                                         <span className="bar-label">{data.month}</span>
                                     </div>
