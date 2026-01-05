@@ -7,18 +7,18 @@ import { supabase } from '../lib/supabaseClient'
 
 const HeaderContainer = styled.header`
   height: 80px;
-  background: var(--bg-header);
-  backdrop-filter: blur(10px);
+  background: #ffffff;
+  /* backdrop-filter: blur(10px); Removed to ensure pure white */
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 40px;
-  box-shadow: var(--shadow-sm);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 0 32px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05); /* Lebih subtle, match border */
+  border-bottom: 1px solid #e2e8f0; /* Match Sidebar border */
   position: sticky;
   top: 0;
   z-index: 100;
-  transition: background 0.3s, border-color 0.3s;
+  transition: all 0.3s ease;
 /* ... skipping unchanged styled components lines if possible or including them contextually ... */
 /* I will assume I need to replace the specific blocks */
 
@@ -68,7 +68,7 @@ const HeaderContainer = styled.header`
   .header-title {
     font-size: 26px;
     font-weight: 700;
-    color: var(--text-primary);
+    color: #1e293b;
     margin: 0;
     letter-spacing: -0.5px;
     font-family: var(--font-inter);
@@ -83,23 +83,23 @@ const HeaderContainer = styled.header`
   .search-box {
     display: flex;
     align-items: center;
-    background: var(--bg-hover);
+    background: #f8fafc;
     padding: 11px 22px;
     border-radius: 30px;
     gap: 10px;
     min-width: 320px;
-    border: 1px solid var(--border-color);
+    border: 1px solid #e2e8f0;
     transition: all 0.25s;
   }
 
   .search-box:focus-within {
-    background: var(--bg-card);
-    border-color: rgba(126, 185, 217, 0.3);
-    box-shadow: var(--shadow-md);
+    background: #ffffff;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
   }
 
   .search-icon-svg {
-    color: var(--text-muted);
+    color: #94a3b8;
     flex-shrink: 0;
   }
 
@@ -109,7 +109,7 @@ const HeaderContainer = styled.header`
     background: transparent;
     outline: none;
     font-size: 14px;
-    color: var(--text-primary);
+    color: #334155;
     font-family: var(--font-inter);
   }
 
@@ -122,7 +122,7 @@ const HeaderContainer = styled.header`
     position: relative;
     cursor: pointer;
     transition: transform 0.2s;
-    color: #5a9dc4;
+    color: #64748b;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -132,7 +132,8 @@ const HeaderContainer = styled.header`
 
   .notification-icon:hover {
     transform: scale(1.05);
-    background: var(--bg-hover);
+    background: #f1f5f9;
+    color: #3b82f6;
   }
 
   .notification-badge {
@@ -248,13 +249,13 @@ const HeaderContainer = styled.header`
   .notification-title {
     font-size: 14px;
     font-weight: 600;
-    color: var(--text-primary);
+    color: #1e293b;
     margin-bottom: 4px;
   }
 
   .notification-desc {
     font-size: 13px;
-    color: var(--text-muted);
+    color: #64748b;
     margin-bottom: 6px;
     line-height: 1.4;
   }
@@ -296,7 +297,7 @@ const HeaderContainer = styled.header`
   }
 
   .dropdown-arrow-svg {
-    color: var(--text-muted);
+    color: #94a3b8;
     margin-left: 4px;
     transition: transform 0.3s;
     flex-shrink: 0;

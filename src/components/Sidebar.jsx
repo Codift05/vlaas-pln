@@ -30,173 +30,143 @@ const Overlay = styled.div`
 `;
 
 const SidebarWrapper = styled.div`
-  width: 280px;
+  width: ${props => props.$isExpanded ? '280px' : '88px'};
   height: 100vh;
-  background: var(--sidebar-gradient);
+  background: #ffffff;
   display: flex;
   flex-direction: column;
   position: fixed;
   left: 0;
   top: 0;
-  box-shadow: 4px 0 16px var(--shadow-color);
+  box-shadow: none; /* Removed to prevent shadow on Header */
   z-index: 1000;
-  transition: transform 0.3s ease, background 0.3s;
-  border-right: 1px solid rgba(255, 255, 255, 0.1);
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-right: 1px solid #e2e8f0;
+  overflow: hidden;
 
   .sidebar-header {
     height: 80px;
-    padding: 0 24px;
+    padding: 0 20px;
     display: flex;
     align-items: center;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    background: rgba(255, 255, 255, 0.05);
+    justify-content: ${props => props.$isExpanded ? 'flex-start' : 'center'};
+    border-bottom: 1px solid #f1f5f9;
+    cursor: pointer;
   }
 
   .sidebar-logo {
     display: flex;
     align-items: center;
-    gap: 14px;
+    gap: 12px;
+    width: 100%;
+    justify-content: ${props => props.$isExpanded ? 'flex-start' : 'center'};
   }
 
   .sidebar-logo-img {
-    width: 48px;
-    height: 48px;
+    width: 40px;
+    height: 40px;
     object-fit: contain;
-    background: white;
-    border-radius: 12px;
-    padding: 6px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    background: transparent;
+    flex-shrink: 0;
   }
 
   .sidebar-logo-info {
     display: flex;
     flex-direction: column;
     gap: 2px;
+    opacity: ${props => props.$isExpanded ? 1 : 0};
+    visibility: ${props => props.$isExpanded ? 'visible' : 'hidden'};
+    transition: opacity 0.2s, visibility 0.2s;
+    white-space: nowrap;
+    overflow: hidden;
   }
 
   .sidebar-logo-text {
-    font-size: 20px;
-    font-weight: 800;
-    color: white;
-    letter-spacing: 0.5px;
+    font-size: 18px;
+    font-weight: 700;
+    color: #1e293b;
     font-family: var(--font-inter);
-    line-height: 1;
+    line-height: 1.2;
   }
 
   .sidebar-logo-desc {
     font-size: 11px;
     font-weight: 500;
-    color: rgba(255, 255, 255, 0.75);
+    color: #64748b;
     font-family: var(--font-inter);
-    letter-spacing: 0.3px;
   }
 
   .sidebar-nav {
     flex: 1;
-    padding: 20px 0;
+    padding: 24px 12px;
     overflow-y: auto;
+    overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
   }
 
   .nav-item {
     display: flex;
     align-items: center;
     gap: 14px;
-    padding: 14px 24px;
-    margin: 4px 12px;
-    color: rgba(255, 255, 255, 0.75);
+    padding: 12px 16px;
+    color: #64748b;
     text-decoration: none;
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.2s;
     cursor: pointer;
     border-radius: 12px;
-    border-left: 3px solid transparent;
     font-family: var(--font-inter);
+    justify-content: ${props => props.$isExpanded ? 'flex-start' : 'center'};
+    height: 48px;
   }
 
   .nav-item:hover {
-    background: rgba(255, 255, 255, 0.1);
-    color: white;
-    transform: translateX(4px);
-    border-left-color: rgba(255, 255, 255, 0.3);
+    background: #f8fafc;
+    color: #3b82f6;
   }
 
   .nav-item.active {
-    background: rgba(255, 255, 255, 0.15);
-    color: white;
-    border-left-color: white;
+    background: #eff6ff;
+    color: #3b82f6;
     font-weight: 600;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   }
 
   .nav-icon-svg {
-    color: currentColor;
     flex-shrink: 0;
+    transition: color 0.2s;
   }
 
   .nav-text {
     font-size: 15px;
     font-weight: 500;
-    letter-spacing: 0.2px;
-  }
-
-  .sidebar-footer {
-    padding: 20px;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-  }
-
-  .logout-btn {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    width: 100%;
-    padding: 15px 25px;
-    background: rgba(255, 255, 255, 0.1);
-    color: white;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.3s;
-    font-size: 16px;
-  }
-
-  .logout-btn:hover {
-    background: rgba(255, 255, 255, 0.2);
-    transform: translateY(-2px);
-  }
-
-  /* Scrollbar Styling */
-  .sidebar-nav::-webkit-scrollbar {
-    width: 5px;
-  }
-
-  .sidebar-nav::-webkit-scrollbar-track {
-    background: rgba(255, 255, 255, 0.05);
-  }
-
-  .sidebar-nav::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.25);
-    border-radius: 10px;
-  }
-
-  .sidebar-nav::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.4);
+    white-space: nowrap;
+    opacity: ${props => props.$isExpanded ? 1 : 0};
+    visibility: ${props => props.$isExpanded ? 'visible' : 'hidden'};
+    transition: opacity 0.2s;
+    width: ${props => props.$isExpanded ? 'auto' : 0};
   }
 
   @media (max-width: 968px) {
-    width: 80vw;
-    min-width: 220px;
-    max-width: 320px;
+    width: 280px;
     transform: translateX(-100%);
     &.open {
       transform: translateX(0);
     }
+    
+    .sidebar-header { justify-content: flex-start; }
+    .sidebar-logo { justify-content: flex-start; }
+    .sidebar-logo-info { opacity: 1; visibility: visible; }
+    .nav-item { justify-content: flex-start; }
+    .nav-text { opacity: 1; visibility: visible; width: auto; }
   }
 `;
 
 
-function Sidebar({ isOpen, onClose }) {
+function Sidebar({ isOpen, onClose, isExpanded, toggleSidebar }) {
   const pathname = usePathname();
   const isActive = (path) => pathname === path ? 'active' : '';
-  // Tutup sidebar otomatis saat link diklik di mobile
+
   const handleNavClick = () => {
     if (window.innerWidth <= 968 && onClose) onClose();
   };
@@ -204,8 +174,8 @@ function Sidebar({ isOpen, onClose }) {
   return (
     <>
       <Overlay className={isOpen ? 'active' : ''} onClick={onClose} />
-      <SidebarWrapper className={isOpen ? 'open' : ''}>
-        <div className="sidebar-header">
+      <SidebarWrapper className={isOpen ? 'open' : ''} $isExpanded={isExpanded}>
+        <div className="sidebar-header" onClick={toggleSidebar} title={isExpanded ? "Collapse Sidebar" : "Expand Sidebar"}>
           <div className="sidebar-logo">
             <img src="/images/Logo_vlaas.png" alt="VLAAS Logo" className="sidebar-logo-img" />
             <div className="sidebar-logo-info">
@@ -217,22 +187,22 @@ function Sidebar({ isOpen, onClose }) {
 
         <nav className="sidebar-nav">
           <Link href="/dashboard" className={`nav-item ${isActive('/dashboard')}`} onClick={handleNavClick}>
-            <LayoutDashboard className="nav-icon-svg" size={20} strokeWidth={2} />
+            <LayoutDashboard className="nav-icon-svg" size={22} strokeWidth={2} />
             <span className="nav-text">Dashboard</span>
           </Link>
 
           <Link href="/aset" className={`nav-item ${isActive('/aset')}`} onClick={handleNavClick}>
-            <Package className="nav-icon-svg" size={20} strokeWidth={2} />
+            <Package className="nav-icon-svg" size={22} strokeWidth={2} />
             <span className="nav-text">Manajemen Kontrak</span>
           </Link>
 
           <Link href="/vendor" className={`nav-item ${isActive('/vendor')}`} onClick={handleNavClick}>
-            <Users className="nav-icon-svg" size={20} strokeWidth={2} />
+            <Users className="nav-icon-svg" size={22} strokeWidth={2} />
             <span className="nav-text">Data Vendor</span>
           </Link>
 
           <Link href="/laporan" className={`nav-item ${isActive('/laporan')}`} onClick={handleNavClick}>
-            <FileBarChart className="nav-icon-svg" size={20} strokeWidth={2} />
+            <FileBarChart className="nav-icon-svg" size={22} strokeWidth={2} />
             <span className="nav-text">Laporan</span>
           </Link>
         </nav>

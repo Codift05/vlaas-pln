@@ -29,7 +29,8 @@ const LayoutContainer = styled.div`
 
 const MainContent = styled.div`
   flex: 1;
-  margin-left: 280px;
+  /* margin-left handled by inline style for dynamic width */
+  transition: margin-left 0.3s ease;
   display: flex;
   flex-direction: column;
   position: relative;
@@ -55,19 +56,25 @@ const ContentArea = styled.div`
 `;
 
 export default function AdminLayout({ children }) {
-    const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [sidebarOpen, setSidebarOpen] = useState(false) // Mobile drawer
+  const [isExpanded, setIsExpanded] = useState(false) // Desktop mini/full
 
-    return (
-        <ProtectedRoute>
-            <LayoutContainer>
-                <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-                <MainContent>
-                    <Header onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
-                    <ContentArea>
-                        {children}
-                    </ContentArea>
-                </MainContent>
-            </LayoutContainer>
-        </ProtectedRoute>
-    )
+  return (
+    <ProtectedRoute>
+      <LayoutContainer>
+        <Sidebar
+          isOpen={sidebarOpen}
+          onClose={() => setSidebarOpen(false)}
+          isExpanded={isExpanded}
+          toggleSidebar={() => setIsExpanded(!isExpanded)}
+        />
+        <MainContent style={{ marginLeft: isExpanded ? '280px' : '88px' }}>
+          <Header onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
+          <ContentArea>
+            {children}
+          </ContentArea>
+        </MainContent>
+      </LayoutContainer>
+    </ProtectedRoute>
+  )
 }
