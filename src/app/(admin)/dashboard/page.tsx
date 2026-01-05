@@ -31,6 +31,8 @@ export default function DashboardPage() {
         total: 0
     })
 
+    const [isLoading, setIsLoading] = useState(true)
+
     useEffect(() => {
         fetchDashboardData()
     }, [])
@@ -43,19 +45,20 @@ export default function DashboardPage() {
             ])
         } catch (error) {
             console.error('Error fetching dashboard data:', error)
+        } finally {
+            setIsLoading(false)
         }
     }
 
     const fetchVendorData = async () => {
-        const result = await vendorService.getAllVendors()
+        const result = await vendorService.getDashboardVendorData()
         if (result.success && 'data' in result) {
-            const vendors = result.data as any[]
+            const { total, recent } = result.data
             setStats(prev => ({
                 ...prev,
-                totalVendors: vendors.length
+                totalVendors: total || 0
             }))
-            // Take top 5 vendors
-            setRecentVendors(vendors.slice(0, 5))
+            setRecentVendors(recent || [])
         }
     }
 
@@ -63,7 +66,8 @@ export default function DashboardPage() {
         try {
             const { data, error } = await supabase
                 .from('contracts')
-                .select('*')
+                // Optimized query: Only fetch columns needed for stats & charts
+                .select('id, name, status, start_date, created_at, vendor_name')
                 .order('created_at', { ascending: false })
 
             if (error) throw error
@@ -170,6 +174,24 @@ export default function DashboardPage() {
 
     return (
         <div>
+            {/* Loading Overlay */}
+            {isLoading && (
+                <div style={{
+                    position: 'absolute', inset: 0, background: 'rgba(255,255,255,0.7)',
+                    backdropFilter: 'blur(2px)', zIndex: 10, display: 'flex',
+                    alignItems: 'center', justifyContent: 'center'
+                }}>
+                    <div className="spinner" style={{
+                        width: '40px', height: '40px', border: '3px solid #f3f3f3',
+                        borderTop: '3px solid #3b82f6', borderRadius: '50%',
+                        animation: 'spin 1s linear infinite'
+                    }}></div>
+                    <style jsx>{`
+                        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+                    `}</style>
+                </div>
+            )}
+
             {/* Stats Cards */}
             <div className="stats-grid">
                 {statCards.map((stat, index) => {

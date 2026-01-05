@@ -1,7 +1,7 @@
 'use client'
 import { useState, useRef, useEffect, Fragment } from 'react'
 
-import { Eye, Edit, Trash2, Search, ChevronDown, ChevronUp, Plus, Save, Upload, Calendar, Clock, ArrowRight, FileText, AlertCircle, AlertTriangle, FileCheck, History } from 'lucide-react'
+import { Eye, Edit, Trash2, Search, ChevronDown, ChevronUp, Plus, Save, Upload, Calendar, Clock, ArrowRight, FileText, AlertCircle, AlertTriangle, FileCheck, History, Activity, X } from 'lucide-react'
 import { supabase } from '../../../lib/supabaseClient'
 import './ManajemenAset.css'
 
@@ -1488,61 +1488,73 @@ function ManajemenAset() {
                     </div>
                 )}
 
-                {/* Progress Tracker Modal */}
+                {/* Progress Tracker Modal Modern Redesign */}
                 {showProgressModal && (
                     <div className="modal-overlay" onClick={() => setShowProgressModal(false)}>
-                        <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '500px' }}>
-                            <div className="modal-header">
-                                <h2>Buat Progress Tracker</h2>
-                                <button className="modal-close" onClick={() => setShowProgressModal(false)}>✕</button>
+                        <div className="modal-modern" onClick={(e) => e.stopPropagation()}>
+                            <div className="modal-modern-header">
+                                <div className="modal-modern-title">
+                                    <div className="modal-modern-icon">
+                                        <Activity size={24} />
+                                    </div>
+                                    <h2>Buat Progress Tracker</h2>
+                                </div>
+                                <button className="modal-modern-close" onClick={() => setShowProgressModal(false)}>
+                                    <X size={24} />
+                                </button>
                             </div>
-                            <form onSubmit={handleProgressSubmit} className="modal-form">
-                                <div className="form-group">
-                                    <label htmlFor="progressTitle">Judul Progress <span className="required">*</span></label>
-                                    <input
-                                        type="text"
-                                        id="progressTitle"
-                                        name="title"
-                                        value={progressFormData.title}
-                                        onChange={(e) => setProgressFormData({ ...progressFormData, title: e.target.value })}
-                                        placeholder="Contoh: Pengerjaan Tahap 1 Selesai"
-                                        required
-                                    />
+                            <form onSubmit={handleProgressSubmit}>
+                                <div className="modal-modern-body">
+                                    <div className="form-modern-group">
+                                        <label htmlFor="progressTitle" className="form-modern-label">Judul Progress <span className="required">*</span></label>
+                                        <input
+                                            type="text"
+                                            id="progressTitle"
+                                            name="title"
+                                            className="input-modern"
+                                            value={progressFormData.title}
+                                            onChange={(e) => setProgressFormData({ ...progressFormData, title: e.target.value })}
+                                            placeholder="Contoh: Pengerjaan Tahap 1 Selesai"
+                                            required
+                                        />
+                                    </div>
+
+                                    <div className="form-modern-group">
+                                        <label htmlFor="progressStatus" className="form-modern-label">Status <span className="required">*</span></label>
+                                        <select
+                                            id="progressStatus"
+                                            name="status"
+                                            className="select-modern"
+                                            value={progressFormData.status}
+                                            onChange={(e) => setProgressFormData({ ...progressFormData, status: e.target.value })}
+                                            required
+                                        >
+                                            <option value="In Progress">In Progress</option>
+                                            <option value="Completed">Completed</option>
+                                            <option value="On Hold">On Hold</option>
+                                            <option value="Delayed">Delayed</option>
+                                        </select>
+                                    </div>
+
+                                    <div className="form-modern-group">
+                                        <label htmlFor="progressDescription" className="form-modern-label">Keterangan (Opsional)</label>
+                                        <textarea
+                                            id="progressDescription"
+                                            name="description"
+                                            className="textarea-modern"
+                                            value={progressFormData.description}
+                                            onChange={(e) => setProgressFormData({ ...progressFormData, description: e.target.value })}
+                                            placeholder="Tambahkan keterangan lebih lanjut tentang progress ini..."
+                                            rows={4}
+                                        />
+                                    </div>
                                 </div>
 
-                                <div className="form-group">
-                                    <label htmlFor="progressStatus">Status <span className="required">*</span></label>
-                                    <select
-                                        id="progressStatus"
-                                        name="status"
-                                        value={progressFormData.status}
-                                        onChange={(e) => setProgressFormData({ ...progressFormData, status: e.target.value })}
-                                        required
-                                    >
-                                        <option value="In Progress">In Progress</option>
-                                        <option value="Completed">Completed</option>
-                                        <option value="On Hold">On Hold</option>
-                                        <option value="Delayed">Delayed</option>
-                                    </select>
-                                </div>
-
-                                <div className="form-group">
-                                    <label htmlFor="progressDescription">Keterangan (Opsional)</label>
-                                    <textarea
-                                        id="progressDescription"
-                                        name="description"
-                                        value={progressFormData.description}
-                                        onChange={(e) => setProgressFormData({ ...progressFormData, description: e.target.value })}
-                                        placeholder="Tambahkan keterangan lebih lanjut tentang progress ini..."
-                                        rows={4}
-                                    />
-                                </div>
-
-                                <div className="modal-footer">
-                                    <button type="button" className="btn-cancel" onClick={() => setShowProgressModal(false)}>
+                                <div className="modal-modern-footer">
+                                    <button type="button" className="btn-modern-cancel" onClick={() => setShowProgressModal(false)}>
                                         Batal
                                     </button>
-                                    <button type="submit" className="btn-submit">
+                                    <button type="submit" className="btn-modern-submit">
                                         <Save size={18} /> Simpan Progress
                                     </button>
                                 </div>

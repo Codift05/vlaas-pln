@@ -14,8 +14,33 @@ export const getAllVendors = async () => {
       .order('created_at', { ascending: false });
 
     if (error) return handleSupabaseError(error);
-    
+
     return handleSupabaseSuccess(data);
+  } catch (error) {
+    return handleSupabaseError(error);
+  }
+};
+
+// Optimized for Dashboard: Get count and recent vendors
+export const getDashboardVendorData = async () => {
+  try {
+    // 1. Get Total Count
+    const { count, error: countError } = await supabase
+      .from('vendors')
+      .select('*', { count: 'exact', head: true });
+
+    if (countError) throw countError;
+
+    // 2. Get Recent 5 Vendors (Reduced columns)
+    const { data: recent, error: listError } = await supabase
+      .from('vendors')
+      .select('id, nama, email, kategori, status, created_at')
+      .order('created_at', { ascending: false })
+      .limit(5);
+
+    if (listError) throw listError;
+
+    return handleSupabaseSuccess({ total: count, recent });
   } catch (error) {
     return handleSupabaseError(error);
   }
@@ -31,7 +56,7 @@ export const getVendorById = async (id) => {
       .single();
 
     if (error) return handleSupabaseError(error);
-    
+
     return handleSupabaseSuccess(data);
   } catch (error) {
     return handleSupabaseError(error);
@@ -48,7 +73,7 @@ export const createVendor = async (vendorData) => {
       .single();
 
     if (error) return handleSupabaseError(error);
-    
+
     return handleSupabaseSuccess(data);
   } catch (error) {
     return handleSupabaseError(error);
@@ -66,7 +91,7 @@ export const updateVendor = async (id, vendorData) => {
       .single();
 
     if (error) return handleSupabaseError(error);
-    
+
     return handleSupabaseSuccess(data);
   } catch (error) {
     return handleSupabaseError(error);
@@ -82,7 +107,7 @@ export const deleteVendor = async (id) => {
       .eq('id', id);
 
     if (error) return handleSupabaseError(error);
-    
+
     return handleSupabaseSuccess({ message: 'Vendor berhasil dihapus' });
   } catch (error) {
     return handleSupabaseError(error);
@@ -99,7 +124,7 @@ export const searchVendors = async (searchTerm) => {
       .order('created_at', { ascending: false });
 
     if (error) return handleSupabaseError(error);
-    
+
     return handleSupabaseSuccess(data);
   } catch (error) {
     return handleSupabaseError(error);
@@ -116,7 +141,7 @@ export const filterVendorsByStatus = async (status) => {
       .order('created_at', { ascending: false });
 
     if (error) return handleSupabaseError(error);
-    
+
     return handleSupabaseSuccess(data);
   } catch (error) {
     return handleSupabaseError(error);
