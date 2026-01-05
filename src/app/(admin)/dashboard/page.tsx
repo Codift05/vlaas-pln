@@ -63,17 +63,18 @@ export default function DashboardPage() {
         try {
             const { data, error } = await supabase
                 .from('contracts')
-                .select('id, name, start_date, status, created_at, vendor_name')
+                .select('*')
                 .order('created_at', { ascending: false })
 
             if (error) throw error
 
             if (data) {
+                console.log('Dashboard Data:', data) // Debug log
                 processChartData(data)
                 processStatsAndActivities(data)
             }
         } catch (error) {
-            console.error('Error fetching contract data:', error)
+            console.error('Error fetching contract data:', JSON.stringify(error, null, 2))
         }
     }
 
