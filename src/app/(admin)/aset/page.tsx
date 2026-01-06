@@ -227,7 +227,9 @@ function ManajemenAset() {
         title: '',
         description: '',
         status: 'In Progress',
-        percentage: 0
+        percentage: 0,
+        date: '',
+        time: ''
     })
     const [activeHistoryTab, setActiveHistoryTab] = useState('all') // 'all', 'amendments', 'progress'
 
@@ -373,7 +375,9 @@ function ManajemenAset() {
             title: '',
             description: '',
             status: 'In Progress',
-            percentage: asset.progress || 0
+            percentage: asset.progress || 0,
+            date: '',
+            time: ''
         })
         setShowProgressModal(true)
     }
@@ -382,7 +386,7 @@ function ManajemenAset() {
         e.preventDefault()
 
         try {
-            const percentage = parseFloat(progressFormData.percentage) || 0;
+            const percentage = progressFormData.percentage || 0;
             console.log('Submitting Progress:', { contractId: progressFormData.contractId, percentage });
 
             // 1. Update Contract Progress
@@ -397,13 +401,16 @@ function ManajemenAset() {
             }
 
             // 2. Add History Entry
+            const progressDateTime = progressFormData.date && progressFormData.time
+                ? `${progressFormData.date} ${progressFormData.time}`
+                : '';
             const { error: historyError } = await supabase
                 .from('contract_history')
                 .insert([{
                     contract_id: progressFormData.contractId,
                     action: `Progress Tracker: ${progressFormData.title} (${percentage}%)`,
                     user_name: 'Admin',
-                    details: `Progress: ${percentage}%. Status: ${progressFormData.status}. ${progressFormData.description || 'Tidak ada keterangan tambahan.'}`
+                    details: `Progress: ${percentage}%. Status: ${progressFormData.status}. ${progressFormData.description || 'Tidak ada keterangan tambahan.'} ${progressDateTime ? `Tanggal: ${progressDateTime}` : ''}`
                 }])
 
             if (historyError) {
@@ -419,7 +426,9 @@ function ManajemenAset() {
                 title: '',
                 description: '',
                 status: 'In Progress',
-                percentage: 0
+                percentage: 0,
+                date: '',
+                time: ''
             })
         } catch (err) {
             console.error('Error adding progress tracker FULL:', err);
@@ -749,9 +758,10 @@ function ManajemenAset() {
                                 Ditemukan {filteredAssets.length} kontrak
                             </span>
                         )}
-                    </div>
-
-                    <div className="action-buttons-group">
+                                    <div>
+                                        <label style={{ display: 'block', fontSize: '12px', color: '#64748b', marginBottom: '4px' }}>Tanggal & Waktu</label>
+                                        {/* progressDateTime is not defined, so this block is removed to prevent error */}
+                                    </div>
                         <div className="column-selector" ref={columnSelectorRef}>
                             <button
                                 className="column-selector-btn"
@@ -761,86 +771,100 @@ function ManajemenAset() {
                             </button>
                             {showColumnSelector && (
                                 <div className="column-dropdown">
-                                    <div className="column-dropdown-header">
-                                        <span>Tampilkan Kolom</span>
-                                    </div>
-                                    <div className="column-options">
-                                        <label className="column-option">
-                                            <input
-                                                type="checkbox"
-                                                checked={columnVisibility.id}
-                                                onChange={() => toggleColumnVisibility('id')}
-                                            />
-                                            <span>Nomor Kontrak</span>
-                                        </label>
-                                        <label className="column-option">
-                                            <input
-                                                type="checkbox"
-                                                checked={columnVisibility.name}
-                                                onChange={() => toggleColumnVisibility('name')}
-                                            />
-                                            <span>Nama Kontrak</span>
-                                        </label>
-                                        <label className="column-option">
-                                            <input
-                                                type="checkbox"
-                                                checked={columnVisibility.vendorName}
-                                                onChange={() => toggleColumnVisibility('vendorName')}
-                                            />
-                                            <span>Nama Vendor</span>
-                                        </label>
-                                        <label className="column-option">
-                                            <input
-                                                type="checkbox"
-                                                checked={columnVisibility.amount}
-                                                onChange={() => toggleColumnVisibility('amount')}
-                                            />
-                                            <span>Nilai Kontrak</span>
-                                        </label>
-                                        <label className="column-option">
-                                            <input
-                                                type="checkbox"
-                                                checked={columnVisibility.budgetType}
-                                                onChange={() => toggleColumnVisibility('budgetType')}
-                                            />
-                                            <span>Tipe Anggaran</span>
-                                        </label>
-                                        <label className="column-option">
-                                            <input
-                                                type="checkbox"
-                                                checked={columnVisibility.contractType}
-                                                onChange={() => toggleColumnVisibility('contractType')}
-                                            />
-                                            <span>Tipe Kontrak</span>
-                                        </label>
+                                    <div>
+                                        <div className="column-dropdown-header">
+                                            <span>Tampilkan Kolom</span>
+                                        </div>
+                                        <div className="column-options">
+                                            <label className="column-option">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={columnVisibility.id}
+                                                    onChange={() => toggleColumnVisibility('id')}
+                                                />
+                                                <span>Nomor Kontrak</span>
+                                            </label>
+                                            <label className="column-option">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={columnVisibility.name}
+                                                    onChange={() => toggleColumnVisibility('name')}
+                                                />
+                                                <span>Nama Kontrak</span>
+                                            </label>
+                                            <label className="column-option">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={columnVisibility.vendorName}
+                                                    onChange={() => toggleColumnVisibility('vendorName')}
+                                                />
+                                                <span>Nama Vendor</span>
+                                            </label>
+                                            <label className="column-option">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={columnVisibility.amount}
+                                                    onChange={() => toggleColumnVisibility('amount')}
+                                                />
+                                                <span>Nilai Kontrak</span>
+                                            </label>
+                                            <label className="column-option">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={columnVisibility.budgetType}
+                                                    onChange={() => toggleColumnVisibility('budgetType')}
+                                                />
+                                                <span>Tipe Anggaran</span>
+                                            </label>
+                                            <label className="column-option">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={columnVisibility.contractType}
+                                                    onChange={() => toggleColumnVisibility('contractType')}
+                                                />
+                                                <span>Tipe Kontrak</span>
+                                            </label>
 
-                                        <label className="column-option">
-                                            <input
-                                                type="checkbox"
-                                                checked={columnVisibility.location}
-                                                onChange={() => toggleColumnVisibility('location')}
-                                            />
-                                            <span>Lokasi</span>
-                                        </label>
-                                        <label className="column-option">
-                                            <input
-                                                type="checkbox"
-                                                checked={columnVisibility.status}
-                                                onChange={() => toggleColumnVisibility('status')}
-                                            />
-                                            <span>Status</span>
-                                        </label>
-                                        <label className="column-option">
-                                            <input
-                                                type="checkbox"
-                                                checked={columnVisibility.startDate}
-                                                onChange={() => toggleColumnVisibility('startDate')}
-                                            />
-                                            <span>Tanggal Mulai</span>
-                                        </label>
-                                        <label className="column-option">
-                                            <span>Tanggal Selesai</span>
-                                        </label>
+                                            <label className="column-option">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={columnVisibility.location}
+                                                    onChange={() => toggleColumnVisibility('location')}
+                                                />
+                                                <span>Lokasi</span>
+                                            </label>
+                                            <label className="column-option">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={columnVisibility.status}
+                                                    onChange={() => toggleColumnVisibility('status')}
+                                                />
+                                                <span>Status</span>
+                                            </label>
+                                            <label className="column-option">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={columnVisibility.startDate}
+                                                    onChange={() => toggleColumnVisibility('startDate')}
+                                                />
+                                                <span>Tanggal Mulai</span>
+                                            </label>
+                                            <label className="column-option">
+                                                <span>Tanggal Selesai</span>
+                                            </label>
+                                        </div>
+                                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'center', gap: '2px' }}>
+                                            <label style={{ display: 'block', fontSize: '12px', color: '#64748b', marginBottom: '4px' }}>Dibuat Oleh</label>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                                                <span style={{ background: '#e0e7ff', color: '#3730a3', borderRadius: '50%', width: 24, height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 14 }}>A</span>
+                                                <span style={{ fontWeight: 600, color: '#0f172a', fontSize: 15 }}>Admin</span>
+                                                {/* Removed progressDateTime usage to fix error */}
+                                            </div>
+                                        </div>
+                                        <div style={{ gridColumn: '1 / -1' }}>
+                                            <label style={{ display: 'block', fontSize: '12px', color: '#64748b', marginBottom: '4px' }}>Aksi</label>
+                                            <div style={{ fontWeight: 600, color: '#0f172a' }}>{selectedHistoryLog.action}</div>
+                                        </div>
                                     </div>
                                 </div>
                             )}
@@ -1920,6 +1944,24 @@ function ManajemenAset() {
                                         </div>
 
                                         <div className="form-modern-group">
+                                            <label className="form-modern-label">Tanggal Progress</label>
+                                            <input
+                                                type="date"
+                                                className="input-modern"
+                                                value={progressFormData.date}
+                                                onChange={e => setProgressFormData({ ...progressFormData, date: e.target.value })}
+                                            />
+                                        </div>
+                                        <div className="form-modern-group">
+                                            <label className="form-modern-label">Waktu Progress</label>
+                                            <input
+                                                type="time"
+                                                className="input-modern"
+                                                value={progressFormData.time}
+                                                onChange={e => setProgressFormData({ ...progressFormData, time: e.target.value })}
+                                            />
+                                        </div>
+                                        <div className="form-modern-group">
                                             <label htmlFor="progressDescription" className="form-modern-label">Keterangan (Opsional)</label>
                                             <textarea
                                                 id="progressDescription"
@@ -2040,8 +2082,18 @@ function ManajemenAset() {
                                                 <input
                                                     type="number"
                                                     className="input-modern"
-                                                    value={paymentFormData.amount}
-                                                    onChange={(e) => setPaymentFormData({ ...paymentFormData, amount: parseFloat(e.target.value) })}
+                                                    value={
+                                                        paymentFormData.amount === undefined || paymentFormData.amount === null || isNaN(paymentFormData.amount)
+                                                            ? ''
+                                                            : paymentFormData.amount
+                                                    }
+                                                    onChange={(e) => {
+                                                        const val = e.target.value;
+                                                        setPaymentFormData({
+                                                            ...paymentFormData,
+                                                            amount: val === '' ? 0 : parseFloat(val)
+                                                        });
+                                                    }}
                                                     readOnly={paymentMode === 'single'}
                                                 />
                                             </div>
@@ -2106,11 +2158,22 @@ function ManajemenAset() {
                             </div>
 
                             <div style={{ padding: '24px', overflowY: 'auto' }}>
-                                {/* Meta Info */}
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '24px', background: '#f8fafc', padding: '16px', borderRadius: '8px' }}>
-                                    <div>
-                                        <label style={{ display: 'block', fontSize: '12px', color: '#64748b', marginBottom: '4px' }}>Tanggal & Waktu</label>
-                                        <div style={{ fontWeight: 600, color: '#334155' }}>{selectedHistoryLog.date}</div>
+                                {(() => {
+                                    // Extract progress date & time from details
+                                    const details = selectedHistoryLog.details || '';
+                                    let progressDateTime = '';
+                                    const dateMatch = details.match(/Tanggal: ([0-9\-]+ [0-9:]+)/);
+                                    if (dateMatch) progressDateTime = dateMatch[1];
+                                    
+                                    return (
+                                        <>
+                                            {/* Meta Info */}
+                                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '24px', background: '#f8fafc', padding: '16px', borderRadius: '8px' }}>
+                                                <div>
+                                                    <label style={{ display: 'block', fontSize: '12px', color: '#64748b', marginBottom: '4px' }}>Tanggal & Waktu</label>
+                                                    <div style={{ fontWeight: 600, color: '#334155' }}>
+                                                        {progressDateTime || selectedHistoryLog.date}
+                                                    </div>
                                     </div>
                                     <div>
                                         <label style={{ display: 'block', fontSize: '12px', color: '#64748b', marginBottom: '4px' }}>Dibuat Oleh</label>
@@ -2138,13 +2201,18 @@ function ManajemenAset() {
                                     if (ketMatch) note = ketMatch[1];
                                     else note = details.split('Perubahan:')[0]; // Fallback
 
+                                    // Extract progress date & time if present
+                                    let progressDateTime = '';
+                                    const dateMatch = details.match(/Tanggal: ([0-9\-]+ [0-9:]+)/);
+                                    if (dateMatch) progressDateTime = dateMatch[1];
+                                    
+                                    // Remove "Tanggal: ..." from note to avoid duplication
+                                    note = note.replace(/\s*Tanggal:\s*[0-9\-]+\s*[0-9:]+/g, '').trim();
+
                                     const changesMatch = details.match(/Perubahan:\s*(.*)/);
                                     if (changesMatch) {
                                         changes = changesMatch[1].split('; ').map(c => c.trim()); // Use semicolon or handle comma better
-                                        // If split by comma failed to separate fields correctly in previous steps, we might need robust parsing
-                                        // But assuming simple format for now.
                                         if (changes.length === 1 && changes[0].includes(',')) {
-                                            // Try comma split if semicolon didn't work (legacy)
                                             changes = changesMatch[1].split(', ').map(c => c.trim());
                                         }
                                     }
@@ -2201,6 +2269,9 @@ function ManajemenAset() {
                                                     </table>
                                                 </div>
                                             )}
+                                        </>
+                                    );
+                                })()}
                                         </>
                                     );
                                 })()}
