@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import Select from 'react-select'
-import { FileDown, FileText, Clock, CheckCircle, BarChart2, ClipboardList, Hourglass, Target } from 'lucide-react'
+import { FileDown, FileText, Clock, CheckCircle, BarChart2, ClipboardList, Hourglass, Target, Activity } from 'lucide-react'
 import { contractService } from '@/services/contractService'
 import './Laporan.css'
 
@@ -10,6 +10,7 @@ interface Contract {
     id: string
     status: string
     created_at: string
+    budget_type?: string // AI or AO
     [key: string]: any
 }
 
@@ -53,6 +54,11 @@ function Laporan() {
         dalamPemeriksaan: 0,
         telahDiperiksa: 0,
         terbayar: 0
+    })
+
+    const [budgetTypeData, setBudgetTypeData] = useState({
+        ai: 0, // Anggaran Investasi
+        ao: 0  // Anggaran Operasional
     })
 
     useEffect(() => {
@@ -194,34 +200,48 @@ function Laporan() {
 
         setBudgetData(buckets)
 
-// 3. Monthly Volume (Stacked Data)
-const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des']
-const chartData = months.map(m => ({ month: m, active: 0, warning: 0, danger: 0, total: 0 }))
+        // 3. Budget Type Calculation (AI vs AO)
+        const typeBuckets = { ai: 0, ao: 0 }
+        contracts.forEach(c => {
+            if (!c.budget_type) return;
+            const amount = Number(c.amount) || 0;
+            const type = c.budget_type.toUpperCase();
+            if (type.includes('AI') || type.includes('INVESTASI')) {
+                typeBuckets.ai += amount;
+            } else if (type.includes('AO') || type.includes('OPERASIONAL')) {
+                typeBuckets.ao += amount;
+            }
+        })
+        setBudgetTypeData(typeBuckets)
 
-contracts.forEach(c => {
-    if (!c.start_date) return
+        // 3. Monthly Volume (Stacked Data)
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des']
+        const chartData = months.map(m => ({ month: m, active: 0, warning: 0, danger: 0, total: 0 }))
 
-    const date = new Date(c.start_date)
-    const monthIdx = date.getMonth()
+        contracts.forEach(c => {
+            if (!c.start_date) return
 
-    if (monthIdx >= 0 && monthIdx < 12) {
-        const status = (c.status || '').toLowerCase()
+            const date = new Date(c.start_date)
+            const monthIdx = date.getMonth()
 
-        if (['selesai', 'terbayar', 'telah diperiksa', 'aktif'].includes(status)) {
-            chartData[monthIdx].active += 1
-        } else if (
-            ['proses', 'pemeriksaan', 'terkontrak', 'amandemen', 'perbaikan'].some(k => status.includes(k))
-        ) {
-            chartData[monthIdx].warning += 1
-        } else {
-            chartData[monthIdx].danger += 1
-        }
-        chartData[monthIdx].total += 1
-    }
-})
+            if (monthIdx >= 0 && monthIdx < 12) {
+                const status = (c.status || '').toLowerCase()
 
-setMonthlyData(chartData)
-} // <-- Add this closing brace to end processAnalytics
+                if (['selesai', 'terbayar', 'telah diperiksa', 'aktif'].includes(status)) {
+                    chartData[monthIdx].active += 1
+                } else if (
+                    ['proses', 'pemeriksaan', 'terkontrak', 'amandemen', 'perbaikan'].some(k => status.includes(k))
+                ) {
+                    chartData[monthIdx].warning += 1
+                } else {
+                    chartData[monthIdx].danger += 1
+                }
+                chartData[monthIdx].total += 1
+            }
+        })
+
+        setMonthlyData(chartData)
+    } // <-- Add this closing brace to end processAnalytics
 
     const totalBudget = Object.values(budgetData).reduce((a, b) => a + b, 0);
 
@@ -316,7 +336,7 @@ setMonthlyData(chartData)
                 doc.setFontSize(12)
                 doc.setFont('helvetica', 'bold')
                 doc.text('Distribusi Anggaran per Status', 14, 78)
-                
+
                 const budgetHeaders = [['Status', 'Nilai (Rp)', 'Persentase']]
                 const budgetRows = [
                     ['Terkontrak', budgetData.terkontrak.toLocaleString('id-ID'), `${getPercent(budgetData.terkontrak).toFixed(1)}%`],
@@ -596,46 +616,46 @@ setMonthlyData(chartData)
             <div className="charts-container">
                 {/* Bar Chart - Perbandingan Dalam Proses & Terbayar */}
                 <div className="chart-card large">
-    <div className="chart-header">
-        <h3><BarChart2 size={20} style={{ display: 'inline', marginRight: '8px' }} /> Tren Kontrak Bulanan</h3>
-        <span className="chart-subtitle">Distribusi status kontrak per bulan</span>
-    </div>
-    <div className="bar-chart-container">
-        {(monthlyData as any[]).map((data, index) => {
-            const maxTotal = monthlyData.length > 0 ? Math.max(...(monthlyData as any[]).map(d => d.total), 1) : 10;
-            const heightPercentage = maxTotal > 0 ? (data.total / maxTotal) * 100 : 0;
-
-            const activeHeigth = data.total > 0 ? (data.active / data.total) * 100 : 0;
-            const warningHeight = data.total > 0 ? (data.warning / data.total) * 100 : 0;
-            const dangerHeight = data.total > 0 ? (data.danger / data.total) * 100 : 0;
-
-            return (
-                <div key={index} className="bar-wrapper">
-                    <div className="bar-stack-container" style={{ height: `${heightPercentage}%`, minHeight: data.total > 0 ? '4px' : '0' }}>
-                        {/* Tooltip */}
-                        <div className="bar-tooltip">
-                            <div className="tooltip-header">{data.month}</div>
-                            <div className="tooltip-row"><span className="dot active"></span> Selesai/Aktif: {data.active}</div>
-                            <div className="tooltip-row"><span className="dot warning"></span> Proses/Rev: {data.warning}</div>
-                            <div className="tooltip-row"><span className="dot danger"></span> Batal/Lain: {data.danger}</div>
-                            <div className="tooltip-total">Total: {data.total}</div>
-                        </div>
-
-                        {/* Segments (Reverse order: Danger Bottom, Warning Middle, Active Top) */}
-                        {data.danger > 0 && <div className="bar-segment danger" style={{ height: `${dangerHeight}%` }}></div>}
-                        {data.warning > 0 && <div className="bar-segment warning" style={{ height: `${warningHeight}%` }}></div>}
-                        {data.active > 0 && <div className="bar-segment active" style={{ height: `${activeHeigth}%` }}></div>}
+                    <div className="chart-header">
+                        <h3><BarChart2 size={20} style={{ display: 'inline', marginRight: '8px' }} /> Tren Kontrak Bulanan</h3>
+                        <span className="chart-subtitle">Distribusi status kontrak per bulan</span>
                     </div>
-                    <span className="bar-label">{data.month}</span>
+                    <div className="bar-chart-container">
+                        {(monthlyData as any[]).map((data, index) => {
+                            const maxTotal = monthlyData.length > 0 ? Math.max(...(monthlyData as any[]).map(d => d.total), 1) : 10;
+                            const heightPercentage = maxTotal > 0 ? (data.total / maxTotal) * 100 : 0;
+
+                            const activeHeigth = data.total > 0 ? (data.active / data.total) * 100 : 0;
+                            const warningHeight = data.total > 0 ? (data.warning / data.total) * 100 : 0;
+                            const dangerHeight = data.total > 0 ? (data.danger / data.total) * 100 : 0;
+
+                            return (
+                                <div key={index} className="bar-wrapper">
+                                    <div className="bar-stack-container" style={{ height: `${heightPercentage}%`, minHeight: data.total > 0 ? '4px' : '0' }}>
+                                        {/* Tooltip */}
+                                        <div className="bar-tooltip">
+                                            <div className="tooltip-header">{data.month}</div>
+                                            <div className="tooltip-row"><span className="dot active"></span> Selesai/Aktif: {data.active}</div>
+                                            <div className="tooltip-row"><span className="dot warning"></span> Proses/Rev: {data.warning}</div>
+                                            <div className="tooltip-row"><span className="dot danger"></span> Batal/Lain: {data.danger}</div>
+                                            <div className="tooltip-total">Total: {data.total}</div>
+                                        </div>
+
+                                        {/* Segments (Reverse order: Danger Bottom, Warning Middle, Active Top) */}
+                                        {data.danger > 0 && <div className="bar-segment danger" style={{ height: `${dangerHeight}%` }}></div>}
+                                        {data.warning > 0 && <div className="bar-segment warning" style={{ height: `${warningHeight}%` }}></div>}
+                                        {data.active > 0 && <div className="bar-segment active" style={{ height: `${activeHeigth}%` }}></div>}
+                                    </div>
+                                    <span className="bar-label">{data.month}</span>
+                                </div>
+                            )
+                        })}
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'center', gap: 18, marginTop: 10 }}>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}><span style={{ width: 14, height: 8, background: '#f59e0b', borderRadius: 4, display: 'inline-block' }}></span> Dalam Proses</span>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}><span style={{ width: 14, height: 8, background: '#6366f1', borderRadius: 4, display: 'inline-block' }}></span> Terbayar</span>
+                    </div>
                 </div>
-            )
-        })}
-    </div>
-    <div style={{ display: 'flex', justifyContent: 'center', gap: 18, marginTop: 10 }}>
-        <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}><span style={{ width: 14, height: 8, background: '#f59e0b', borderRadius: 4, display: 'inline-block' }}></span> Dalam Proses</span>
-        <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}><span style={{ width: 14, height: 8, background: '#6366f1', borderRadius: 4, display: 'inline-block' }}></span> Terbayar</span>
-    </div>
-</div>
 
                 {/* Pie Chart - Komposisi Keputusan */}
                 <div className="chart-card">
@@ -686,6 +706,103 @@ setMonthlyData(chartData)
                                     </div>
                                 </div>
                             ))}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Budget Breakdown Section (AI & AO Split) */}
+            <div className="budget-section">
+                {/* AI Card */}
+                <div className="chart-card budget-card">
+                    <div className="chart-header">
+                        <h3><Activity size={20} style={{ display: 'inline', marginRight: '8px', color: '#3b82f6' }} /> Anggaran Investasi (AI)</h3>
+                        <span className="chart-subtitle">Detail alokasi anggaran investasi</span>
+                    </div>
+                    <div className="laporan-pie-chart-container">
+                        <div className="laporan-pie-chart">
+                            <svg viewBox="0 0 100 100" className="laporan-pie-svg">
+                                <g transform="rotate(-90 50 50)">
+                                    <circle
+                                        cx="50"
+                                        cy="50"
+                                        r="40"
+                                        fill="transparent"
+                                        stroke="#e2e8f0"
+                                        strokeWidth="12"
+                                    />
+                                    <circle
+                                        cx="50"
+                                        cy="50"
+                                        r="40"
+                                        fill="transparent"
+                                        stroke="#3b82f6"
+                                        strokeWidth="12"
+                                        strokeDasharray={`${(budgetTypeData.ai / (budgetTypeData.ai + budgetTypeData.ao || 1)) * 251.2} ${251.2}`}
+                                        strokeDashoffset="0"
+                                        strokeLinecap="round"
+                                    />
+                                </g>
+                                <text x="50" y="47" textAnchor="middle" fontSize="6px" fill="#64748b" fontWeight="500">Total AI</text>
+                                <text x="50" y="55" textAnchor="middle" fontSize="9px" fill="#1e293b" fontWeight="700">
+                                    {budgetTypeData.ai >= 1e9
+                                        ? `${(budgetTypeData.ai / 1e9).toFixed(1)} M`
+                                        : `${(budgetTypeData.ai / 1e6).toFixed(0)} Jt`}
+                                </text>
+                            </svg>
+                        </div>
+                        <div className="legend-item" style={{ marginTop: '10px' }}>
+                            <span className="legend-count" style={{ fontSize: '24px', fontWeight: 700, color: '#3b82f6' }}>
+                                {((budgetTypeData.ai / (budgetTypeData.ai + budgetTypeData.ao || 1)) * 100).toFixed(1)}%
+                            </span>
+                            <span style={{ fontSize: '13px', color: '#64748b', marginLeft: '6px' }}>dari total anggaran</span>
+                        </div>
+                    </div>
+                </div>
+
+                {/* AO Card */}
+                <div className="chart-card budget-card">
+                    <div className="chart-header">
+                        <h3><Activity size={20} style={{ display: 'inline', marginRight: '8px', color: '#10b981' }} /> Anggaran Operasional (AO)</h3>
+                        <span className="chart-subtitle">Detail alokasi anggaran operasional</span>
+                    </div>
+                    <div className="laporan-pie-chart-container">
+                        <div className="laporan-pie-chart">
+                            <svg viewBox="0 0 100 100" className="laporan-pie-svg">
+                                <g transform="rotate(-90 50 50)">
+                                    <circle
+                                        cx="50"
+                                        cy="50"
+                                        r="40"
+                                        fill="transparent"
+                                        stroke="#e2e8f0"
+                                        strokeWidth="12"
+                                    />
+                                    <circle
+                                        cx="50"
+                                        cy="50"
+                                        r="40"
+                                        fill="transparent"
+                                        stroke="#10b981"
+                                        strokeWidth="12"
+                                        strokeDasharray={`${(budgetTypeData.ao / (budgetTypeData.ai + budgetTypeData.ao || 1)) * 251.2} ${251.2}`}
+                                        strokeDashoffset="0"
+                                        strokeLinecap="round"
+                                    />
+                                </g>
+                                <text x="50" y="47" textAnchor="middle" fontSize="6px" fill="#64748b" fontWeight="500">Total AO</text>
+                                <text x="50" y="55" textAnchor="middle" fontSize="9px" fill="#1e293b" fontWeight="700">
+                                    {budgetTypeData.ao >= 1e9
+                                        ? `${(budgetTypeData.ao / 1e9).toFixed(1)} M`
+                                        : `${(budgetTypeData.ao / 1e6).toFixed(0)} Jt`}
+                                </text>
+                            </svg>
+                        </div>
+                        <div className="legend-item" style={{ marginTop: '10px' }}>
+                            <span className="legend-count" style={{ fontSize: '24px', fontWeight: 700, color: '#10b981' }}>
+                                {((budgetTypeData.ao / (budgetTypeData.ai + budgetTypeData.ao || 1)) * 100).toFixed(1)}%
+                            </span>
+                            <span style={{ fontSize: '13px', color: '#64748b', marginLeft: '6px' }}>dari total anggaran</span>
                         </div>
                     </div>
                 </div>

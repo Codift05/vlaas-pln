@@ -841,3 +841,25 @@
     padding: 0;
   }
 }
+
+/* Budget Breakdown Section */
+.budget-section {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+.budget-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+@media (max-width: 768px) {
+  .budget-section {
+    grid-template-columns: 1fr;
+  }
+}
