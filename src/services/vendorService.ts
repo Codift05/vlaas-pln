@@ -40,7 +40,15 @@ export const getDashboardVendorData = async () => {
 
     if (listError) throw listError;
 
-    return handleSupabaseSuccess({ total: count, recent });
+    // 3. Get All created_at for chart (Lightweight)
+    const { data: allVendors, error: chartError } = await supabase
+      .from('vendors')
+      .select('created_at')
+      .order('created_at', { ascending: false });
+
+    if (chartError) throw chartError;
+
+    return handleSupabaseSuccess({ total: count, recent, allVendors });
   } catch (error) {
     return handleSupabaseError(error);
   }
