@@ -9,6 +9,7 @@ export default function DashboardPage() {
     const currentYear = new Date().getFullYear()
     const [selectedYear, setSelectedYear] = useState(currentYear)
     const [allVendors, setAllVendors] = useState<any[]>([])
+    const [isLoading, setIsLoading] = useState(true)
     const [chartData, setChartData] = useState(Array(12).fill(null).map((_, i) => ({
         month: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'][i],
         total: 0
@@ -31,18 +32,40 @@ export default function DashboardPage() {
         total: 0
     })
 
-    const [isLoading, setIsLoading] = useState(true)
-
     useEffect(() => {
-        fetchDashboardData()
+        let mounted = true
+
+        const loadData = async () => {
+            if (mounted) {
+                setIsLoading(true)
+                await fetchDashboardData()
+                setIsLoading(false)
+            }
+        }
+
+        loadData()
+
+        return () => {
+            mounted = false
+        }
     }, [])
+
+    // Re-process vendor chart data saat year berubah
+    useEffect(() => {
+        if (allVendors.length > 0) {
+            processVendorChartData(allVendors, selectedYear)
+        }
+    }, [selectedYear])
 
     const fetchDashboardData = async () => {
         try {
-            await Promise.all([
+            console.log('Starting dashboard data fetch...')
+            const results = await Promise.all([
                 fetchContractData(),
                 fetchVendorData()
             ])
+            console.log('Dashboard data fetch completed')
+            return results
         } catch (error) {
             console.error('Error fetching dashboard data:', error)
         } finally {
@@ -66,6 +89,7 @@ export default function DashboardPage() {
             }
         }
     }
+
 
     const fetchContractData = async () => {
         try {
@@ -131,6 +155,7 @@ export default function DashboardPage() {
     }
 
     const processVendorChartData = (vendors: any[], year: number) => {
+        console.log('Processing vendor chart data for year:', year, 'Total vendors:', vendors.length)
         const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des']
         const newChartData = months.map(m => ({ month: m, total: 0 }))
 
@@ -146,6 +171,7 @@ export default function DashboardPage() {
             }
         })
 
+        console.log('Chart data processed:', newChartData)
         setChartData(newChartData)
     }
 

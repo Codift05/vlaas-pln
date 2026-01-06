@@ -513,6 +513,22 @@ function Header({ onMenuClick }) {
   const [showNotifications, setShowNotifications] = useState(false)
   const [notifications, setNotifications] = useState([])
   const [notificationCount, setNotificationCount] = useState(0)
+
+  // Ambil daftar notifikasi yang sudah dibaca dari localStorage
+  const getReadNotifIds = () => {
+    if (typeof window === 'undefined') return [];
+    try {
+      return JSON.parse(localStorage.getItem('readNotifIds') || '[]')
+    } catch {
+      return []
+    }
+  }
+
+  // Simpan daftar notifikasi yang sudah dibaca ke localStorage
+  const setReadNotifIds = (ids) => {
+    if (typeof window === 'undefined') return;
+    localStorage.setItem('readNotifIds', JSON.stringify(ids))
+  }
   const router = useRouter()
   const pathname = usePathname()
 
@@ -524,14 +540,14 @@ function Header({ onMenuClick }) {
   const fetchNotifications = async () => {
     try {
       // Fetch contract history for recent amendments
-      const { data: contractHistory, error: historyError } = await supabase
+      const { data: contractHistory } = await supabase
         .from('contract_history')
         .select('*, contracts(name)')
         .order('created_at', { ascending: false })
         .limit(5)
 
       // Fetch recent vendors
-      const { data: vendors, error: vendorError } = await supabase
+      const { data: vendors } = await supabase
         .from('vendors')
         .select('*')
         .order('created_at', { ascending: false })
@@ -567,10 +583,14 @@ function Header({ onMenuClick }) {
         })
       }
 
+      // Filter notifikasi yang sudah dibaca
+      const readIds = getReadNotifIds()
+      const filteredNotifs = notifs.filter(n => !readIds.includes(n.id))
+
       // Sort by time and limit
-      notifs.sort((a, b) => b.id.localeCompare(a.id))
-      setNotifications(notifs.slice(0, 8))
-      setNotificationCount(notifs.length)
+      filteredNotifs.sort((a, b) => b.id.localeCompare(a.id))
+      setNotifications(filteredNotifs.slice(0, 8))
+      setNotificationCount(filteredNotifs.length)
     } catch (err) {
       console.error('Error fetching notifications:', err)
     }
@@ -650,7 +670,13 @@ function Header({ onMenuClick }) {
             <div className="notification-dropdown" onClick={e => e.stopPropagation()}>
               <div className="notification-header">
                 <h3>Notifikasi</h3>
-                <span className="mark-read" onClick={() => setNotificationCount(0)}>Tandai sudah dibaca</span>
+                <span className="mark-read" onClick={() => {
+                  // Simpan semua ID notifikasi yang sedang tampil ke localStorage
+                  const ids = notifications.map(n => n.id)
+                  setReadNotifIds([...getReadNotifIds(), ...ids])
+                  setNotifications([])
+                  setNotificationCount(0)
+                }}>Tandai sudah dibaca</span>
               </div>
               <div className="notification-list">
                 {notifications.length > 0 ? (

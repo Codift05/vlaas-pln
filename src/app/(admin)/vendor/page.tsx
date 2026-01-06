@@ -84,7 +84,7 @@ function DataVendor() {
                 alamat: vendor.alamat || vendor.address, // Fix: use alamat from DB
                 telepon: vendor.telepon || vendor.phone,
                 email: vendor.email,
-                kategori: vendor.kategori || vendor.category || '-',
+                // kategori: vendor.kategori || vendor.category || '-',
                 kontakPerson: vendor.kontak_person || vendor.contact_person,
                 status: vendor.status,
                 tanggalRegistrasi: vendor.tanggal_registrasi || vendor.registration_date // Format if needed
@@ -140,6 +140,9 @@ function DataVendor() {
 
     const [isEditing, setIsEditing] = useState(false)
     const [editId, setEditId] = useState(null)
+    // State for detail modal
+    const [showDetailModal, setShowDetailModal] = useState(false);
+    const [detailVendor, setDetailVendor] = useState(null);
 
     const handleSubmit = async (e) => {
         e.preventDefault()
@@ -152,7 +155,7 @@ function DataVendor() {
                 alamat: formData.alamat, // Fix address -> alamat
                 telepon: formData.telepon, // Fix phone -> telepon
                 email: formData.email,
-                kategori: formData.kategori, // Fix category -> kategori
+                // kategori: formData.kategori, // kategori dihapus
                 kontak_person: formData.kontakPerson,
                 status: formData.status,
                 tanggal_registrasi: formData.tanggalRegistrasi // Fix registration_date -> tanggal_registrasi
@@ -196,7 +199,7 @@ function DataVendor() {
             alamat: '',
             telepon: '',
             email: '',
-            kategori: '',
+            // kategori: '',
             kontakPerson: '',
             status: 'Aktif',
             tanggalRegistrasi: ''
@@ -219,7 +222,6 @@ function DataVendor() {
             alamat: vendor.alamat,
             telepon: vendor.telepon,
             email: vendor.email,
-            kategori: vendor.kategori,
             kontakPerson: vendor.kontakPerson,
             status: vendor.status,
             tanggalRegistrasi: vendor.tanggalRegistrasi
@@ -227,6 +229,16 @@ function DataVendor() {
         setIsEditing(true)
         setShowModal(true)
     }
+
+    // Handler for showing detail modal
+    const handleShowDetail = (vendor) => {
+        setDetailVendor(vendor);
+        setShowDetailModal(true);
+    };
+    const handleCloseDetailModal = () => {
+        setShowDetailModal(false);
+        setDetailVendor(null);
+    };
 
     const handleDelete = async (id) => {
         if (!confirm('Apakah Anda yakin ingin menghapus vendor ini?')) return
@@ -389,7 +401,6 @@ function DataVendor() {
                         <tr>
                             {columnVisibility.id && <th>ID Vendor</th>}
                             {columnVisibility.nama && <th>Nama Vendor</th>}
-                            {columnVisibility.kategori && <th>Kategori</th>}
                             {columnVisibility.kontakPerson && <th>Kontak Person</th>}
                             {columnVisibility.telepon && <th>Telepon</th>}
                             {columnVisibility.email && <th>Email</th>}
@@ -400,7 +411,7 @@ function DataVendor() {
                     <tbody>
                         {loading ? (
                             <tr>
-                                <td colSpan="8" style={{ textAlign: 'center', padding: '20px' }}>Loading data...</td>
+                                <td colSpan={8} style={{ textAlign: 'center', padding: '20px' }}>Loading data...</td>
                             </tr>
                         ) : currentVendors.length > 0 ? (
                             currentVendors.map((vendor) => (
@@ -427,7 +438,7 @@ function DataVendor() {
                                     )}
                                     <td>
                                         <div className="action-buttons-vendor">
-                                            <button className="btn-icon-vendor btn-view" title="Lihat Detail"><Eye size={16} /></button>
+                                            <button className="btn-icon-vendor btn-view" title="Lihat Detail" onClick={() => handleShowDetail(vendor)}><Eye size={16} /></button>
                                             <button className="btn-icon-vendor btn-edit" title="Edit" onClick={() => handleEdit(vendor)}><Edit size={16} /></button>
                                             <button className="btn-icon-vendor btn-delete" title="Hapus" onClick={() => handleDelete(vendor.id)}><Trash2 size={16} /></button>
                                         </div>
@@ -497,12 +508,12 @@ function DataVendor() {
                 </div>
             )}
 
-            {/* Modal Tambah Vendor */}
+            {/* Modal Tambah/Edit Vendor */}
             {showModal && (
                 <div className="modal-overlay-vendor" onClick={handleCloseModal}>
                     <div className="modal-content-vendor" onClick={(e) => e.stopPropagation()}>
                         <div className="modal-header-vendor">
-                            <h2>Tambah Vendor Baru</h2>
+                            <h2>{isEditing ? 'Edit Vendor' : 'Tambah Vendor Baru'}</h2>
                             <button className="modal-close-vendor" onClick={handleCloseModal}>✕</button>
                         </div>
                         <form onSubmit={handleSubmit} className="modal-form-vendor">
@@ -511,7 +522,7 @@ function DataVendor() {
                                 <div className="upload-file-group-vendor">
                                     <input type="file" id="file-upload-vendor" accept="application/pdf" onChange={handleFileChange} style={{ display: 'none' }} />
                                     <label htmlFor="file-upload-vendor" className="btn-upload-vendor">Pilih File</label>
-                                    <span className="file-upload-name-vendor">{selectedFile ? selectedFile.name : 'No file chosen'}</span>
+                                    <span className="file-upload-name-vendor">{selectedFile ? selectedFile.name : 'Tidak ada file dipilih'}</span>
                                     {selectedFile && (
                                         <button type="button" className="btn-upload-action-vendor" onClick={handleUpload}>Upload</button>
                                     )}
@@ -528,9 +539,23 @@ function DataVendor() {
                                         onChange={handleInputChange}
                                         placeholder="Contoh: VND013"
                                         required
+                                        disabled={isEditing}
                                     />
                                 </div>
                                 <div className="form-group-vendor">
+                                    <label htmlFor="status">Status <span className="required-vendor">*</span></label>
+                                    <select
+                                        id="status"
+                                        name="status"
+                                        value={formData.status}
+                                        onChange={handleInputChange}
+                                        required
+                                    >
+                                        <option value="Aktif">Aktif</option>
+                                        <option value="Tidak Aktif">Tidak Aktif</option>
+                                    </select>
+                                </div>
+                                <div className="form-group-vendor full-width">
                                     <label htmlFor="nama">Nama Vendor <span className="required-vendor">*</span></label>
                                     <input
                                         type="text"
@@ -550,7 +575,7 @@ function DataVendor() {
                                         value={formData.alamat}
                                         onChange={handleInputChange}
                                         placeholder="Contoh: Jl. Merdeka No. 123, Jakarta"
-                                        rows="3"
+                                        rows={3}
                                         required
                                     />
                                 </div>
@@ -579,24 +604,6 @@ function DataVendor() {
                                     />
                                 </div>
                                 <div className="form-group-vendor">
-                                    <label htmlFor="kategori">Kategori <span className="required-vendor">*</span></label>
-                                    <select
-                                        id="kategori"
-                                        name="kategori"
-                                        value={formData.kategori}
-                                        onChange={handleInputChange}
-                                        required
-                                    >
-                                        <option value="">Pilih Kategori</option>
-                                        <option value="Peralatan Listrik">Peralatan Listrik</option>
-                                        <option value="Transformator">Transformator</option>
-                                        <option value="Generator">Generator</option>
-                                        <option value="Kabel & Aksesoris">Kabel & Aksesoris</option>
-                                        <option value="Panel Distribusi">Panel Distribusi</option>
-                                        <option value="Lainnya">Lainnya</option>
-                                    </select>
-                                </div>
-                                <div className="form-group-vendor">
                                     <label htmlFor="kontakPerson">Kontak Person <span className="required-vendor">*</span></label>
                                     <input
                                         type="text"
@@ -607,19 +614,6 @@ function DataVendor() {
                                         placeholder="Contoh: John Doe"
                                         required
                                     />
-                                </div>
-                                <div className="form-group-vendor">
-                                    <label htmlFor="status">Status <span className="required-vendor">*</span></label>
-                                    <select
-                                        id="status"
-                                        name="status"
-                                        value={formData.status}
-                                        onChange={handleInputChange}
-                                        required
-                                    >
-                                        <option value="Aktif">Aktif</option>
-                                        <option value="Tidak Aktif">Tidak Aktif</option>
-                                    </select>
                                 </div>
                                 <div className="form-group-vendor">
                                     <label htmlFor="tanggalRegistrasi">Tanggal Registrasi <span className="required-vendor">*</span></label>
@@ -637,11 +631,70 @@ function DataVendor() {
                                 <button type="button" className="btn-cancel-vendor" onClick={handleCloseModal}>
                                     Batal
                                 </button>
-                                <button type="submit" className="btn-submit-vendor">
-                                    <Save size={18} /> Simpan Vendor
+                                <button type="submit" className="btn-submit-vendor" disabled={loading}>
+                                    <Save size={18} /> {isEditing ? 'Update Vendor' : 'Simpan Vendor'}
                                 </button>
                             </div>
                         </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Modal Detail Vendor - Styled like contract detail */}
+            {showDetailModal && detailVendor && (
+                <div className="modal-overlay-vendor" onClick={handleCloseDetailModal}>
+                    <div className="modal-content-vendor" onClick={(e) => e.stopPropagation()}>
+                        <div className="modal-header-vendor" style={{ borderBottom: '1px solid #e5e7eb', paddingBottom: 16, marginBottom: 0 }}>
+                            <h2 style={{ fontSize: 22, fontWeight: 700, margin: 0, color: '#1a1a1a' }}>Detail Vendor</h2>
+                            <button className="modal-close-vendor" onClick={handleCloseDetailModal} style={{ fontSize: 24, background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', padding: 4 }}>✕</button>
+                        </div>
+                        <div style={{ padding: '24px 40px 32px 40px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+                                <ClipboardList size={20} style={{ color: '#2563eb' }} />
+                                <span style={{ fontWeight: 600, fontSize: 15, color: '#2563eb' }}>Informasi Vendor</span>
+                            </div>
+                            <div className="detail-grid-vendor" style={{ marginTop: 20 }}>
+                                <div className="detail-group-vendor">
+                                    <span className="detail-label-vendor" style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: '0.5px', color: '#6b7280', marginBottom: 6 }}>ID Vendor</span>
+                                    <div className="detail-value-vendor" style={{ background: '#f9fafb', border: '1px solid #e5e7eb', padding: '10px 14px', fontSize: 14, color: '#1f2937' }}>{detailVendor.id}</div>
+                                </div>
+                                <div className="detail-group-vendor">
+                                    <span className="detail-label-vendor" style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: '0.5px', color: '#6b7280', marginBottom: 6 }}>Status Saat Ini</span>
+                                    <div style={{ marginTop: 2 }}>
+                                        <span style={{ background: detailVendor.status === 'Aktif' ? '#d1fae5' : '#fee2e2', color: detailVendor.status === 'Aktif' ? '#065f46' : '#991b1b', fontWeight: 600, borderRadius: 6, padding: '6px 16px', fontSize: 13, display: 'inline-block' }}>{detailVendor.status}</span>
+                                    </div>
+                                </div>
+                                <div className="detail-group-vendor">
+                                    <span className="detail-label-vendor" style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: '0.5px', color: '#6b7280', marginBottom: 6 }}>Telepon</span>
+                                    <div className="detail-value-vendor" style={{ background: '#f9fafb', border: '1px solid #e5e7eb', padding: '10px 14px', fontSize: 14, color: '#1f2937' }}>{detailVendor.telepon}</div>
+                                </div>
+                                <div className="detail-group-vendor">
+                                    <span className="detail-label-vendor" style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: '0.5px', color: '#6b7280', marginBottom: 6 }}>Email</span>
+                                    <div className="detail-value-vendor" style={{ background: '#f9fafb', border: '1px solid #e5e7eb', padding: '10px 14px', fontSize: 14, color: '#1f2937' }}>{detailVendor.email}</div>
+                                </div>
+                                <div className="detail-group-vendor full-width">
+                                    <span className="detail-label-vendor" style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: '0.5px', color: '#6b7280', marginBottom: 6 }}>Nama Vendor</span>
+                                    <div style={{ fontSize: 15, fontWeight: 600, color: '#1f2937', padding: '4px 0' }}>{detailVendor.nama}</div>
+                                </div>
+                                <div className="detail-group-vendor full-width">
+                                    <span className="detail-label-vendor" style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: '0.5px', color: '#6b7280', marginBottom: 6 }}>Kontak Person</span>
+                                    <div className="detail-value-vendor" style={{ background: '#f9fafb', border: '1px solid #e5e7eb', padding: '10px 14px', fontSize: 14, color: '#1f2937' }}>{detailVendor.kontakPerson}</div>
+                                </div>
+                                <div className="detail-group-vendor full-width">
+                                    <span className="detail-label-vendor" style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: '0.5px', color: '#6b7280', marginBottom: 6 }}>Alamat</span>
+                                    <div className="detail-value-vendor" style={{ background: '#f9fafb', border: '1px solid #e5e7eb', padding: '10px 14px', fontSize: 14, color: '#1f2937' }}>{detailVendor.alamat}</div>
+                                </div>
+                                <div className="detail-group-vendor">
+                                    <span className="detail-label-vendor" style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: '0.5px', color: '#6b7280', marginBottom: 6 }}>Tanggal Registrasi</span>
+                                    <div className="detail-value-vendor" style={{ background: '#f9fafb', border: '1px solid #e5e7eb', padding: '10px 14px', fontSize: 14, color: '#1f2937' }}>{detailVendor.tanggalRegistrasi}</div>
+                                </div>
+                            </div>
+                            <div className="modal-footer-vendor" style={{ marginTop: 28, paddingTop: 24, borderTop: '1px solid #e5e7eb' }}>
+                                <button type="button" className="btn-cancel-vendor" onClick={handleCloseDetailModal} style={{ minWidth: 100, padding: '10px 24px', fontSize: 14 }}>
+                                    Tutup
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             )}
