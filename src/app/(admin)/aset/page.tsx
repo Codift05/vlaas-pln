@@ -1,6 +1,6 @@
 'use client'
 import { useState, useRef, useEffect, Fragment } from 'react'
-
+import { useSearchParams } from 'next/navigation'
 import { Eye, Edit, Trash2, Search, ChevronDown, ChevronUp, Plus, Save, Upload, Calendar, Clock, ArrowRight, FileText, AlertCircle, AlertTriangle, FileCheck, History, Activity, X } from 'lucide-react'
 import { supabase } from '../../../lib/supabaseClient'
 import './ManajemenAset.css'
@@ -8,6 +8,7 @@ import './ManajemenAset.css'
 function ManajemenAset() {
     // Debug log to help diagnose blank page
     console.log('ManajemenAset render start');
+    const searchParams = useSearchParams()
     const [searchTerm, setSearchTerm] = useState('');
     const [filterStatus, setFilterStatus] = useState('all');
     const [showModal, setShowModal] = useState(false);
@@ -142,6 +143,28 @@ function ManajemenAset() {
         fetchContracts()
     }, [])
 
+    // Handle URL parameter untuk auto-expand kontrak yang dipilih
+    useEffect(() => {
+        const contractId = searchParams.get('id')
+        if (contractId && assets.length > 0) {
+            // Cek apakah kontrak dengan ID tersebut ada
+            const contract = assets.find(c => c.id === contractId)
+            if (contract) {
+                // Auto-expand dropdown
+                setExpandedContractId(contractId)
+                setDetailTab('history')
+                
+                // Scroll ke kontrak setelah render
+                setTimeout(() => {
+                    const element = document.querySelector(`tr[data-contract-id="${contractId}"]`)
+                    if (element) {
+                        element.scrollIntoView({ behavior: 'smooth', block: 'center' })
+                    }
+                }, 300)
+            }
+        }
+    }, [assets, searchParams])
+
     const getBadgeClass = (status) => {
         if (!status) return ''
         const normalized = status.toLowerCase()
@@ -236,6 +259,7 @@ function ManajemenAset() {
     // State for Payment Stages
     const [activeDetailTab, setActiveDetailTab] = useState('history') // 'history', 'payment'
     const [paymentStages, setPaymentStages] = useState([])
+    const [paymentError, setPaymentError] = useState('')
     const [loadingPayment, setLoadingPayment] = useState(false)
     const [showPaymentModal, setShowPaymentModal] = useState(false)
     const [paymentMode, setPaymentMode] = useState('single') // 'single', 'termin'
@@ -275,11 +299,23 @@ function ManajemenAset() {
             dueDate: ''
         })
         setPaymentMode('single')
+        setPaymentError('')
         setShowPaymentModal(true)
     }
 
     const handlePaymentSubmit = async (e) => {
         e.preventDefault()
+        setPaymentError('')
+        // Validasi: total termin tidak boleh melebihi nilai kontrak
+        const contract = assets.find(a => a.id === paymentFormData.contractId)
+        const contractAmount = contract ? Number(contract.amount) : 0
+        // Hitung total termin existing (exclude current if editing)
+        const totalTermin = paymentStages.reduce((sum, s) => sum + (Number(s.value) || 0), 0)
+        const newTotal = totalTermin + Number(paymentFormData.amount)
+        if (paymentMode === 'termin' && newTotal > contractAmount) {
+            setPaymentError('Total nominal tahapan melebihi nilai kontrak!')
+            return
+        }
         try {
             const payload = {
                 contract_id: paymentFormData.contractId,
@@ -298,7 +334,8 @@ function ManajemenAset() {
             setShowPaymentModal(false)
         } catch (err) {
             console.error('Error saving payment stage:', err)
-            alert('Gagal menyimpan: ' + err.message)
+            const errorMessage = err?.message || err?.error_description || JSON.stringify(err)
+            alert('Gagal menyimpan: ' + errorMessage)
         }
     }
 
@@ -899,7 +936,7 @@ function ManajemenAset() {
                             {filteredAssets.length > 0 ? (
                                 filteredAssets.map((asset) => (
                                     <Fragment key={asset.id}>
-                                        <tr style={{ background: expandedContractId === asset.id ? '#f8fafc' : undefined }}>
+                                        <tr data-contract-id={asset.id} style={{ background: expandedContractId === asset.id ? '#f8fafc' : undefined }}>
                                             <td style={{ padding: '16px 8px', textAlign: 'center', width: '50px' }}>
                                                 <button
                                                     onClick={() => toggleExpand(asset.id)}
@@ -2083,10 +2120,11 @@ function ManajemenAset() {
                                                     type="number"
                                                     className="input-modern"
                                                     value={
-                                                        paymentFormData.amount === undefined || paymentFormData.amount === null || isNaN(paymentFormData.amount)
+                                                        paymentFormData.amount === 0 || paymentFormData.amount === undefined || paymentFormData.amount === null || isNaN(paymentFormData.amount)
                                                             ? ''
                                                             : paymentFormData.amount
                                                     }
+                                                    onFocus={e => e.target.select()}
                                                     onChange={(e) => {
                                                         const val = e.target.value;
                                                         setPaymentFormData({
@@ -2114,7 +2152,10 @@ function ManajemenAset() {
                                         <button type="button" className="btn-modern-cancel" onClick={() => setShowPaymentModal(false)}>
                                             Batal
                                         </button>
-                                        <button type="submit" className="btn-modern-submit">
+                                        {paymentError && (
+                                            <div style={{ color: 'red', marginBottom: 8, fontWeight: 500 }}>{paymentError}</div>
+                                        )}
+                                        <button type="submit" className="btn-modern-submit" disabled={!!paymentError}>
                                             <Save size={18} /> Simpan Tahapan
                                         </button>
                                     </div>

@@ -1,11 +1,13 @@
 'use client'
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { Briefcase, CheckCircle, Clock, Users, FileText, TrendingUp, Activity } from 'lucide-react'
 import { supabase } from '../../../lib/supabaseClient'
 import * as vendorService from '../../../services/vendorService'
 import './Dashboard.css'
 
 export default function DashboardPage() {
+    const router = useRouter()
     const currentYear = new Date().getFullYear()
     const [selectedYear, setSelectedYear] = useState(currentYear)
     const [allVendors, setAllVendors] = useState<any[]>([])
@@ -99,14 +101,21 @@ export default function DashboardPage() {
                 .select('id, name, status, start_date, created_at, vendor_name')
                 .order('created_at', { ascending: false })
 
-            if (error) throw error
+            if (error) {
+                console.error('Supabase query error:', error)
+                throw error
+            }
 
             if (data) {
                 console.log('Dashboard Data:', data) // Debug log
                 processStatsAndActivities(data)
             }
-        } catch (error) {
-            console.error('Error fetching contract data:', JSON.stringify(error, null, 2))
+        } catch (error: any) {
+            const errorMsg = error?.message || error?.error_description || 'Unknown error'
+            console.error('Error fetching contract data:', errorMsg)
+            console.error('Full error object:', error)
+            // Set empty data to prevent UI crash
+            processStatsAndActivities([])
         }
     }
 
@@ -145,6 +154,7 @@ export default function DashboardPage() {
 
         // 2. Recent Activities (Latest 4)
         const latest = contracts.slice(0, 4).map(c => ({
+            contractId: c.id,
             action: 'Kontrak Baru',
             item: c.name || 'Tanpa Judul',
             vendor: c.vendor_name || 'Vendor Unknown',
@@ -191,6 +201,14 @@ export default function DashboardPage() {
         const yearArray = Array.from(years).sort((a, b) => b - a)
         if (yearArray.length === 0) yearArray.push(currentYear)
         return yearArray
+    }
+
+    const handleContractClick = (contractId: string) => {
+        router.push(`/aset?id=${contractId}`)
+    }
+
+    const handleVendorClick = () => {
+        router.push('/vendor')
     }
 
     const statCards = [
@@ -357,7 +375,12 @@ export default function DashboardPage() {
                         {recentActivities.length > 0 ? recentActivities.map((activity, index) => {
                             const ActivityIcon = activity.icon
                             return (
-                                <div key={index} className="activity-item">
+                                <div 
+                                    key={index} 
+                                    className="activity-item" 
+                                    onClick={() => handleContractClick(activity.contractId)}
+                                    style={{ cursor: 'pointer' }}
+                                >
                                     <div className="activity-icon-wrapper">
                                         <ActivityIcon className="activity-icon-svg" size={20} strokeWidth={2} />
                                     </div>
@@ -382,7 +405,12 @@ export default function DashboardPage() {
                     </div>
                     <div className="vendor-list">
                         {recentVendors.length > 0 ? recentVendors.map((vendor, index) => (
-                            <div key={index} className="vendor-item">
+                            <div 
+                                key={index} 
+                                className="vendor-item"
+                                onClick={handleVendorClick}
+                                style={{ cursor: 'pointer' }}
+                            >
                                 <div className="vendor-icon-wrapper">
                                     <Users className="activity-icon-svg" size={20} strokeWidth={2} />
                                 </div>

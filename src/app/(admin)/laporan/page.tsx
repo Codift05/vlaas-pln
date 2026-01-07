@@ -15,10 +15,23 @@ interface Contract {
 }
 
 interface KpiData {
-    avgCycleTime: number
-    approvalRate: number | string
+    remainingValue: number
+    nearDeadline: number
+    avgCompletion: number
     totalDocuments: number
+    avgCycleTime: number
+    approvalRate: number
     pendingDocuments: number
+}
+
+interface RemainingContract {
+    id: string
+    name: string
+    vendor_name: string
+    amount: number
+    status: string
+    start_date: string
+    end_date: string
 }
 
 interface MonthlyData {
@@ -31,6 +44,23 @@ interface MonthlyData {
 }
 
 function Laporan() {
+    // Helper function untuk format nilai Rupiah yang transparan
+    const formatCompactCurrency = (value: number) => {
+        if (value >= 1e9) {
+            // Miliar - tampilkan dengan 3 desimal untuk transparansi
+            return `Rp ${(value / 1e9).toFixed(3)} M`
+        } else if (value >= 1e6) {
+            // Juta - tampilkan dengan 2 desimal
+            return `Rp ${(value / 1e6).toFixed(2)} Jt`
+        } else if (value >= 1e3) {
+            // Ribu - tampilkan dengan 1 desimal
+            return `Rp ${(value / 1e3).toFixed(1)} Rb`
+        } else {
+            // Di bawah ribu - tampilkan full
+            return `Rp ${value.toLocaleString('id-ID')}`
+        }
+    }
+
     // const [sidebarOpen, setSidebarOpen] = useState(false) // Handled by layout
     const [dateRange, setDateRange] = useState({ value: 'tahun-ini', label: 'Tahun Ini' })
     const [filterStatus, setFilterStatus] = useState({ value: 'all', label: 'Semua Status' })
@@ -39,11 +69,16 @@ function Laporan() {
 
     const [loading, setLoading] = useState(true)
     const [kpiData, setKpiData] = useState<KpiData>({
+        remainingValue: 0,
+        nearDeadline: 0,
+        avgCompletion: 0,
+        totalDocuments: 0,
         avgCycleTime: 0,
         approvalRate: 0,
-        totalDocuments: 0,
         pendingDocuments: 0
     })
+    const [showRemainingModal, setShowRemainingModal] = useState(false)
+    const [remainingContracts, setRemainingContracts] = useState<RemainingContract[]>([])
     // (removed grouped bar chart logic, keep only stacked bar logic)
     const [monthlyData, setMonthlyData] = useState<MonthlyData[]>([])
     const [allContracts, setAllContracts] = useState<Contract[]>([])
@@ -138,38 +173,81 @@ function Laporan() {
         // 1. KPI Calculations
         const total = contracts.length
 
-        // Real Approval Rate: (Approved / Total) * 100
-        const approvedCount = contracts.filter(c => {
-            const s = (c.status || '').toLowerCase()
-            return ['selesai', 'terbayar', 'telah diperiksa', 'aktif'].includes(s)
-        }).length
-        const approvalRate = total > 0 ? ((approvedCount / total) * 100).toFixed(0) : 0
+        // Total Nilai Kontrak
+        const totalValue = contracts.reduce((sum, c) => sum + (Number(c.amount) || 0), 0)
 
-        // Real Average Cycle Time: (Start Date - Created Date)
-        let totalDays = 0
-        let countWithDates = 0
-        contracts.forEach(c => {
-            if (c.created_at && c.start_date) {
-                const start = new Date(c.created_at).getTime()
-                const end = new Date(c.start_date).getTime()
-                const diffTime = Math.abs(end - start)
-                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-                totalDays += diffDays
-                countWithDates++
-            }
+        // Nilai yang Sudah Terbayar
+        const paidValue = contracts
+            .filter(c => (c.status || '').toLowerCase() === 'terbayar')
+            .reduce((sum, c) => sum + (Number(c.amount) || 0), 0)
+
+        // Sisa Nilai Kontrak (Total - Terbayar)
+        const remainingValue = totalValue - paidValue
+
+        // Simpan kontrak yang belum terbayar untuk detail modal
+        const unpaidContracts = contracts.filter(c => 
+            (c.status || '').toLowerCase() !== 'terbayar' && 
+            (c.status || '').toLowerCase() !== 'batal'
+        ).map(c => ({
+            id: c.id,
+            name: c.name,
+            vendor_name: c.vendor_name,
+            amount: Number(c.amount) || 0,
+            status: c.status,
+            start_date: c.start_date,
+            end_date: c.end_date
+        }))
+        setRemainingContracts(unpaidContracts)
+
+        // Kontrak Mendekati Jatuh Tempo (30 hari)
+        const now = new Date()
+        const thirtyDaysFromNow = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000)
+        const nearDeadline = contracts.filter(c => {
+            if (!c.end_date) return false
+            const endDate = new Date(c.end_date)
+            return endDate > now && endDate <= thirtyDaysFromNow
+        }).length
+
+        // Tingkat Penyelesaian Rata-rata
+        const activeContracts = contracts.filter(c => {
+            const s = (c.status || '').toLowerCase()
+            return !['selesai', 'terbayar', 'batal'].includes(s)
         })
-        const avgTime = countWithDates > 0 ? (totalDays / countWithDates).toFixed(1) : 0
+        const totalProgress = activeContracts.reduce((sum, c) => sum + (Number(c.progress) || 0), 0)
+        const avgCompletion = activeContracts.length > 0 ? totalProgress / activeContracts.length : 0
 
-        const pending = contracts.filter(c => {
-            const s = (c.status || '').toLowerCase()
-            return ['proses', 'pemeriksaan', 'amandemen'].some(k => s.includes(k))
-        }).length
+        // Calculate additional KPI fields for PDF export
+        // totalDocuments: total contracts
+        // avgCycleTime: average days between created_at and end_date (if available)
+        // approvalRate: percent of contracts with status 'approved' (selesai, terbayar, telah diperiksa, aktif)
+        // pendingDocuments: contracts with status 'pending' (proses, pemeriksaan, amandemen, terkontrak)
+        const avgCycleTime =
+            contracts.length > 0
+                ? contracts.reduce((sum, c) => {
+                    if (c.created_at && c.end_date) {
+                        const start = new Date(c.created_at)
+                        const end = new Date(c.end_date)
+                        return sum + Math.max(0, (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24))
+                    }
+                    return sum
+                }, 0) /
+                  contracts.filter(c => c.created_at && c.end_date).length || 0
+                : 0
+
+        const approvedStatuses = ['selesai', 'terbayar', 'telah diperiksa', 'aktif']
+        const pendingStatuses = ['proses', 'pemeriksaan', 'amandemen', 'terkontrak']
+
+        const approvedCount = contracts.filter(c => approvedStatuses.includes((c.status || '').toLowerCase())).length
+        const pendingCount = contracts.filter(c => pendingStatuses.some(s => (c.status || '').toLowerCase().includes(s))).length
 
         setKpiData({
-            avgCycleTime: Number(avgTime),
-            approvalRate: approvalRate,
+            remainingValue: remainingValue,
+            nearDeadline: nearDeadline,
+            avgCompletion: avgCompletion,
             totalDocuments: total,
-            pendingDocuments: pending
+            avgCycleTime: Number(avgCycleTime.toFixed(1)),
+            approvalRate: total > 0 ? Number(((approvedCount / total) * 100).toFixed(1)) : 0,
+            pendingDocuments: pendingCount
         })
 
         // 2. Budget Distribution Calculation
@@ -557,46 +635,45 @@ function Laporan() {
             </div>
 
             {/* KPI Cards */}
-            {/* KPI Cards */}
             <div className="kpi-section">
                 {[
                     {
-                        title: 'Rata-rata Waktu Proses',
-                        value: `${kpiData.avgCycleTime} Hari`,
+                        title: 'Sisa Nilai Kontrak',
+                        value: formatCompactCurrency(kpiData.remainingValue),
+                        icon: BarChart2,
+                        color: '#3b82f6',
+                        bgColor: '#eff6ff',
+                        badge: { text: 'Belum terbayar', type: 'neutral' },
+                        clickable: true
+                    },
+                    {
+                        title: 'Mendekati Deadline',
+                        value: kpiData.nearDeadline,
                         icon: Clock,
-                        color: '#7c4dff',
-                        bgColor: '#ede7f6',
-                        badge: { text: '↓ 0.3 hari lebih cepat', type: 'positive' },
-                    },
-                    {
-                        title: 'Rasio Persetujuan',
-                        value: `${kpiData.approvalRate}%`,
-                        icon: CheckCircle,
-                        color: '#2ecc71',
-                        bgColor: '#e8f5e9',
-                        badge: { text: '↑ 3% dari bulan lalu', type: 'positive' },
-                    },
-                    {
-                        title: 'Total Dokumen',
-                        value: kpiData.totalDocuments,
-                        icon: ClipboardList,
-                        color: '#9b59b6',
-                        bgColor: '#f3e5f5',
-                        badge: { text: 'Periode ini', type: 'neutral' },
-                    },
-                    {
-                        title: 'Menunggu Review',
-                        value: kpiData.pendingDocuments,
-                        icon: Hourglass,
                         color: '#f39c12',
                         bgColor: '#fff8e1',
-                        badge: { text: 'Perlu perhatian', type: 'warning' },
+                        badge: { text: 'Dalam 30 hari', type: 'warning' },
+                    },
+                    {
+                        title: 'Tingkat Penyelesaian',
+                        value: `${kpiData.avgCompletion.toFixed(2)}%`,
+                        icon: Target,
+                        color: '#10b981',
+                        bgColor: '#e8f5e9',
+                        badge: { text: 'Rata-rata progress', type: 'positive' },
                     },
                 ].map((stat, index) => {
                     const IconComponent = stat.icon;
-                    const cardClass = index === 0 ? 'blue' : index === 1 ? 'green' : index === 2 ? 'purple' : 'orange';
+                    const cardClass = index === 0 ? 'blue' : index === 1 ? 'orange' : 'green';
                     return (
-                        <div key={index} className={`kpi-card ${cardClass}`}>
+                        <div 
+                            key={index} 
+                            className={`kpi-card ${cardClass}`}
+                            onClick={stat.clickable ? () => setShowRemainingModal(true) : undefined}
+                            style={stat.clickable ? { cursor: 'pointer', transition: 'transform 0.2s, box-shadow 0.2s' } : {}}
+                            onMouseEnter={(e) => stat.clickable && (e.currentTarget.style.transform = 'translateY(-4px)')}
+                            onMouseLeave={(e) => stat.clickable && (e.currentTarget.style.transform = 'translateY(0)')}
+                        >
                             <div className="kpi-icon">
                                 <IconComponent size={24} />
                             </div>
@@ -685,8 +762,8 @@ function Laporan() {
                                 <text x="50" y="47" textAnchor="middle" fontSize="6px" fill="#64748b" fontWeight="500">Total Anggaran</text>
                                 <text x="50" y="55" textAnchor="middle" fontSize="7px" fill="#1e293b" fontWeight="700">
                                     {totalBudget >= 1e9
-                                        ? `${(totalBudget / 1e9).toFixed(1)} M`
-                                        : (totalBudget >= 1e6 ? `${(totalBudget / 1e6).toFixed(1)} Jt` : `Rp ${totalBudget.toLocaleString('id-ID')}`)
+                                        ? `${(totalBudget / 1e9).toFixed(3)} M`
+                                        : (totalBudget >= 1e6 ? `${(totalBudget / 1e6).toFixed(2)} Jt` : `Rp ${totalBudget.toLocaleString('id-ID')}`)
                                     }
                                 </text>
                             </svg>
@@ -698,9 +775,9 @@ function Laporan() {
                                     <div style={{ display: 'flex', flexDirection: 'column' }}>
                                         <span className="legend-text" style={{ fontSize: '11px', color: '#64748b' }}>{seg.label}</span>
                                         <span className="legend-count" style={{ fontSize: '13px', fontWeight: 600 }}>
-                                            {seg.percent.toFixed(1)}%
+                                            {seg.percent.toFixed(2)}%
                                             <span style={{ fontSize: '10px', color: '#94a3b8', marginLeft: '4px', fontWeight: 400 }}>
-                                                (Rp {(seg.value / 1e6).toFixed(0)} Jt)
+                                                ({seg.value >= 1e9 ? `Rp ${(seg.value / 1e9).toFixed(3)} M` : `Rp ${(seg.value / 1e6).toFixed(2)} Jt`})
                                             </span>
                                         </span>
                                     </div>
@@ -746,14 +823,14 @@ function Laporan() {
                                 <text x="50" y="47" textAnchor="middle" fontSize="6px" fill="#64748b" fontWeight="500">Total AI</text>
                                 <text x="50" y="55" textAnchor="middle" fontSize="9px" fill="#1e293b" fontWeight="700">
                                     {budgetTypeData.ai >= 1e9
-                                        ? `${(budgetTypeData.ai / 1e9).toFixed(1)} M`
-                                        : `${(budgetTypeData.ai / 1e6).toFixed(0)} Jt`}
+                                        ? `${(budgetTypeData.ai / 1e9).toFixed(3)} M`
+                                        : `${(budgetTypeData.ai / 1e6).toFixed(2)} Jt`}
                                 </text>
                             </svg>
                         </div>
                         <div className="legend-item" style={{ marginTop: '10px' }}>
                             <span className="legend-count" style={{ fontSize: '24px', fontWeight: 700, color: '#3b82f6' }}>
-                                {((budgetTypeData.ai / (budgetTypeData.ai + budgetTypeData.ao || 1)) * 100).toFixed(1)}%
+                                {((budgetTypeData.ai / (budgetTypeData.ai + budgetTypeData.ao || 1)) * 100).toFixed(2)}%
                             </span>
                             <span style={{ fontSize: '13px', color: '#64748b', marginLeft: '6px' }}>dari total anggaran</span>
                         </div>
@@ -793,14 +870,14 @@ function Laporan() {
                                 <text x="50" y="47" textAnchor="middle" fontSize="6px" fill="#64748b" fontWeight="500">Total AO</text>
                                 <text x="50" y="55" textAnchor="middle" fontSize="9px" fill="#1e293b" fontWeight="700">
                                     {budgetTypeData.ao >= 1e9
-                                        ? `${(budgetTypeData.ao / 1e9).toFixed(1)} M`
-                                        : `${(budgetTypeData.ao / 1e6).toFixed(0)} Jt`}
+                                        ? `${(budgetTypeData.ao / 1e9).toFixed(3)} M`
+                                        : `${(budgetTypeData.ao / 1e6).toFixed(2)} Jt`}
                                 </text>
                             </svg>
                         </div>
                         <div className="legend-item" style={{ marginTop: '10px' }}>
                             <span className="legend-count" style={{ fontSize: '24px', fontWeight: 700, color: '#10b981' }}>
-                                {((budgetTypeData.ao / (budgetTypeData.ai + budgetTypeData.ao || 1)) * 100).toFixed(1)}%
+                                {((budgetTypeData.ao / (budgetTypeData.ai + budgetTypeData.ao || 1)) * 100).toFixed(2)}%
                             </span>
                             <span style={{ fontSize: '13px', color: '#64748b', marginLeft: '6px' }}>dari total anggaran</span>
                         </div>
@@ -808,6 +885,79 @@ function Laporan() {
                 </div>
             </div>
 
+            {/* Modal Detail Sisa Nilai Kontrak */}
+            {showRemainingModal && (
+                <div className="modal-overlay" onClick={() => setShowRemainingModal(false)}>
+                    <div className="modal-content" style={{ maxWidth: '900px', maxHeight: '80vh', overflow: 'auto' }} onClick={(e) => e.stopPropagation()}>
+                        <div className="modal-header">
+                            <h2>Rincian Sisa Nilai Kontrak</h2>
+                            <button className="modal-close" onClick={() => setShowRemainingModal(false)}>✕</button>
+                        </div>
+                        <div className="modal-body">
+                            <div style={{ marginBottom: '20px', padding: '16px', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <div>
+                                        <p style={{ fontSize: '14px', color: '#64748b', margin: '0 0 4px 0' }}>Total Sisa Nilai Kontrak</p>
+                                        <p style={{ fontSize: '28px', fontWeight: 700, color: '#1e293b', margin: 0 }}>
+                                            {formatCompactCurrency(kpiData.remainingValue)}
+                                        </p>
+                                    </div>
+                                    <div style={{ textAlign: 'right' }}>
+                                        <p style={{ fontSize: '14px', color: '#64748b', margin: '0 0 4px 0' }}>Jumlah Kontrak</p>
+                                        <p style={{ fontSize: '28px', fontWeight: 700, color: '#3b82f6', margin: 0 }}>{remainingContracts.length}</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {remainingContracts.length > 0 ? (
+                                <div style={{ overflowX: 'auto' }}>
+                                    <table className="assets-table" style={{ fontSize: '14px' }}>
+                                        <thead>
+                                            <tr>
+                                                <th>No</th>
+                                                <th>ID Kontrak</th>
+                                                <th>Nama Kontrak</th>
+                                                <th>Vendor</th>
+                                                <th>Nilai</th>
+                                                <th>Status</th>
+                                                <th>Periode</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {remainingContracts.map((contract, idx) => (
+                                                <tr key={contract.id}>
+                                                    <td style={{ textAlign: 'center' }}>{idx + 1}</td>
+                                                    <td>{contract.id}</td>
+                                                    <td>{contract.name}</td>
+                                                    <td>{contract.vendor_name || '-'}</td>
+                                                    <td style={{ textAlign: 'right', fontWeight: 600 }}>
+                                                        {contract.amount.toLocaleString('id-ID', { style: 'currency', currency: 'IDR' })}
+                                                    </td>
+                                                    <td>
+                                                        <span className={`status-badge status-${contract.status?.toLowerCase().replace(/\s+/g, '-')}`}>
+                                                            {contract.status}
+                                                        </span>
+                                                    </td>
+                                                    <td style={{ fontSize: '13px' }}>
+                                                        {contract.start_date && contract.end_date 
+                                                            ? `${contract.start_date} - ${contract.end_date}`
+                                                            : '-'
+                                                        }
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            ) : (
+                                <div style={{ textAlign: 'center', padding: '40px', color: '#64748b' }}>
+                                    <p>Tidak ada kontrak yang belum terbayar</p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
 
         </>
     )
