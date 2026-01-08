@@ -1,7 +1,7 @@
 'use client'
 import { useState, useRef, useEffect, Fragment } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { Eye, Edit, Trash2, Search, ChevronDown, ChevronUp, Plus, Save, Upload, Calendar, Clock, ArrowRight, FileText, AlertCircle, AlertTriangle, FileCheck, History, Activity, X } from 'lucide-react'
+import { Eye, Edit, Trash2, Search, ChevronDown, ChevronUp, Plus, Save, Upload, Calendar, Clock, ArrowRight, FileText, AlertCircle, AlertTriangle, FileCheck, History, Activity, X, CheckCircle, Info } from 'lucide-react'
 import { supabase } from '../../../lib/supabaseClient'
 import './ManajemenAset.css'
 
@@ -72,9 +72,11 @@ function ManajemenAset() {
                 .from('contract_files')
                 .insert([{ contract_id: selectedContractId, file_url: data.webViewLink }])
             if (error) throw new Error(error.message)
+            showAlert('success', 'Berhasil', 'Upload berhasil! Link: ' + data.webViewLink)
             setUploadSuccess('Upload berhasil! Link: ' + data.webViewLink)
         } catch (err) {
             setUploadError(err.message)
+            showAlert('error', 'Gagal', 'Gagal upload: ' + err.message)
         } finally {
             setUploading(false)
         }
@@ -153,7 +155,7 @@ function ManajemenAset() {
                 // Auto-expand dropdown
                 setExpandedContractId(contractId)
                 setDetailTab('history')
-                
+
                 // Scroll ke kontrak setelah render
                 setTimeout(() => {
                     const element = document.querySelector(`tr[data-contract-id="${contractId}"]`)
@@ -271,6 +273,38 @@ function ManajemenAset() {
         dueDate: ''
     })
 
+    // -- GLOBAL ALERT & CONFIRM STATE --
+    const [alertState, setAlertState] = useState({
+        show: false,
+        type: 'success', // 'success' | 'error' | 'info'
+        title: '',
+        message: ''
+    })
+
+    const [confirmState, setConfirmState] = useState({
+        show: false,
+        title: '',
+        message: '',
+        action: null // Function to execute on confirm
+    })
+
+    const showAlert = (type, title, message) => {
+        setAlertState({ show: true, type, title, message })
+        // Auto close success alerts after 3s
+        if (type === 'success') {
+            setTimeout(() => setAlertState(prev => ({ ...prev, show: false })), 3000)
+        }
+    }
+
+    const showConfirm = (title, message, action) => {
+        setConfirmState({ show: true, title, message, action })
+    }
+
+    const closeAlert = () => setAlertState(prev => ({ ...prev, show: false }))
+
+    const closeConfirm = () => setConfirmState({ show: false, title: '', message: '', action: null })
+    // -- END GLOBAL STATE --
+
     const fetchPaymentStages = async (contractId) => {
         if (!contractId) return
         setLoadingPayment(true)
@@ -329,49 +363,53 @@ function ManajemenAset() {
             const { error } = await supabase.from('payment_stages').insert([payload])
             if (error) throw error
 
-            alert('Tahapan pembayaran berhasil ditambahkan!')
+            showAlert('success', 'Berhasil', 'Tahapan pembayaran berhasil ditambahkan!')
             fetchPaymentStages(paymentFormData.contractId)
             setShowPaymentModal(false)
         } catch (err) {
             console.error('Error saving payment stage:', err)
             const errorMessage = err?.message || err?.error_description || JSON.stringify(err)
-            alert('Gagal menyimpan: ' + errorMessage)
+            showAlert('error', 'Gagal', 'Gagal menyimpan: ' + errorMessage)
         }
     }
 
     const handleMarkAsPaid = async (stageId, contractId) => {
-        if (!confirm('Tandai pembayaran ini sebagai SUDAH DIBAYAR?')) return
-        try {
-            const { error } = await supabase
-                .from('payment_stages')
-                .update({ status: 'Paid', paid_at: new Date().toISOString() })
-                .eq('id', stageId)
+        showConfirm('Konfirmasi Pembayaran', 'Tandai pembayaran ini sebagai SUDAH DIBAYAR?', async () => {
+            try {
+                const { error } = await supabase
+                    .from('payment_stages')
+                    .update({ status: 'Paid', paid_at: new Date().toISOString() })
+                    .eq('id', stageId)
 
-            if (error) throw error
-            fetchPaymentStages(contractId)
+                if (error) throw error
+                fetchPaymentStages(contractId)
+                showAlert('success', 'Berhasil', 'Status pembayaran berhasil diperbarui!')
 
-            // Optional: Check if all paid then update contract status to 'Terbayar'
-            // For now just refresh the list
-        } catch (err) {
-            console.error('Error updating payment status:', err)
-        }
+                // Optional: Check if all paid then update contract status to 'Terbayar'
+                // For now just refresh the list
+            } catch (err) {
+                console.error('Error updating payment status:', err)
+                showAlert('error', 'Gagal', 'Gagal update status: ' + err.message)
+            }
+        })
     }
 
     const handleDeletePaymentStage = async (stageId, contractId) => {
-        if (!confirm('Apakah Anda yakin ingin menghapus tahapan pembayaran ini?')) return
-        try {
-            const { error } = await supabase
-                .from('payment_stages')
-                .delete()
-                .eq('id', stageId)
+        showConfirm('Hapus Tahapan', 'Apakah Anda yakin ingin menghapus tahapan pembayaran ini?', async () => {
+            try {
+                const { error } = await supabase
+                    .from('payment_stages')
+                    .delete()
+                    .eq('id', stageId)
 
-            if (error) throw error
-            alert('Tahapan pembayaran berhasil dihapus')
-            fetchPaymentStages(contractId)
-        } catch (err) {
-            console.error('Error deleting payment stage:', err)
-            alert('Gagal menghapus: ' + err.message)
-        }
+                if (error) throw error
+                showAlert('success', 'Berhasil', 'Tahapan pembayaran berhasil dihapus')
+                fetchPaymentStages(contractId)
+            } catch (err) {
+                console.error('Error deleting payment stage:', err)
+                showAlert('error', 'Gagal', 'Gagal menghapus: ' + err.message)
+            }
+        })
     }
 
     const handleCreateAmendment = (asset) => {
@@ -455,7 +493,7 @@ function ManajemenAset() {
                 throw historyError;
             }
 
-            alert('Progress tracker berhasil ditambahkan!')
+            showAlert('success', 'Berhasil', 'Progress tracker berhasil ditambahkan!')
             fetchContracts()
             setShowProgressModal(false)
             setProgressFormData({
@@ -470,7 +508,7 @@ function ManajemenAset() {
         } catch (err) {
             console.error('Error adding progress tracker FULL:', err);
             const msg = err?.message || err?.error_description || JSON.stringify(err);
-            alert('Gagal menambahkan progress tracker: ' + msg);
+            showAlert('error', 'Gagal', 'Gagal menambahkan progress tracker: ' + msg);
         }
     }
 
@@ -522,6 +560,30 @@ function ManajemenAset() {
         setIsEditing(true)
         setIsAmendment(false) // Reset amendment state
         setShowModal(true)
+    }
+
+    const handleCloseModal = () => {
+        setShowModal(false)
+        setIsEditing(false)
+        setEditId(null)
+        setIsAmendment(false)
+        setFormData({
+            id: '',
+            name: '',
+            recipient: '',
+            invoiceNumber: '',
+            vendorName: '',
+            amount: '',
+            budgetType: '',
+            contractType: '',
+            category: '',
+            location: '',
+            status: 'Aktif',
+            startDate: '',
+            endDate: '',
+            amendmentDocNumber: '',
+            amendmentDescription: ''
+        })
     }
 
     const handleSubmit = async (e) => {
@@ -595,7 +657,9 @@ function ManajemenAset() {
 
                 if (historyError) throw historyError
 
-                alert('Kontrak berhasil diperbarui!')
+                if (historyError) throw historyError
+
+                showAlert('success', 'Berhasil', 'Kontrak berhasil diperbarui!')
             } else {
                 // 1. Insert New Contract
                 const payload = {
@@ -630,7 +694,9 @@ function ManajemenAset() {
 
                 if (historyError) console.error('Warning: Failed to create history log', historyError)
 
-                alert('Kontrak berhasil ditambahkan!')
+                if (historyError) console.error('Warning: Failed to create history log', historyError)
+
+                showAlert('success', 'Berhasil', 'Kontrak berhasil ditambahkan!')
             }
 
             // Refresh data
@@ -644,9 +710,11 @@ function ManajemenAset() {
             const errorMessage = err.message || err.error_description || 'Terjadi kesalahan yang tidak diketahui.'
 
             if (errorMessage.includes('duplicate key') || err.code === '23505') {
-                alert('Gagal: Nomor Kontrak (ID) tersebut sudah ada di sistem. Gunakan nomor lain.')
-            } else {
-                alert('Gagal menyimpan data: ' + errorMessage)
+                if (errorMessage.includes('duplicate key') || err.code === '23505') {
+                    showAlert('error', 'Gagal', 'Nomor Kontrak (ID) tersebut sudah ada di sistem. Gunakan nomor lain.')
+                } else {
+                    showAlert('error', 'Gagal', 'Gagal menyimpan data: ' + errorMessage)
+                }
             }
         }
     }
@@ -666,7 +734,7 @@ function ManajemenAset() {
     }
 
     const handleDelete = async (id) => {
-        if (confirm('Apakah Anda yakin ingin menghapus kontrak ini? Data yang dihapus tidak dapat dikembalikan.')) {
+        showConfirm('Hapus Kontrak', 'Apakah Anda yakin ingin menghapus kontrak ini? Data yang dihapus tidak dapat dikembalikan.', async () => {
             try {
                 const { error } = await supabase
                     .from('contracts')
@@ -675,92 +743,71 @@ function ManajemenAset() {
 
                 if (error) throw error
 
-                alert('Kontrak berhasil dihapus')
+                showAlert('success', 'Berhasil', 'Kontrak berhasil dihapus')
                 fetchContracts() // Refresh data
             } catch (err) {
                 console.error('Error deleting contract:', err)
-                alert('Gagal menghapus: ' + err.message)
+                showAlert('error', 'Gagal', 'Gagal menghapus: ' + err.message)
             }
-        }
+        })
     }
 
     const handleDeleteHistory = async (historyId, contractId) => {
-        if (!confirm('Apakah Anda yakin ingin menghapus riwayat ini?')) return
-        try {
-            const { error } = await supabase
-                .from('contract_history')
-                .delete()
-                .eq('id', historyId)
+        showConfirm('Hapus Riwayat', 'Apakah Anda yakin ingin menghapus riwayat ini?', async () => {
+            try {
+                const { error } = await supabase
+                    .from('contract_history')
+                    .delete()
+                    .eq('id', historyId)
 
-            if (error) throw error
-            alert('Riwayat berhasil dihapus')
+                if (error) throw error
+                showAlert('success', 'Berhasil', 'Riwayat berhasil dihapus')
 
-            // Refresh data - we need to refresh the selectedAsset as well
-            // But fetchContracts updates 'assets', so we need to re-find the asset
-            await fetchContracts()
+                // Refresh data - we need to refresh the selectedAsset as well
+                // But fetchContracts updates 'assets', so we need to re-find the asset
+                await fetchContracts()
 
-            // Re-select the asset to update the view
-            const updatedAssets = await supabase
-                .from('contracts')
-                .select(`*, history:contract_history(*)`)
-                .eq('id', contractId)
-                .single()
+                // Re-select the asset to update the view
+                const updatedAssets = await supabase
+                    .from('contracts')
+                    .select(`*, history:contract_history(*)`)
+                    .eq('id', contractId)
+                    .single()
 
-            if (updatedAssets.data) {
-                // Manually format to match our internal structure if needed, or better, just re-use the fetched list
-                // Since fetchContracts() updates 'assets' state, we can just find it from there? 
-                // Wait, fetchContracts is async and sets state. We can't immediately get the state.
-                // Better to fetch specific contract and update selectedAsset
-                const raw = updatedAssets.data
-                const formatted = {
-                    id: raw.id || '',
-                    name: raw.name || '',
-                    vendorName: raw.vendor_name || '',
-                    recipient: raw.recipient || '',
-                    invoiceNumber: raw.invoice_number || '',
-                    amount: raw.amount ? parseFloat(raw.amount) : 0,
-                    budgetType: raw.budget_type || '',
-                    contractType: raw.contract_type || '',
-                    category: raw.category || '',
-                    location: raw.location || '',
-                    status: raw.status || 'Aktif',
-                    startDate: raw.start_date || '',
-                    endDate: raw.end_date || '',
-                    progress: raw.progress || 0,
-                    history: raw.history || []
+                if (updatedAssets.data) {
+                    // Manually format to match our internal structure if needed, or better, just re-use the fetched list
+                    // Since fetchContracts() updates 'assets' state, we can just find it from there? 
+                    // Wait, fetchContracts is async and sets state. We can't immediately get the state.
+                    // Better to fetch specific contract and update selectedAsset
+                    const raw = updatedAssets.data
+                    const formatted = {
+                        id: raw.id || '',
+                        name: raw.name || '',
+                        vendorName: raw.vendor_name || '',
+                        recipient: raw.recipient || '',
+                        invoiceNumber: raw.invoice_number || '',
+                        amount: raw.amount ? parseFloat(raw.amount) : 0,
+                        budgetType: raw.budget_type || '',
+                        contractType: raw.contract_type || '',
+                        category: raw.category || '',
+                        location: raw.location || '',
+                        status: raw.status || 'Aktif',
+                        startDate: raw.start_date || '',
+                        endDate: raw.end_date || '',
+                        progress: raw.progress || 0,
+                        history: raw.history || []
+                    }
+                    setSelectedAsset(formatted)
                 }
-                setSelectedAsset(formatted)
+
+            } catch (err) {
+                console.error('Error deleting history:', err)
+                showAlert('success', 'Gagal', 'Gagal menghapus riwayat: ' + err.message)
             }
-
-        } catch (err) {
-            console.error('Error deleting history:', err)
-            alert('Gagal menghapus riwayat: ' + err.message)
-        }
-    }
-
-    const handleCloseModal = () => {
-        setShowModal(false)
-        setIsEditing(false)
-        setEditId(null)
-        setIsAmendment(false)
-        setFormData({
-            id: '',
-            name: '',
-            recipient: '',
-            invoiceNumber: '',
-            vendorName: '',
-            amount: '',
-            budgetType: '',
-            contractType: '',
-            category: '',
-            location: '',
-            status: 'Aktif',
-            startDate: '',
-            endDate: '',
-            amendmentDocNumber: '',
-            amendmentDescription: ''
         })
     }
+
+
 
     try {
         return (
@@ -795,10 +842,10 @@ function ManajemenAset() {
                                 Ditemukan {filteredAssets.length} kontrak
                             </span>
                         )}
-                                    <div>
-                                        <label style={{ display: 'block', fontSize: '12px', color: '#64748b', marginBottom: '4px' }}>Tanggal & Waktu</label>
-                                        {/* progressDateTime is not defined, so this block is removed to prevent error */}
-                                    </div>
+                        <div>
+                            <label style={{ display: 'block', fontSize: '12px', color: '#64748b', marginBottom: '4px' }}>Tanggal & Waktu</label>
+                            {/* progressDateTime is not defined, so this block is removed to prevent error */}
+                        </div>
                         <div className="column-selector" ref={columnSelectorRef}>
                             <button
                                 className="column-selector-btn"
@@ -2106,9 +2153,15 @@ function ManajemenAset() {
                                                     value={paymentFormData.percentage}
                                                     onChange={(e) => {
                                                         const pct = parseFloat(e.target.value);
+                                                        // Calculate nominal automatically
+                                                        const contract = assets.find(a => a.id === paymentFormData.contractId);
+                                                        const contractAmount = contract ? Number(contract.amount) : 0;
+                                                        const calculatedAmount = (contractAmount * pct) / 100;
+
                                                         setPaymentFormData({
                                                             ...paymentFormData,
                                                             percentage: pct,
+                                                            amount: calculatedAmount
                                                         })
                                                     }}
                                                     disabled={paymentMode === 'single'}
@@ -2127,9 +2180,17 @@ function ManajemenAset() {
                                                     onFocus={e => e.target.select()}
                                                     onChange={(e) => {
                                                         const val = e.target.value;
+                                                        const newAmount = val === '' ? 0 : parseFloat(val);
+
+                                                        // Calculate percentage automatically
+                                                        const contract = assets.find(a => a.id === paymentFormData.contractId);
+                                                        const contractAmount = contract ? Number(contract.amount) : 0;
+                                                        const calculatedPct = contractAmount > 0 ? (newAmount / contractAmount) * 100 : 0;
+
                                                         setPaymentFormData({
                                                             ...paymentFormData,
-                                                            amount: val === '' ? 0 : parseFloat(val)
+                                                            amount: newAmount,
+                                                            percentage: parseFloat(calculatedPct.toFixed(2)) // Limit decimals
                                                         });
                                                     }}
                                                     readOnly={paymentMode === 'single'}
@@ -2205,7 +2266,7 @@ function ManajemenAset() {
                                     let progressDateTime = '';
                                     const dateMatch = details.match(/Tanggal: ([0-9\-]+ [0-9:]+)/);
                                     if (dateMatch) progressDateTime = dateMatch[1];
-                                    
+
                                     return (
                                         <>
                                             {/* Meta Info */}
@@ -2215,104 +2276,104 @@ function ManajemenAset() {
                                                     <div style={{ fontWeight: 600, color: '#334155' }}>
                                                         {progressDateTime || selectedHistoryLog.date}
                                                     </div>
-                                    </div>
-                                    <div>
-                                        <label style={{ display: 'block', fontSize: '12px', color: '#64748b', marginBottom: '4px' }}>Dibuat Oleh</label>
-                                        <div style={{ fontWeight: 600, color: '#334155', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                            <div style={{ width: '20px', height: '20px', background: '#e2e8f0', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px' }}>
-                                                {(selectedHistoryLog.user || 'Admin').charAt(0).toUpperCase()}
-                                            </div>
-                                            {selectedHistoryLog.user || 'Admin'}
-                                        </div>
-                                    </div>
-                                    <div style={{ gridColumn: '1 / -1' }}>
-                                        <label style={{ display: 'block', fontSize: '12px', color: '#64748b', marginBottom: '4px' }}>Aksi</label>
-                                        <div style={{ fontWeight: 600, color: '#0f172a' }}>{selectedHistoryLog.action}</div>
-                                    </div>
-                                </div>
-
-                                {/* Changes Table */}
-                                {(() => {
-                                    const details = selectedHistoryLog.details || '';
-                                    let changes = [];
-                                    let note = '';
-
-                                    // Parse Note and Changes based on format
-                                    const ketMatch = details.match(/Ket:\s*(.*?)(?=\.?\s*Perubahan:|$)/);
-                                    if (ketMatch) note = ketMatch[1];
-                                    else note = details.split('Perubahan:')[0]; // Fallback
-
-                                    // Extract progress date & time if present
-                                    let progressDateTime = '';
-                                    const dateMatch = details.match(/Tanggal: ([0-9\-]+ [0-9:]+)/);
-                                    if (dateMatch) progressDateTime = dateMatch[1];
-                                    
-                                    // Remove "Tanggal: ..." from note to avoid duplication
-                                    note = note.replace(/\s*Tanggal:\s*[0-9\-]+\s*[0-9:]+/g, '').trim();
-
-                                    const changesMatch = details.match(/Perubahan:\s*(.*)/);
-                                    if (changesMatch) {
-                                        changes = changesMatch[1].split('; ').map(c => c.trim()); // Use semicolon or handle comma better
-                                        if (changes.length === 1 && changes[0].includes(',')) {
-                                            changes = changesMatch[1].split(', ').map(c => c.trim());
-                                        }
-                                    }
-
-                                    return (
-                                        <>
-                                            {/* Note Section */}
-                                            {note && (
-                                                <div style={{ marginBottom: '24px' }}>
-                                                    <h4 style={{ fontSize: '14px', fontWeight: 600, color: '#475569', marginBottom: '8px' }}>Keterangan / Catatan</h4>
-                                                    <div style={{ padding: '12px', background: '#fffbeb', border: '1px solid #fef3c7', borderRadius: '6px', color: '#92400e', fontSize: '14px', lineHeight: '1.5' }}>
-                                                        {note}
+                                                </div>
+                                                <div>
+                                                    <label style={{ display: 'block', fontSize: '12px', color: '#64748b', marginBottom: '4px' }}>Dibuat Oleh</label>
+                                                    <div style={{ fontWeight: 600, color: '#334155', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                        <div style={{ width: '20px', height: '20px', background: '#e2e8f0', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px' }}>
+                                                            {(selectedHistoryLog.user || 'Admin').charAt(0).toUpperCase()}
+                                                        </div>
+                                                        {selectedHistoryLog.user || 'Admin'}
                                                     </div>
                                                 </div>
-                                            )}
+                                                <div style={{ gridColumn: '1 / -1' }}>
+                                                    <label style={{ display: 'block', fontSize: '12px', color: '#64748b', marginBottom: '4px' }}>Aksi</label>
+                                                    <div style={{ fontWeight: 600, color: '#0f172a' }}>{selectedHistoryLog.action}</div>
+                                                </div>
+                                            </div>
 
                                             {/* Changes Table */}
-                                            {changes.length > 0 && (
-                                                <div>
-                                                    <h4 style={{ fontSize: '14px', fontWeight: 600, color: '#475569', marginBottom: '12px' }}>Rincian Perubahan</h4>
-                                                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
-                                                        <thead>
-                                                            <tr style={{ background: '#f1f5f9', textAlign: 'left' }}>
-                                                                <th style={{ padding: '10px', border: '1px solid #e2e8f0', width: '30%', color: '#475569' }}>Data Terkait</th>
-                                                                <th style={{ padding: '10px', border: '1px solid #e2e8f0', width: '35%', color: '#475569' }}>Semula</th>
-                                                                <th style={{ padding: '10px', border: '1px solid #e2e8f0', width: '35%', color: '#475569' }}>Menjadi</th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody>
-                                                            {changes.map((change, idx) => {
-                                                                const parts = change.split('➝');
-                                                                if (parts.length === 2) {
-                                                                    const fieldPart = parts[0].split(':');
-                                                                    const fieldName = fieldPart[0].trim();
-                                                                    const oldValue = fieldPart[1] ? fieldPart[1].trim().replace(/^"|"$/g, '') : '-';
-                                                                    const newValue = parts[1].trim().replace(/^"|"$/g, '');
+                                            {(() => {
+                                                const details = selectedHistoryLog.details || '';
+                                                let changes = [];
+                                                let note = '';
 
-                                                                    return (
-                                                                        <tr key={idx}>
-                                                                            <td style={{ padding: '10px', border: '1px solid #e2e8f0', fontWeight: 500 }}>{fieldName}</td>
-                                                                            <td style={{ padding: '10px', border: '1px solid #e2e8f0', color: '#ef4444', backgroundColor: '#fef2f2' }}>{oldValue}</td>
-                                                                            <td style={{ padding: '10px', border: '1px solid #e2e8f0', color: '#16a34a', backgroundColor: '#f0fdf4', fontWeight: 600 }}>{newValue}</td>
+                                                // Parse Note and Changes based on format
+                                                const ketMatch = details.match(/Ket:\s*(.*?)(?=\.?\s*Perubahan:|$)/);
+                                                if (ketMatch) note = ketMatch[1];
+                                                else note = details.split('Perubahan:')[0]; // Fallback
+
+                                                // Extract progress date & time if present
+                                                let progressDateTime = '';
+                                                const dateMatch = details.match(/Tanggal: ([0-9\-]+ [0-9:]+)/);
+                                                if (dateMatch) progressDateTime = dateMatch[1];
+
+                                                // Remove "Tanggal: ..." from note to avoid duplication
+                                                note = note.replace(/\s*Tanggal:\s*[0-9\-]+\s*[0-9:]+/g, '').trim();
+
+                                                const changesMatch = details.match(/Perubahan:\s*(.*)/);
+                                                if (changesMatch) {
+                                                    changes = changesMatch[1].split('; ').map(c => c.trim()); // Use semicolon or handle comma better
+                                                    if (changes.length === 1 && changes[0].includes(',')) {
+                                                        changes = changesMatch[1].split(', ').map(c => c.trim());
+                                                    }
+                                                }
+
+                                                return (
+                                                    <>
+                                                        {/* Note Section */}
+                                                        {note && (
+                                                            <div style={{ marginBottom: '24px' }}>
+                                                                <h4 style={{ fontSize: '14px', fontWeight: 600, color: '#475569', marginBottom: '8px' }}>Keterangan / Catatan</h4>
+                                                                <div style={{ padding: '12px', background: '#fffbeb', border: '1px solid #fef3c7', borderRadius: '6px', color: '#92400e', fontSize: '14px', lineHeight: '1.5' }}>
+                                                                    {note}
+                                                                </div>
+                                                            </div>
+                                                        )}
+
+                                                        {/* Changes Table */}
+                                                        {changes.length > 0 && (
+                                                            <div>
+                                                                <h4 style={{ fontSize: '14px', fontWeight: 600, color: '#475569', marginBottom: '12px' }}>Rincian Perubahan</h4>
+                                                                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
+                                                                    <thead>
+                                                                        <tr style={{ background: '#f1f5f9', textAlign: 'left' }}>
+                                                                            <th style={{ padding: '10px', border: '1px solid #e2e8f0', width: '30%', color: '#475569' }}>Data Terkait</th>
+                                                                            <th style={{ padding: '10px', border: '1px solid #e2e8f0', width: '35%', color: '#475569' }}>Semula</th>
+                                                                            <th style={{ padding: '10px', border: '1px solid #e2e8f0', width: '35%', color: '#475569' }}>Menjadi</th>
                                                                         </tr>
-                                                                    );
-                                                                } else {
-                                                                    return (
-                                                                        <tr key={idx}>
-                                                                            <td colSpan={3} style={{ padding: '10px', border: '1px solid #e2e8f0' }}>{change}</td>
-                                                                        </tr>
-                                                                    )
-                                                                }
-                                                            })}
-                                                        </tbody>
-                                                    </table>
-                                                </div>
-                                            )}
-                                        </>
-                                    );
-                                })()}
+                                                                    </thead>
+                                                                    <tbody>
+                                                                        {changes.map((change, idx) => {
+                                                                            const parts = change.split('➝');
+                                                                            if (parts.length === 2) {
+                                                                                const fieldPart = parts[0].split(':');
+                                                                                const fieldName = fieldPart[0].trim();
+                                                                                const oldValue = fieldPart[1] ? fieldPart[1].trim().replace(/^"|"$/g, '') : '-';
+                                                                                const newValue = parts[1].trim().replace(/^"|"$/g, '');
+
+                                                                                return (
+                                                                                    <tr key={idx}>
+                                                                                        <td style={{ padding: '10px', border: '1px solid #e2e8f0', fontWeight: 500 }}>{fieldName}</td>
+                                                                                        <td style={{ padding: '10px', border: '1px solid #e2e8f0', color: '#ef4444', backgroundColor: '#fef2f2' }}>{oldValue}</td>
+                                                                                        <td style={{ padding: '10px', border: '1px solid #e2e8f0', color: '#16a34a', backgroundColor: '#f0fdf4', fontWeight: 600 }}>{newValue}</td>
+                                                                                    </tr>
+                                                                                );
+                                                                            } else {
+                                                                                return (
+                                                                                    <tr key={idx}>
+                                                                                        <td colSpan={3} style={{ padding: '10px', border: '1px solid #e2e8f0' }}>{change}</td>
+                                                                                    </tr>
+                                                                                )
+                                                                            }
+                                                                        })}
+                                                                    </tbody>
+                                                                </table>
+                                                            </div>
+                                                        )}
+                                                    </>
+                                                );
+                                            })()}
                                         </>
                                     );
                                 })()}
@@ -2339,8 +2400,121 @@ function ManajemenAset() {
                     </div>
                 )}
 
+                {/* --- GLOBAL CUSTOM MODALS --- */}
+
+                {/* Modern Alert Modal */}
+                {alertState.show && (
+                    <div className="modal-overlay" style={{ zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={closeAlert}>
+                        <div
+                            className="bg-white rounded-2xl p-6 shadow-2xl max-w-sm w-full mx-4"
+                            style={{
+                                background: 'white',
+                                borderRadius: '16px',
+                                padding: '24px',
+                                maxWidth: '380px',
+                                animation: 'scaleIn 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
+                                textAlign: 'center'
+                            }}
+                            onClick={e => e.stopPropagation()}
+                        >
+                            <div style={{
+                                width: '60px', height: '60px', borderRadius: '50%', margin: '0 auto 16px',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                background: alertState.type === 'success' ? '#def7ec' : alertState.type === 'error' ? '#fde8e8' : '#e1effe',
+                                color: alertState.type === 'success' ? '#057a55' : alertState.type === 'error' ? '#c81e1e' : '#1a56db'
+                            }}>
+                                {alertState.type === 'success' && <CheckCircle size={32} />}
+                                {alertState.type === 'error' && <AlertCircle size={32} />}
+                                {alertState.type === 'info' && <Info size={32} />}
+                            </div>
+
+                            <h3 style={{ margin: '0 0 8px', fontSize: '18px', fontWeight: 700, color: '#1f2937' }}>
+                                {alertState.title}
+                            </h3>
+
+                            <p style={{ margin: '0 0 20px', fontSize: '14px', color: '#6b7280', lineHeight: 1.5 }}>
+                                {alertState.message}
+                            </p>
+
+                            <button
+                                onClick={closeAlert}
+                                style={{
+                                    width: '100%', padding: '10px', borderRadius: '8px', border: 'none',
+                                    fontWeight: 600, fontSize: '14px', cursor: 'pointer',
+                                    background: alertState.type === 'success' ? '#057a55' : alertState.type === 'error' ? '#c81e1e' : '#1a56db',
+                                    color: 'white',
+                                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                                }}
+                            >
+                                OK
+                            </button>
+                        </div>
+                    </div>
+                )}
+
+                {/* Modern Confirm Modal */}
+                {confirmState.show && (
+                    <div className="modal-overlay" style={{ zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={closeConfirm}>
+                        <div
+                            className="bg-white rounded-2xl p-6 shadow-2xl max-w-sm w-full mx-4"
+                            style={{
+                                background: 'white',
+                                borderRadius: '16px',
+                                padding: '24px',
+                                maxWidth: '400px',
+                                animation: 'scaleIn 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
+                                textAlign: 'center'
+                            }}
+                            onClick={e => e.stopPropagation()}
+                        >
+                            <div style={{
+                                width: '60px', height: '60px', borderRadius: '50%', margin: '0 auto 16px',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                background: '#fde8e8', color: '#c81e1e'
+                            }}>
+                                <AlertTriangle size={32} />
+                            </div>
+
+                            <h3 style={{ margin: '0 0 8px', fontSize: '18px', fontWeight: 700, color: '#1f2937' }}>
+                                {confirmState.title}
+                            </h3>
+
+                            <p style={{ margin: '0 0 24px', fontSize: '14px', color: '#6b7280', lineHeight: 1.5 }}>
+                                {confirmState.message}
+                            </p>
+
+                            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+                                <button
+                                    onClick={closeConfirm}
+                                    style={{
+                                        padding: '10px 20px', borderRadius: '8px', border: '1px solid #d1d5db',
+                                        fontWeight: 600, fontSize: '14px', cursor: 'pointer',
+                                        background: 'white', color: '#374151'
+                                    }}
+                                >
+                                    Batal
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        if (confirmState.action) confirmState.action();
+                                        closeConfirm();
+                                    }}
+                                    style={{
+                                        padding: '10px 20px', borderRadius: '8px', border: 'none',
+                                        fontWeight: 600, fontSize: '14px', cursor: 'pointer',
+                                        background: '#c81e1e', color: 'white',
+                                        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                                    }}
+                                >
+                                    Ya, Lanjutkan
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </>
         )
+
     } catch (err) {
         // Fallback UI if error occurs
         return (
@@ -2351,5 +2525,7 @@ function ManajemenAset() {
         )
     }
 }
+
+
 
 export default ManajemenAset
