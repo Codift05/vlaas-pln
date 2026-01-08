@@ -45,10 +45,21 @@ export default function DashboardPage() {
             }
         }
 
+        // Initial load
         loadData()
+
+        // Listen for auth state changes (handling race condition on login)
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+            console.log('Auth state change:', event)
+            if (mounted && (event === 'SIGNED_IN' || event === 'INITIAL_SESSION' || event === 'TOKEN_REFRESHED')) {
+                // Re-fetch data when auth is confirmed
+                fetchDashboardData()
+            }
+        })
 
         return () => {
             mounted = false
+            subscription.unsubscribe()
         }
     }, [])
 
@@ -57,7 +68,7 @@ export default function DashboardPage() {
         if (allVendors.length > 0) {
             processVendorChartData(allVendors, selectedYear)
         }
-    }, [selectedYear])
+    }, [selectedYear, allVendors])
 
     const fetchDashboardData = async () => {
         try {
@@ -87,7 +98,22 @@ export default function DashboardPage() {
 
             if (vendorsForChart) {
                 setAllVendors(vendorsForChart)
-                processVendorChartData(vendorsForChart, selectedYear)
+
+                // Cek tahun yang tersedia dari data
+                const years = new Set<number>()
+                vendorsForChart.forEach((v: any) => {
+                    if (v.created_at) years.add(new Date(v.created_at).getFullYear())
+                })
+                const yearArray = Array.from(years).sort((a, b) => b - a)
+
+                // Jika tahun sekarang tidak ada datanya, gunakan tahun terbaru yang ada datanya
+                let yearToUse = selectedYear
+                if (yearArray.length > 0 && !yearArray.includes(selectedYear)) {
+                    yearToUse = yearArray[0]
+                    setSelectedYear(yearToUse)
+                }
+
+                processVendorChartData(vendorsForChart, yearToUse)
             }
         }
     }
@@ -375,9 +401,9 @@ export default function DashboardPage() {
                         {recentActivities.length > 0 ? recentActivities.map((activity, index) => {
                             const ActivityIcon = activity.icon
                             return (
-                                <div 
-                                    key={index} 
-                                    className="activity-item" 
+                                <div
+                                    key={index}
+                                    className="activity-item"
                                     onClick={() => handleContractClick(activity.contractId)}
                                     style={{ cursor: 'pointer' }}
                                 >
@@ -405,8 +431,8 @@ export default function DashboardPage() {
                     </div>
                     <div className="vendor-list">
                         {recentVendors.length > 0 ? recentVendors.map((vendor, index) => (
-                            <div 
-                                key={index} 
+                            <div
+                                key={index}
                                 className="vendor-item"
                                 onClick={handleVendorClick}
                                 style={{ cursor: 'pointer' }}
