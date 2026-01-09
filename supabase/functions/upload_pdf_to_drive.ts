@@ -1,3 +1,5 @@
+// @ts-nocheck
+// This file runs in Deno runtime (Supabase Edge Functions)
 import { serve } from 'std/server'
 import { google } from 'npm:googleapis@118.0.0'
 

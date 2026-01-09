@@ -138,6 +138,7 @@ function Pengaturan() {
                                             type="text"
                                             value={profileData.namaLengkap}
                                             onChange={(e) => setProfileData({ ...profileData, namaLengkap: e.target.value })}
+                                            placeholder="Masukkan nama lengkap"
                                         />
                                     </div>
                                     <div className="form-group-settings">
@@ -146,6 +147,7 @@ function Pengaturan() {
                                             type="email"
                                             value={profileData.email}
                                             onChange={(e) => setProfileData({ ...profileData, email: e.target.value })}
+                                            placeholder="Masukkan email"
                                         />
                                     </div>
                                 </div>
@@ -156,6 +158,7 @@ function Pengaturan() {
                                             type="tel"
                                             value={profileData.telepon}
                                             onChange={(e) => setProfileData({ ...profileData, telepon: e.target.value })}
+                                            placeholder="Masukkan nomor telepon"
                                         />
                                     </div>
                                     <div className="form-group-settings">
@@ -164,6 +167,7 @@ function Pengaturan() {
                                             type="text"
                                             value={profileData.alamat}
                                             onChange={(e) => setProfileData({ ...profileData, alamat: e.target.value })}
+                                            placeholder="Masukkan alamat"
                                         />
                                     </div>
                                 </div>
@@ -297,6 +301,7 @@ function Pengaturan() {
                                             onChange={(e) => setSystemConfig({ ...systemConfig, retentionMonths: parseInt(e.target.value) || 0 })}
                                             min="1"
                                             max="36"
+                                            placeholder="Masukkan jumlah bulan"
                                         />
                                         <small>Dokumen dengan status "Rejected" akan dihapus otomatis setelah periode ini</small>
                                     </div>
@@ -425,6 +430,7 @@ function Pengaturan() {
                                     value={newUserData.role}
                                     onChange={(e) => setNewUserData({ ...newUserData, role: e.target.value })}
                                     required
+                                    title="Pilih role user"
                                 >
                                     <option value="Verifikator">Verifikator</option>
                                     <option value="Super Admin">Super Admin</option>
