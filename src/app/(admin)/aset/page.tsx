@@ -340,6 +340,13 @@ function ManajemenAset() {
     const handlePaymentSubmit = async (e) => {
         e.preventDefault()
         setPaymentError('')
+        
+        // Validasi input
+        if (!paymentFormData.name || !paymentFormData.amount) {
+            setPaymentError('Nama dan nominal harus diisi!')
+            return
+        }
+        
         // Validasi: total termin tidak boleh melebihi nilai kontrak
         const contract = assets.find(a => a.id === paymentFormData.contractId)
         const contractAmount = contract ? Number(contract.amount) : 0
@@ -354,22 +361,30 @@ function ManajemenAset() {
             const payload = {
                 contract_id: paymentFormData.contractId,
                 name: paymentFormData.name,
-                percentage: paymentFormData.percentage,
-                value: paymentFormData.amount,
-                due_date: paymentFormData.dueDate,
+                percentage: parseFloat(paymentFormData.percentage) || 0,
+                value: parseFloat(paymentFormData.amount) || 0,
+                due_date: paymentFormData.dueDate || null,
                 status: 'Pending'
             }
 
-            const { error } = await supabase.from('payment_stages').insert([payload])
-            if (error) throw error
+            console.log('Submitting payment payload:', payload)
+            
+            const { data, error } = await supabase.from('payment_stages').insert([payload]).select()
+            
+            if (error) {
+                console.error('Supabase insert error:', error)
+                throw new Error(error.message || error.details || 'Gagal menyimpan ke database')
+            }
+            
+            console.log('Payment stage saved successfully:', data)
 
             showAlert('success', 'Berhasil', 'Tahapan pembayaran berhasil ditambahkan!')
             fetchPaymentStages(paymentFormData.contractId)
             setShowPaymentModal(false)
         } catch (err) {
             console.error('Error saving payment stage:', err)
-            const errorMessage = err?.message || err?.error_description || JSON.stringify(err)
-            showAlert('error', 'Gagal', 'Gagal menyimpan: ' + errorMessage)
+            const errorMessage = err?.message || (typeof err === 'string' ? err : JSON.stringify(err))
+            showAlert('error', 'Gagal', errorMessage)
         }
     }
 
@@ -819,6 +834,8 @@ function ManajemenAset() {
                             value={filterStatus}
                             onChange={(e) => setFilterStatus(e.target.value)}
                             className="filter-select"
+                            title="Pilih status kontrak"
+                            title="Pilih status kontrak"
                         >
                             <option value="all">Semua Status</option>
                             <option value="Terkontrak">Terkontrak</option>
@@ -989,6 +1006,8 @@ function ManajemenAset() {
                                                     onClick={() => toggleExpand(asset.id)}
                                                     className="btn-icon"
                                                     style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#64748b' }}
+                                                    title={expandedContractId === asset.id ? 'Tutup detail' : 'Buka detail'}
+                                                    aria-label={expandedContractId === asset.id ? 'Tutup detail kontrak' : 'Buka detail kontrak'}
                                                 >
                                                     {expandedContractId === asset.id ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
                                                 </button>
@@ -1308,6 +1327,7 @@ function ManajemenAset() {
                                                                                                 <button
                                                                                                     onClick={() => handleOpenHistoryDetail(log)}
                                                                                                     style={{ fontSize: '12px', color: '#64748b', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}
+                                                                                                    title="Lihat detail riwayat"
                                                                                                 >
                                                                                                     Lihat Detail
                                                                                                 </button>
@@ -1417,7 +1437,7 @@ function ManajemenAset() {
                             <div className="modal-content" onClick={(e) => e.stopPropagation()}>
                                 <div className="modal-header">
                                     <h2>Detail Kontrak</h2>
-                                    <button className="modal-close" onClick={() => setShowDetailModal(false)}>✕</button>
+                                    <button className="modal-close" onClick={() => setShowDetailModal(false)} title="Tutup modal" aria-label="Tutup modal detail kontrak">✕</button>
                                 </div>
                                 <div className="modal-body">
                                     <div className="detail-section">
@@ -1627,7 +1647,7 @@ function ManajemenAset() {
                             <div className="modal-content" onClick={(e) => e.stopPropagation()}>
                                 <div className="modal-header">
                                     <h2>{isEditing ? 'Edit Kontrak' : 'Tambah Kontrak Baru'}</h2>
-                                    <button className="modal-close" onClick={handleCloseModal}>✕</button>
+                                    <button className="modal-close" onClick={handleCloseModal} title="Tutup modal" aria-label="Tutup modal form kontrak">✕</button>
                                 </div>
 
                                 <form onSubmit={handleSubmit} className="modal-form">
@@ -1900,6 +1920,7 @@ function ManajemenAset() {
                                     className="modal-upload-input"
                                     type="file"
                                     accept="application/pdf"
+                                    placeholder="Pilih file PDF"
                                     onChange={e => setSelectedFile(e.target.files[0])}
                                 />
                                 <button
@@ -2020,6 +2041,7 @@ function ManajemenAset() {
                                                     max="100"
                                                     step="5"
                                                     className="range-slider"
+                                                    title="Pilih persentase penyelesaian"
                                                     value={progressFormData.percentage}
                                                     onChange={(e) => setProgressFormData({ ...progressFormData, percentage: parseInt(e.target.value) })}
                                                 />
@@ -2140,6 +2162,7 @@ function ManajemenAset() {
                                                 className="input-modern"
                                                 value={paymentFormData.name}
                                                 onChange={(e) => setPaymentFormData({ ...paymentFormData, name: e.target.value })}
+                                                placeholder="Masukkan nama tahapan pembayaran"
                                                 required
                                             />
                                         </div>
@@ -2164,6 +2187,7 @@ function ManajemenAset() {
                                                             amount: calculatedAmount
                                                         })
                                                     }}
+                                                    title="Masukkan persentase pembayaran"
                                                     disabled={paymentMode === 'single'}
                                                 />
                                             </div>
@@ -2205,6 +2229,7 @@ function ManajemenAset() {
                                                 className="input-modern"
                                                 value={paymentFormData.dueDate}
                                                 onChange={(e) => setPaymentFormData({ ...paymentFormData, dueDate: e.target.value })}
+                                                title="Pilih tanggal jatuh tempo"
                                             />
                                         </div>
                                     </div>
@@ -2254,7 +2279,7 @@ function ManajemenAset() {
                                 <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '10px' }}>
                                     <History size={20} /> Detail Riwayat
                                 </h3>
-                                <button onClick={handleCloseHistoryDetail} style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#64748b' }}>
+                                <button onClick={handleCloseHistoryDetail} style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#64748b' }} aria-label="Tutup detail riwayat">
                                     <X size={24} />
                                 </button>
                             </div>

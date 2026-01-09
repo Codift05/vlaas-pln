@@ -24,8 +24,8 @@ function getDriveService() {
     // 2. Try Local Files if Env Vars failed or missing
     if (!credentials || !token) {
         if (fs.existsSync(CREDENTIALS_PATH) && fs.existsSync(TOKEN_PATH)) {
-            credentials = JSON.parse(fs.readFileSync(CREDENTIALS_PATH));
-            token = JSON.parse(fs.readFileSync(TOKEN_PATH));
+            credentials = JSON.parse(fs.readFileSync(CREDENTIALS_PATH, 'utf-8'));
+            token = JSON.parse(fs.readFileSync(TOKEN_PATH, 'utf-8'));
         } else {
             throw new Error('Google Drive credentials/token not found in environment variables or local files.');
         }
