@@ -858,8 +858,179 @@
   padding: 24px;
 }
 
+/* Inline styles refactoring */
+.min-width-180 {
+  min-width: 180px;
+}
+
+.icon-inline {
+  display: inline;
+  margin-right: 8px;
+}
+
+.icon-inline-blue {
+  display: inline;
+  margin-right: 8px;
+  color: #3b82f6;
+}
+
+.bar-stack-dynamic {
+  height: 100%;
+  min-height: 4px;
+}
+
+.chart-legend-flex {
+  display: flex;
+  justify-content: center;
+  gap: 18px;
+  margin-top: 10px;
+}
+
+.legend-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend-badge-color {
+  width: 14px;
+  height: 8px;
+  border-radius: 4px;
+  display: inline-block;
+}
+
+.pie-legend-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.legend-item-compact {
+  margin-bottom: 0;
+}
+
+.legend-flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+.legend-text-small {
+  font-size: 11px;
+  color: #64748b;
+}
+
+.legend-count-medium {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.legend-count-percent {
+  font-size: 10px;
+  color: #94a3b8;
+  margin-left: 4px;
+  font-weight: 400;
+}
+
+.legend-item-section {
+  margin-top: 10px;
+}
+
+.legend-count-large {
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.legend-text-info {
+  font-size: 13px;
+  color: #64748b;
+  margin-left: 6px;
+}
+
+.modal-content-large {
+  max-width: 900px;
+  max-height: 80vh;
+  overflow: auto;
+}
+
+.info-box {
+  margin-bottom: 20px;
+  padding: 16px;
+  background: #f8fafc;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+}
+
+.info-box-flex {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.info-label {
+  font-size: 14px;
+  color: #64748b;
+  margin: 0 0 4px 0;
+}
+
+.info-value-large {
+  font-size: 28px;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+}
+
+.info-text-right {
+  text-align: right;
+}
+
+.info-value-blue {
+  font-size: 28px;
+  font-weight: 700;
+  color: #3b82f6;
+  margin: 0;
+}
+
+.table-wrapper {
+  overflow-x: auto;
+}
+
+.table-compact {
+  font-size: 14px;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.text-right {
+  text-align: right;
+}
+
+.td-center {
+  text-align: center;
+}
+
+.td-right-bold {
+  text-align: right;
+  font-weight: 600;
+}
+
+.td-small {
+  font-size: 13px;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 40px;
+  color: #64748b;
+}
+
 @media (max-width: 768px) {
   .budget-section {
+    grid-template-columns: 1fr;
+  }
+
+  .pie-legend-grid {
     grid-template-columns: 1fr;
   }
 }
