@@ -1,7 +1,7 @@
 'use client'
 import { useState, useRef, useEffect, Fragment } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { Eye, Edit, Trash2, Search, ChevronDown, ChevronUp, Plus, Save, Upload, Calendar, Clock, ArrowRight, FileText, AlertCircle, AlertTriangle, FileCheck, History, Activity, X, CheckCircle, Info } from 'lucide-react'
+import { Eye, Edit, Trash2, Search, ChevronDown, ChevronUp, Plus, Save, Upload, Calendar, Clock, ArrowRight, FileText, AlertCircle, AlertTriangle, FileCheck, History, Activity, X, CheckCircle, Info, AlertOctagon } from 'lucide-react'
 import { supabase } from '../../../lib/supabaseClient'
 import './ManajemenAset.css'
 
@@ -131,6 +131,7 @@ function ManajemenAset() {
                 status: contract.status || 'Aktif',
                 startDate: contract.start_date || '',
                 endDate: contract.end_date || '',
+                updatedAt: contract.updated_at || contract.created_at || '',
                 progress: contract.progress || 0,
                 history: contract.history || []
             }))
@@ -227,6 +228,29 @@ function ManajemenAset() {
 
     // State for expanded row (Amendment view)
     const [expandedContractId, setExpandedContractId] = useState(null)
+
+    // Helper function to calculate deadline status
+    const getDeadlineStatus = (endDate, status) => {
+        // Skip if status is already "Selesai" or "Terbayar"
+        if (status === 'Selesai' || status === 'Terbayar') return null
+
+        if (!endDate) return null
+        const end = new Date(endDate)
+        const now = new Date()
+        const diffDays = Math.ceil((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+
+        if (diffDays < 0) return 'overdue' // Terlambat
+        if (diffDays <= 7) return 'warning' // Mendekati deadline (7 hari)
+        return null
+    }
+
+    // Calculate deadline stats
+    const deadlineStats = assets.reduce((acc, asset) => {
+        const status = getDeadlineStatus(asset.endDate, asset.status)
+        if (status === 'overdue') acc.overdue++
+        if (status === 'warning') acc.warning++
+        return acc
+    }, { overdue: 0, warning: 0 })
 
     const toggleExpand = (id) => {
         if (expandedContractId === id) {
@@ -340,13 +364,13 @@ function ManajemenAset() {
     const handlePaymentSubmit = async (e) => {
         e.preventDefault()
         setPaymentError('')
-        
+
         // Validasi input
         if (!paymentFormData.name || !paymentFormData.amount) {
             setPaymentError('Nama dan nominal harus diisi!')
             return
         }
-        
+
         // Validasi: total termin tidak boleh melebihi nilai kontrak
         const contract = assets.find(a => a.id === paymentFormData.contractId)
         const contractAmount = contract ? Number(contract.amount) : 0
@@ -368,14 +392,14 @@ function ManajemenAset() {
             }
 
             console.log('Submitting payment payload:', payload)
-            
+
             const { data, error } = await supabase.from('payment_stages').insert([payload]).select()
-            
+
             if (error) {
                 console.error('Supabase insert error:', error)
                 throw new Error(error.message || error.details || 'Gagal menyimpan ke database')
             }
-            
+
             console.log('Payment stage saved successfully:', data)
 
             showAlert('success', 'Berhasil', 'Tahapan pembayaran berhasil ditambahkan!')
@@ -621,7 +645,8 @@ function ManajemenAset() {
                         location: formData.location,
                         status: formData.status,
                         start_date: formData.startDate,
-                        end_date: formData.endDate
+                        end_date: formData.endDate,
+                        updated_at: new Date().toISOString()
                     })
                     .eq('id', editId)
 
@@ -827,6 +852,78 @@ function ManajemenAset() {
     try {
         return (
             <>
+                {/* Deadline Alert Cards */}
+                {(deadlineStats.overdue > 0 || deadlineStats.warning > 0) && (
+                    <div style={{ display: 'flex', gap: '16px', marginBottom: '20px' }}>
+                        {deadlineStats.overdue > 0 && (
+                            <div style={{
+                                flex: 1,
+                                background: '#fff',
+                                borderRadius: '16px',
+                                padding: '20px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '16px',
+                                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)'
+                            }}>
+                                <div style={{
+                                    background: '#fee2e2',
+                                    borderRadius: '50%',
+                                    width: '56px',
+                                    height: '56px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    flexShrink: 0
+                                }}>
+                                    <AlertOctagon size={28} style={{ color: '#dc2626' }} />
+                                </div>
+                                <div style={{ flex: 1 }}>
+                                    <div style={{ fontSize: '28px', fontWeight: 700, color: '#1e293b', lineHeight: 1 }}>
+                                        {deadlineStats.overdue}
+                                    </div>
+                                    <div style={{ fontSize: '13px', color: '#64748b', marginTop: '4px' }}>
+                                        Kontrak Terlambat
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                        {deadlineStats.warning > 0 && (
+                            <div style={{
+                                flex: 1,
+                                background: '#fff',
+                                borderRadius: '16px',
+                                padding: '20px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '16px',
+                                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)'
+                            }}>
+                                <div style={{
+                                    background: '#fef3c7',
+                                    borderRadius: '50%',
+                                    width: '56px',
+                                    height: '56px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    flexShrink: 0
+                                }}>
+                                    <Clock size={28} style={{ color: '#d97706' }} />
+                                </div>
+                                <div style={{ flex: 1 }}>
+                                    <div style={{ fontSize: '28px', fontWeight: 700, color: '#1e293b', lineHeight: 1 }}>
+                                        {deadlineStats.warning}
+                                    </div>
+                                    <div style={{ fontSize: '13px', color: '#64748b', marginTop: '4px' }}>
+                                        Mendekati Deadline
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                )}
+
                 {/* Action Bar */}
                 <div className="action-bar">
                     <div className="filter-section">
@@ -838,8 +935,6 @@ function ManajemenAset() {
                             title="Pilih status kontrak"
                         >
                             <option value="all">Semua Status</option>
-                            <option value="Terkontrak">Terkontrak</option>
-                            <option value="Dalam Proses Pekerjaan">Dalam Proses Pekerjaan</option>
                             <option value="Selesai">Selesai</option>
                             <option value="Dalam Pemeriksaan">Dalam Pemeriksaan</option>
                             <option value="Telah Diperiksa">Telah Diperiksa</option>
@@ -951,6 +1046,11 @@ function ManajemenAset() {
                                                 <span>Tanggal Mulai</span>
                                             </label>
                                             <label className="column-option">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={columnVisibility.endDate}
+                                                    onChange={() => toggleColumnVisibility('endDate')}
+                                                />
                                                 <span>Tanggal Selesai</span>
                                             </label>
                                         </div>
@@ -998,389 +1098,426 @@ function ManajemenAset() {
                         </thead>
                         <tbody>
                             {filteredAssets.length > 0 ? (
-                                filteredAssets.map((asset) => (
-                                    <Fragment key={asset.id}>
-                                        <tr data-contract-id={asset.id} style={{ background: expandedContractId === asset.id ? '#f8fafc' : undefined }}>
-                                            <td style={{ padding: '16px 8px', textAlign: 'center', width: '50px' }}>
-                                                <button
-                                                    onClick={() => toggleExpand(asset.id)}
-                                                    className="btn-icon"
-                                                    style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#64748b' }}
-                                                    title={expandedContractId === asset.id ? 'Tutup detail' : 'Buka detail'}
-                                                    aria-label={expandedContractId === asset.id ? 'Tutup detail kontrak' : 'Buka detail kontrak'}
-                                                >
-                                                    {expandedContractId === asset.id ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
-                                                </button>
-                                            </td>
-                                            {columnVisibility.id && <td className="asset-id">{asset.id}</td>}
-                                            {columnVisibility.name && <td className="asset-name">{asset.name}</td>}
-                                            {columnVisibility.vendorName && <td className="asset-vendor">{asset.vendorName}</td>}
-                                            {columnVisibility.amount && <td>{asset.amount?.toLocaleString('id-ID', { style: 'currency', currency: 'IDR' })}</td>}
-                                            {columnVisibility.budgetType && (
-                                                <td>
-                                                    <span className={`budget-badge budget-${asset.budgetType.toLowerCase()}`}>
-                                                        {asset.budgetType}
-                                                    </span>
+                                filteredAssets.map((asset) => {
+                                    const deadlineStatus = getDeadlineStatus(asset.endDate, asset.status)
+                                    const rowStyle = {
+                                        background: expandedContractId === asset.id ? '#f8fafc' : undefined,
+                                        borderLeft: deadlineStatus === 'overdue' ? '3px solid #ef4444' :
+                                            deadlineStatus === 'warning' ? '3px solid #f59e0b' :
+                                                undefined
+                                    }
+
+                                    return (
+                                        <Fragment key={asset.id}>
+                                            <tr data-contract-id={asset.id} style={rowStyle}>
+                                                <td style={{ padding: '16px 8px', textAlign: 'center', width: '50px' }}>
+                                                    <button
+                                                        onClick={() => toggleExpand(asset.id)}
+                                                        className="btn-icon"
+                                                        style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#64748b' }}
+                                                        title={expandedContractId === asset.id ? 'Tutup detail' : 'Buka detail'}
+                                                        aria-label={expandedContractId === asset.id ? 'Tutup detail kontrak' : 'Buka detail kontrak'}
+                                                    >
+                                                        {expandedContractId === asset.id ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                                                    </button>
                                                 </td>
-                                            )}
-                                            {columnVisibility.contractType && (
-                                                <td>
-                                                    <span className={`contract-badge contract-${asset.contractType.toLowerCase()}`}>
-                                                        {asset.contractType === 'NON-PO' ? 'NON-PO' : asset.contractType}
-                                                    </span>
-                                                </td>
-                                            )}
-
-                                            {columnVisibility.location && <td>{asset.location}</td>}
-                                            {columnVisibility.status && (
-                                                <td>
-                                                    <span className={`status-badge ${getBadgeClass(asset.status)}`}>
-                                                        {asset.status}
-                                                    </span>
-                                                </td>
-                                            )}
-                                            {columnVisibility.startDate && <td>{asset.startDate}</td>}
-                                            {columnVisibility.endDate && <td>{asset.endDate}</td>}
-                                            <td>
-                                                <div className="action-buttons">
-                                                    <button className="btn-icon btn-view" title="Lihat Detail" onClick={() => handleViewDetail(asset)}><Eye size={16} /></button>
-                                                    <button className="btn-icon btn-edit" title="Edit" onClick={() => handleEdit(asset)}><Edit size={16} /></button>
-                                                    <button className="btn-icon btn-delete" title="Hapus" onClick={() => handleDelete(asset.id)}><Trash2 size={16} /></button>
-                                                    <button className="btn-icon btn-upload" title="Upload PDF" onClick={() => openUploadModal(asset.id)}><Upload size={16} /></button>
-                                                </div>
-
-                                            </td>
-                                        </tr>
-                                        {expandedContractId === asset.id && (
-                                            <tr className="expanded-row-content">
-                                                <td colSpan={getVisibleColumnsCount() + 2} style={{ padding: '0 24px 24px 24px', background: '#f8fafc', borderBottom: '2px solid #e2e8f0' }}>
-                                                    <div className="amendment-card-container" style={{ background: 'white', borderRadius: '12px', border: '1px solid #e2e8f0', padding: '24px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)' }}>
-                                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
-                                                            <div>
-                                                                <h4 style={{ margin: 0, fontSize: '18px', fontWeight: 700, color: '#1e293b', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                                                    <div style={{ background: '#eff6ff', padding: '8px', borderRadius: '8px', display: 'flex' }}>
-                                                                        <FileText size={20} className="text-blue-500" style={{ color: '#3b82f6' }} />
-                                                                    </div>
-                                                                    Riwayat Amandemen & Perubahan
-                                                                </h4>
-                                                                <p style={{ margin: '4px 0 0 0', fontSize: '14px', color: '#64748b', marginLeft: '48px' }}>
-                                                                    Kelola riwayat perubahan dan amandemen untuk kontrak ini
-                                                                </p>
-
-                                                                {/* Progress Widget in Details */}
-                                                                <div style={{ marginTop: '16px', marginLeft: '48px', background: '#f8fafc', padding: '12px 16px', borderRadius: '10px', border: '1px solid #e2e8f0', maxWidth: '400px' }}>
-                                                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                                                                        <span style={{ fontSize: '13px', fontWeight: 600, color: '#475569' }}>Progress Pekerjaan</span>
-                                                                        <span style={{ fontSize: '14px', fontWeight: 700, color: asset.progress > 70 ? '#16a34a' : asset.progress > 30 ? '#d97706' : '#dc2626' }}>{asset.progress}% Selesai</span>
-                                                                    </div>
-                                                                    <div className="progress-bar-container" style={{ height: '10px', background: '#e2e8f0' }}>
-                                                                        <div
-                                                                            className={`progress-bar-fill ${asset.progress < 30 ? 'low' : asset.progress < 70 ? 'medium' : 'high'}`}
-                                                                            style={{ width: `${asset.progress}%` }}
-                                                                        ></div>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-
-                                                            <div style={{ display: 'flex', gap: '12px' }}>
-                                                                {detailTab === 'payment' ? (
-                                                                    <button
-                                                                        className="btn-primary"
-                                                                        onClick={() => handleOpenPaymentModal(asset)}
-                                                                        style={{ padding: '10px 18px', fontSize: '14px', background: '#10b981' }}
-                                                                    >
-                                                                        <Plus size={18} /> Tambah Tahapan
-                                                                    </button>
-                                                                ) : (
-                                                                    <>
-                                                                        <button
-                                                                            className="btn-primary"
-                                                                            onClick={() => handleCreateProgressTracker(asset)}
-                                                                            style={{ padding: '10px 18px', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}
-                                                                        >
-                                                                            <Plus size={18} /> Buat Progress Tracker
-                                                                        </button>
-                                                                        <button
-                                                                            className="btn-primary"
-                                                                            onClick={() => handleCreateAmendment(asset)}
-                                                                            style={{ padding: '10px 18px', fontSize: '14px' }}
-                                                                        >
-                                                                            <Plus size={18} /> Buat Amandemen
-                                                                        </button>
-                                                                    </>
-                                                                )}
-                                                            </div>
-                                                        </div>
-
-                                                        {/* MAIN TABS (History vs Payment) */}
-                                                        <div style={{ display: 'flex', gap: '20px', borderBottom: '1px solid #e2e8f0', marginBottom: '20px' }}>
-                                                            <button
-                                                                onClick={() => setDetailTab('history')}
-                                                                style={{
-                                                                    padding: '12px 4px',
-                                                                    background: 'transparent',
-                                                                    color: detailTab === 'history' ? '#3b82f6' : '#64748b',
-                                                                    border: 'none',
-                                                                    borderBottom: detailTab === 'history' ? '2px solid #3b82f6' : '2px solid transparent',
-                                                                    fontSize: '15px',
+                                                {columnVisibility.id && (
+                                                    <td className="asset-id">
+                                                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                            {asset.id}
+                                                            {deadlineStatus === 'overdue' && (
+                                                                <span style={{
+                                                                    background: '#fee2e2',
+                                                                    color: '#dc2626',
+                                                                    fontSize: '10px',
                                                                     fontWeight: 600,
-                                                                    cursor: 'pointer',
-                                                                    display: 'flex',
-                                                                    alignItems: 'center',
-                                                                    gap: '8px'
-                                                                }}
-                                                            >
-                                                                <History size={18} /> Riwayat & Progress
-                                                            </button>
-                                                            <button
-                                                                onClick={() => { setDetailTab('payment'); fetchPaymentStages(asset.id); }}
-                                                                style={{
-                                                                    padding: '12px 4px',
-                                                                    background: 'transparent',
-                                                                    color: detailTab === 'payment' ? '#be185d' : '#64748b', // Pink/Red for payment
-                                                                    border: 'none',
-                                                                    borderBottom: detailTab === 'payment' ? '2px solid #be185d' : '2px solid transparent',
-                                                                    fontSize: '15px',
+                                                                    padding: '3px 8px',
+                                                                    borderRadius: '6px',
+                                                                    border: '1px solid #fca5a5'
+                                                                }}>Terlambat</span>
+                                                            )}
+                                                            {deadlineStatus === 'warning' && (
+                                                                <span style={{
+                                                                    background: '#fef3c7',
+                                                                    color: '#d97706',
+                                                                    fontSize: '10px',
                                                                     fontWeight: 600,
-                                                                    cursor: 'pointer',
-                                                                    display: 'flex',
-                                                                    alignItems: 'center',
-                                                                    gap: '8px'
-                                                                }}
-                                                            >
-                                                                <FileCheck size={18} /> Tahapan Pembayaran
-                                                            </button>
+                                                                    padding: '3px 8px',
+                                                                    borderRadius: '6px',
+                                                                    border: '1px solid #fcd34d'
+                                                                }}>Urgent</span>
+                                                            )}
                                                         </div>
+                                                    </td>
+                                                )}
+                                                {columnVisibility.name && <td className="asset-name">{asset.name}</td>}
+                                                {columnVisibility.vendorName && <td className="asset-vendor">{asset.vendorName}</td>}
+                                                {columnVisibility.amount && <td>{asset.amount?.toLocaleString('id-ID', { style: 'currency', currency: 'IDR' })}</td>}
+                                                {columnVisibility.budgetType && (
+                                                    <td>
+                                                        <span className={`budget-badge budget-${asset.budgetType.toLowerCase()}`}>
+                                                            {asset.budgetType}
+                                                        </span>
+                                                    </td>
+                                                )}
+                                                {columnVisibility.contractType && (
+                                                    <td>
+                                                        <span className={`contract-badge contract-${asset.contractType.toLowerCase()}`}>
+                                                            {asset.contractType === 'NON-PO' ? 'NON-PO' : asset.contractType}
+                                                        </span>
+                                                    </td>
+                                                )}
 
-                                                        {detailTab === 'payment' ? (
-                                                            /* PAYMENT STAGES TABLE */
-                                                            <div>
-                                                                {paymentStages.length === 0 ? (
-                                                                    <div className="no-data" style={{ padding: '40px', background: '#f8fafc', borderRadius: '12px', border: '1px dashed #cbd5e1' }}>
-                                                                        <div className="no-data-message">
-                                                                            <p>Belum ada tahapan pembayaran.</p>
-                                                                            <small>Tambahkan termin atau pembayaran sekaligus.</small>
-                                                                        </div>
-                                                                    </div>
-                                                                ) : (
-                                                                    <table className="assets-table" style={{ marginTop: '0' }}>
-                                                                        <thead>
-                                                                            <tr>
-                                                                                <th style={{ background: '#f1f5f9' }}>Tahapan</th>
-                                                                                <th style={{ background: '#f1f5f9' }}>Persentase</th>
-                                                                                <th style={{ background: '#f1f5f9' }}>Nominal (Rp)</th>
-                                                                                <th style={{ background: '#f1f5f9' }}>Jatuh Tempo</th>
-                                                                                <th style={{ background: '#f1f5f9' }}>Status</th>
-                                                                                <th style={{ background: '#f1f5f9' }}>Aksi</th>
-                                                                            </tr>
-                                                                        </thead>
-                                                                        <tbody>
-                                                                            {paymentStages.map((stage) => (
-                                                                                <tr key={stage.id}>
-                                                                                    <td style={{ fontWeight: 600 }}>{stage.name}</td>
-                                                                                    <td>{stage.percentage}%</td>
-                                                                                    <td>{new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(stage.value || 0)}</td>
-                                                                                    <td>{stage.due_date ? new Date(stage.due_date).toLocaleDateString('id-ID') : '-'}</td>
-                                                                                    <td>
-                                                                                        <span className={`status-badge ${stage.status === 'Paid' ? 'status-terbayar' : 'status-inactive'}`}>
-                                                                                            {stage.status === 'Paid' ? 'Lunas' : 'Belum Dibayar'}
-                                                                                        </span>
-                                                                                        {stage.paid_at && <div style={{ fontSize: '11px', marginTop: '4px', color: '#64748b' }}>{new Date(stage.paid_at).toLocaleDateString('id-ID')}</div>}
-                                                                                    </td>
-                                                                                    <td>
-                                                                                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                                                                                            {stage.status !== 'Paid' && (
-                                                                                                <button
-                                                                                                    onClick={() => handleMarkAsPaid(stage.id, asset.id)}
-                                                                                                    className="btn-secondary"
-                                                                                                    style={{ padding: '6px 12px', fontSize: '12px' }}
-                                                                                                    title="Tandai Sudah Dibayar"
-                                                                                                >
-                                                                                                    Tandai Bayar
-                                                                                                </button>
-                                                                                            )}
-                                                                                            <button
-                                                                                                onClick={() => handleDeletePaymentStage(stage.id, asset.id)}
-                                                                                                className="btn-icon-danger"
-                                                                                                style={{ background: '#fee2e2', border: 'none', borderRadius: '6px', padding: '6px', cursor: 'pointer', color: '#ef4444' }}
-                                                                                                title="Hapus Tahapan"
-                                                                                            >
-                                                                                                <Trash2 size={16} />
-                                                                                            </button>
-                                                                                        </div>
-                                                                                    </td>
-                                                                                </tr>
-                                                                            ))}
-                                                                        </tbody>
-                                                                        {/* Footer for Totals */}
-                                                                        <tfoot>
-                                                                            <tr style={{ background: '#f8fafc', fontWeight: 700 }}>
-                                                                                <td colSpan={2} style={{ textAlign: 'right' }}>Total Terbayar:</td>
-                                                                                <td style={{ color: '#059669' }}>
-                                                                                    {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(
-                                                                                        paymentStages.filter(s => s.status === 'Paid').reduce((sum, s) => sum + Number(s.value || 0), 0)
-                                                                                    )}
-                                                                                </td>
-                                                                                <td colSpan={3}></td>
-                                                                            </tr>
-                                                                        </tfoot>
-                                                                    </table>
-                                                                )}
-                                                            </div>
-                                                        ) : (
-                                                            /* EXISTING HISTORY CONTENT WRAPPER */
-                                                            <>
-                                                                {/* Tab Filter (MOVED INSIDE) */}
-                                                                <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', borderBottom: '2px solid #e2e8f0', paddingBottom: '8px' }}>
-                                                                    <button
-                                                                        onClick={() => setActiveHistoryTab('all')}
-                                                                        style={{
-                                                                            padding: '8px 16px',
-                                                                            background: activeHistoryTab === 'all' ? '#3b82f6' : 'transparent',
-                                                                            color: activeHistoryTab === 'all' ? 'white' : '#64748b',
-                                                                            border: 'none',
-                                                                            borderRadius: '8px',
-                                                                            fontSize: '14px',
-                                                                            fontWeight: 600,
-                                                                            cursor: 'pointer',
-                                                                            transition: 'all 0.2s'
-                                                                        }}
-                                                                    >
-                                                                        Semua
-                                                                    </button>
-                                                                    <button
-                                                                        onClick={() => setActiveHistoryTab('amendments')}
-                                                                        style={{
-                                                                            padding: '8px 16px',
-                                                                            background: activeHistoryTab === 'amendments' ? '#3b82f6' : 'transparent',
-                                                                            color: activeHistoryTab === 'amendments' ? 'white' : '#64748b',
-                                                                            border: 'none',
-                                                                            borderRadius: '8px',
-                                                                            fontSize: '14px',
-                                                                            fontWeight: 600,
-                                                                            cursor: 'pointer',
-                                                                            transition: 'all 0.2s'
-                                                                        }}
-                                                                    >
-                                                                        Amandemen
-                                                                    </button>
-                                                                    <button
-                                                                        onClick={() => setActiveHistoryTab('progress')}
-                                                                        style={{
-                                                                            padding: '8px 16px',
-                                                                            background: activeHistoryTab === 'progress' ? '#3b82f6' : 'transparent',
-                                                                            color: activeHistoryTab === 'progress' ? 'white' : '#64748b',
-                                                                            border: 'none',
-                                                                            borderRadius: '8px',
-                                                                            fontSize: '14px',
-                                                                            fontWeight: 600,
-                                                                            cursor: 'pointer',
-                                                                            transition: 'all 0.2s'
-                                                                        }}
-                                                                    >
-                                                                        Progress Tracker
-                                                                    </button>
-                                                                </div>
-
-                                                                <div className="amendment-list" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                                                                    {
-                                                                        (() => {
-                                                                            let filteredHistory = asset.history || [];
-                                                                            if (activeHistoryTab === 'amendments') {
-                                                                                filteredHistory = filteredHistory.filter(h => h.action.includes('Amandemen'));
-                                                                            } else if (activeHistoryTab === 'progress') {
-                                                                                filteredHistory = filteredHistory.filter(h => h.action.includes('Progress Tracker'));
-                                                                            }
-                                                                            if (filteredHistory.length > 0) {
-                                                                                return filteredHistory.slice().reverse().map((log, idx) => (
-                                                                                    <div key={idx} className="amendment-item" style={{ display: 'flex', gap: '20px', padding: '16px', borderRadius: '12px', border: '1px solid #f1f5f9', background: '#fff', transition: 'all 0.2s', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' }}>
-                                                                                        <div style={{ minWidth: '140px', fontSize: '13px', color: '#64748b', borderRight: '1px solid #f1f5f9', paddingRight: '16px' }}>
-                                                                                            <div style={{ fontWeight: 600, color: '#334155', fontSize: '14px' }}>{log.date}</div>
-                                                                                            <div style={{ fontSize: '12px', marginTop: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                                                                                <div style={{ width: '20px', height: '20px', background: '#f1f5f9', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '10px', color: '#64748b' }}>
-                                                                                                    {(log.user || 'Admin').charAt(0).toUpperCase()}
-                                                                                                </div>
-                                                                                                {log.user || 'Admin'}
-                                                                                            </div>
-                                                                                        </div>
-                                                                                        <div style={{ flex: 1 }}>
-                                                                                            <div style={{ fontWeight: 700, color: '#0f172a', marginBottom: '8px', fontSize: '15px' }}>{log.action}</div>
-                                                                                            <div style={{ fontSize: '14px', color: '#475569', lineHeight: '1.6', background: '#f8fafc', padding: '12px', borderRadius: '8px' }}>
-                                                                                                {/* Simple rendering of details, can be enhanced like in modal */}
-                                                                                                {log.details.split('Perubahan:').map((part, i) => (
-                                                                                                    <div key={i} style={{ marginBottom: i === 0 ? '4px' : '0' }}>
-                                                                                                        {i === 1 ? (
-                                                                                                            <div>
-                                                                                                                <span style={{ fontWeight: 600, color: '#334155' }}>Perubahan: </span>
-                                                                                                                {part}
-                                                                                                            </div>
-                                                                                                        ) : part}
-                                                                                                    </div>
-                                                                                                ))}
-                                                                                            </div>
-                                                                                        </div>
-                                                                                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', justifyContent: 'center', gap: '8px' }}>
-                                                                                            <span style={{ fontSize: '12px', padding: '6px 12px', background: '#eff6ff', color: '#2563eb', borderRadius: '20px', fontWeight: 600, border: '1px solid #dbeafe' }}>
-                                                                                                Dokumen Tersimpan
-                                                                                            </span>
-                                                                                            <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                                                                                                <button
-                                                                                                    onClick={() => handleOpenHistoryDetail(log)}
-                                                                                                    style={{ fontSize: '12px', color: '#64748b', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}
-                                                                                                    title="Lihat detail riwayat"
-                                                                                                >
-                                                                                                    Lihat Detail
-                                                                                                </button>
-                                                                                                {log.id && (
-                                                                                                    <button
-                                                                                                        onClick={() => handleDeleteHistory(log.id, asset.id)}
-                                                                                                        title="Hapus Riyawat"
-                                                                                                        style={{
-                                                                                                            color: '#ef4444',
-                                                                                                            background: '#fee2e2',
-                                                                                                            border: 'none',
-                                                                                                            borderRadius: '6px',
-                                                                                                            padding: '6px',
-                                                                                                            cursor: 'pointer',
-                                                                                                            display: 'flex',
-                                                                                                            alignItems: 'center',
-                                                                                                            justifyContent: 'center',
-                                                                                                            transition: 'all 0.2s'
-                                                                                                        }}
-                                                                                                    >
-                                                                                                        <Trash2 size={16} />
-                                                                                                    </button>
-                                                                                                )}
-                                                                                            </div>
-                                                                                        </div>
-                                                                                    </div>
-                                                                                ));
-                                                                            } else {
-                                                                                return (
-                                                                                    <div style={{ textAlign: 'center', padding: '40px 24px', color: '#94a3b8', background: '#f8fafc', borderRadius: '12px', border: '1px dashed #cbd5e1' }}>
-                                                                                        <div style={{ display: 'inline-flex', padding: '16px', background: '#f1f5f9', borderRadius: '50%', marginBottom: '16px' }}>
-                                                                                            <History size={32} style={{ opacity: 0.5 }} />
-                                                                                        </div>
-                                                                                        <p style={{ margin: 0, fontWeight: 500 }}>
-                                                                                            {activeHistoryTab === 'amendments' ? 'Belum ada amandemen' : activeHistoryTab === 'progress' ? 'Belum ada progress tracker' : 'Belum ada riwayat'}
-                                                                                        </p>
-                                                                                        <p style={{ margin: '4px 0 0 0', fontSize: '13px', opacity: 0.8 }}>
-                                                                                            {activeHistoryTab === 'amendments' ? 'Klik tombol "Buat Amandemen" untuk memulai revisi kontrak.' : activeHistoryTab === 'progress' ? 'Klik tombol "Buat Progress Tracker" untuk menambahkan progress.' : 'Klik tombol di atas untuk menambahkan riwayat.'}
-                                                                                        </p>
-                                                                                    </div>
-                                                                                );
-                                                                            }
-                                                                        })()
-                                                                    }
-                                                                </div>
-                                                            </>
-                                                        )}
+                                                {columnVisibility.location && <td>{asset.location}</td>}
+                                                {columnVisibility.status && (
+                                                    <td>
+                                                        <span className={`status-badge ${getBadgeClass(asset.status)}`}>
+                                                            {asset.status}
+                                                        </span>
+                                                    </td>
+                                                )}
+                                                {columnVisibility.startDate && <td>{asset.startDate}</td>}
+                                                {columnVisibility.endDate && <td>{asset.endDate}</td>}
+                                                <td>
+                                                    <div className="action-buttons">
+                                                        <button className="btn-icon btn-view" title="Lihat Detail" onClick={() => handleViewDetail(asset)}><Eye size={16} /></button>
+                                                        <button className="btn-icon btn-edit" title="Edit" onClick={() => handleEdit(asset)}><Edit size={16} /></button>
+                                                        <button className="btn-icon btn-delete" title="Hapus" onClick={() => handleDelete(asset.id)}><Trash2 size={16} /></button>
+                                                        <button className="btn-icon btn-upload" title="Upload PDF" onClick={() => openUploadModal(asset.id)}><Upload size={16} /></button>
                                                     </div>
                                                 </td>
                                             </tr>
-                                        )}
-                                    </Fragment>
-                                ))
+                                            {expandedContractId === asset.id && (
+                                                <tr className="expanded-row-content">
+                                                    <td colSpan={getVisibleColumnsCount() + 2} style={{ padding: '0 24px 24px 24px', background: '#f8fafc', borderBottom: '2px solid #e2e8f0' }}>
+                                                        <div className="amendment-card-container" style={{ background: 'white', borderRadius: '12px', border: '1px solid #e2e8f0', padding: '24px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)' }}>
+                                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
+                                                                <div>
+                                                                    <h4 style={{ margin: 0, fontSize: '18px', fontWeight: 700, color: '#1e293b', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                                                        <div style={{ background: '#eff6ff', padding: '8px', borderRadius: '8px', display: 'flex' }}>
+                                                                            <FileText size={20} className="text-blue-500" style={{ color: '#3b82f6' }} />
+                                                                        </div>
+                                                                        Riwayat Amandemen & Perubahan
+                                                                    </h4>
+                                                                    <p style={{ margin: '4px 0 0 0', fontSize: '14px', color: '#64748b', marginLeft: '48px' }}>
+                                                                        Kelola riwayat perubahan dan amandemen untuk kontrak ini
+                                                                    </p>
+
+                                                                    {/* Progress Widget in Details */}
+                                                                    <div style={{ marginTop: '16px', marginLeft: '48px', background: '#f8fafc', padding: '12px 16px', borderRadius: '10px', border: '1px solid #e2e8f0', maxWidth: '400px' }}>
+                                                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                                                                            <span style={{ fontSize: '13px', fontWeight: 600, color: '#475569' }}>Progress Pekerjaan</span>
+                                                                            <span style={{ fontSize: '14px', fontWeight: 700, color: asset.progress > 70 ? '#16a34a' : asset.progress > 30 ? '#d97706' : '#dc2626' }}>{asset.progress}% Selesai</span>
+                                                                        </div>
+                                                                        <div className="progress-bar-container" style={{ height: '10px', background: '#e2e8f0' }}>
+                                                                            <div
+                                                                                className={`progress-bar-fill ${asset.progress < 30 ? 'low' : asset.progress < 70 ? 'medium' : 'high'}`}
+                                                                                style={{ width: `${asset.progress}%` }}
+                                                                            ></div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+
+                                                                <div style={{ display: 'flex', gap: '12px' }}>
+                                                                    {detailTab === 'payment' ? (
+                                                                        <button
+                                                                            className="btn-primary"
+                                                                            onClick={() => handleOpenPaymentModal(asset)}
+                                                                            style={{ padding: '10px 18px', fontSize: '14px', background: '#10b981' }}
+                                                                        >
+                                                                            <Plus size={18} /> Tambah Tahapan
+                                                                        </button>
+                                                                    ) : (
+                                                                        <>
+                                                                            <button
+                                                                                className="btn-primary"
+                                                                                onClick={() => handleCreateProgressTracker(asset)}
+                                                                                style={{ padding: '10px 18px', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}
+                                                                            >
+                                                                                <Plus size={18} /> Buat Progress Tracker
+                                                                            </button>
+                                                                            <button
+                                                                                className="btn-primary"
+                                                                                onClick={() => handleCreateAmendment(asset)}
+                                                                                style={{ padding: '10px 18px', fontSize: '14px' }}
+                                                                            >
+                                                                                <Plus size={18} /> Buat Amandemen
+                                                                            </button>
+                                                                        </>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+
+                                                            {/* MAIN TABS (History vs Payment) */}
+                                                            <div style={{ display: 'flex', gap: '20px', borderBottom: '1px solid #e2e8f0', marginBottom: '20px' }}>
+                                                                <button
+                                                                    onClick={() => setDetailTab('history')}
+                                                                    style={{
+                                                                        padding: '12px 4px',
+                                                                        background: 'transparent',
+                                                                        color: detailTab === 'history' ? '#3b82f6' : '#64748b',
+                                                                        border: 'none',
+                                                                        borderBottom: detailTab === 'history' ? '2px solid #3b82f6' : '2px solid transparent',
+                                                                        fontSize: '15px',
+                                                                        fontWeight: 600,
+                                                                        cursor: 'pointer',
+                                                                        display: 'flex',
+                                                                        alignItems: 'center',
+                                                                        gap: '8px'
+                                                                    }}
+                                                                >
+                                                                    <History size={18} /> Riwayat & Progress
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => { setDetailTab('payment'); fetchPaymentStages(asset.id); }}
+                                                                    style={{
+                                                                        padding: '12px 4px',
+                                                                        background: 'transparent',
+                                                                        color: detailTab === 'payment' ? '#be185d' : '#64748b', // Pink/Red for payment
+                                                                        border: 'none',
+                                                                        borderBottom: detailTab === 'payment' ? '2px solid #be185d' : '2px solid transparent',
+                                                                        fontSize: '15px',
+                                                                        fontWeight: 600,
+                                                                        cursor: 'pointer',
+                                                                        display: 'flex',
+                                                                        alignItems: 'center',
+                                                                        gap: '8px'
+                                                                    }}
+                                                                >
+                                                                    <FileCheck size={18} /> Tahapan Pembayaran
+                                                                </button>
+                                                            </div>
+
+                                                            {detailTab === 'payment' ? (
+                                                                /* PAYMENT STAGES TABLE */
+                                                                <div>
+                                                                    {paymentStages.length === 0 ? (
+                                                                        <div className="no-data" style={{ padding: '40px', background: '#f8fafc', borderRadius: '12px', border: '1px dashed #cbd5e1' }}>
+                                                                            <div className="no-data-message">
+                                                                                <p>Belum ada tahapan pembayaran.</p>
+                                                                                <small>Tambahkan termin atau pembayaran sekaligus.</small>
+                                                                            </div>
+                                                                        </div>
+                                                                    ) : (
+                                                                        <table className="assets-table" style={{ marginTop: '0' }}>
+                                                                            <thead>
+                                                                                <tr>
+                                                                                    <th style={{ background: '#f1f5f9' }}>Tahapan</th>
+                                                                                    <th style={{ background: '#f1f5f9' }}>Persentase</th>
+                                                                                    <th style={{ background: '#f1f5f9' }}>Nominal (Rp)</th>
+                                                                                    <th style={{ background: '#f1f5f9' }}>Jatuh Tempo</th>
+                                                                                    <th style={{ background: '#f1f5f9' }}>Status</th>
+                                                                                    <th style={{ background: '#f1f5f9' }}>Aksi</th>
+                                                                                </tr>
+                                                                            </thead>
+                                                                            <tbody>
+                                                                                {paymentStages.map((stage) => (
+                                                                                    <tr key={stage.id}>
+                                                                                        <td style={{ fontWeight: 600 }}>{stage.name}</td>
+                                                                                        <td>{stage.percentage}%</td>
+                                                                                        <td>{new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(stage.value || 0)}</td>
+                                                                                        <td>{stage.due_date ? new Date(stage.due_date).toLocaleDateString('id-ID') : '-'}</td>
+                                                                                        <td>
+                                                                                            <span className={`status-badge ${stage.status === 'Paid' ? 'status-terbayar' : 'status-inactive'}`}>
+                                                                                                {stage.status === 'Paid' ? 'Lunas' : 'Belum Dibayar'}
+                                                                                            </span>
+                                                                                            {stage.paid_at && <div style={{ fontSize: '11px', marginTop: '4px', color: '#64748b' }}>{new Date(stage.paid_at).toLocaleDateString('id-ID')}</div>}
+                                                                                        </td>
+                                                                                        <td>
+                                                                                            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                                                                                {stage.status !== 'Paid' && (
+                                                                                                    <button
+                                                                                                        onClick={() => handleMarkAsPaid(stage.id, asset.id)}
+                                                                                                        className="btn-secondary"
+                                                                                                        style={{ padding: '6px 12px', fontSize: '12px' }}
+                                                                                                        title="Tandai Sudah Dibayar"
+                                                                                                    >
+                                                                                                        Tandai Bayar
+                                                                                                    </button>
+                                                                                                )}
+                                                                                                <button
+                                                                                                    onClick={() => handleDeletePaymentStage(stage.id, asset.id)}
+                                                                                                    className="btn-icon-danger"
+                                                                                                    style={{ background: '#fee2e2', border: 'none', borderRadius: '6px', padding: '6px', cursor: 'pointer', color: '#ef4444' }}
+                                                                                                    title="Hapus Tahapan"
+                                                                                                >
+                                                                                                    <Trash2 size={16} />
+                                                                                                </button>
+                                                                                            </div>
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                ))}
+                                                                            </tbody>
+                                                                            {/* Footer for Totals */}
+                                                                            <tfoot>
+                                                                                <tr style={{ background: '#f8fafc', fontWeight: 700 }}>
+                                                                                    <td colSpan={2} style={{ textAlign: 'right' }}>Total Terbayar:</td>
+                                                                                    <td style={{ color: '#059669' }}>
+                                                                                        {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(
+                                                                                            paymentStages.filter(s => s.status === 'Paid').reduce((sum, s) => sum + Number(s.value || 0), 0)
+                                                                                        )}
+                                                                                    </td>
+                                                                                    <td colSpan={3}></td>
+                                                                                </tr>
+                                                                            </tfoot>
+                                                                        </table>
+                                                                    )}
+                                                                </div>
+                                                            ) : (
+                                                                /* EXISTING HISTORY CONTENT WRAPPER */
+                                                                <>
+                                                                    {/* Tab Filter (MOVED INSIDE) */}
+                                                                    <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', borderBottom: '2px solid #e2e8f0', paddingBottom: '8px' }}>
+                                                                        <button
+                                                                            onClick={() => setActiveHistoryTab('all')}
+                                                                            style={{
+                                                                                padding: '8px 16px',
+                                                                                background: activeHistoryTab === 'all' ? '#3b82f6' : 'transparent',
+                                                                                color: activeHistoryTab === 'all' ? 'white' : '#64748b',
+                                                                                border: 'none',
+                                                                                borderRadius: '8px',
+                                                                                fontSize: '14px',
+                                                                                fontWeight: 600,
+                                                                                cursor: 'pointer',
+                                                                                transition: 'all 0.2s'
+                                                                            }}
+                                                                        >
+                                                                            Semua
+                                                                        </button>
+                                                                        <button
+                                                                            onClick={() => setActiveHistoryTab('amendments')}
+                                                                            style={{
+                                                                                padding: '8px 16px',
+                                                                                background: activeHistoryTab === 'amendments' ? '#3b82f6' : 'transparent',
+                                                                                color: activeHistoryTab === 'amendments' ? 'white' : '#64748b',
+                                                                                border: 'none',
+                                                                                borderRadius: '8px',
+                                                                                fontSize: '14px',
+                                                                                fontWeight: 600,
+                                                                                cursor: 'pointer',
+                                                                                transition: 'all 0.2s'
+                                                                            }}
+                                                                        >
+                                                                            Amandemen
+                                                                        </button>
+                                                                        <button
+                                                                            onClick={() => setActiveHistoryTab('progress')}
+                                                                            style={{
+                                                                                padding: '8px 16px',
+                                                                                background: activeHistoryTab === 'progress' ? '#3b82f6' : 'transparent',
+                                                                                color: activeHistoryTab === 'progress' ? 'white' : '#64748b',
+                                                                                border: 'none',
+                                                                                borderRadius: '8px',
+                                                                                fontSize: '14px',
+                                                                                fontWeight: 600,
+                                                                                cursor: 'pointer',
+                                                                                transition: 'all 0.2s'
+                                                                            }}
+                                                                        >
+                                                                            Progress Tracker
+                                                                        </button>
+                                                                    </div>
+
+                                                                    <div className="amendment-list" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                                                        {
+                                                                            (() => {
+                                                                                let filteredHistory = asset.history || [];
+                                                                                if (activeHistoryTab === 'amendments') {
+                                                                                    filteredHistory = filteredHistory.filter(h => h.action.includes('Amandemen'));
+                                                                                } else if (activeHistoryTab === 'progress') {
+                                                                                    filteredHistory = filteredHistory.filter(h => h.action.includes('Progress Tracker'));
+                                                                                }
+                                                                                if (filteredHistory.length > 0) {
+                                                                                    return filteredHistory.slice().reverse().map((log, idx) => (
+                                                                                        <div key={idx} className="amendment-item" style={{ display: 'flex', gap: '20px', padding: '16px', borderRadius: '12px', border: '1px solid #f1f5f9', background: '#fff', transition: 'all 0.2s', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' }}>
+                                                                                            <div style={{ minWidth: '140px', fontSize: '13px', color: '#64748b', borderRight: '1px solid #f1f5f9', paddingRight: '16px' }}>
+                                                                                                <div style={{ fontWeight: 600, color: '#334155', fontSize: '14px' }}>{log.date}</div>
+                                                                                                <div style={{ fontSize: '12px', marginTop: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                                                                    <div style={{ width: '20px', height: '20px', background: '#f1f5f9', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '10px', color: '#64748b' }}>
+                                                                                                        {(log.user || 'Admin').charAt(0).toUpperCase()}
+                                                                                                    </div>
+                                                                                                    {log.user || 'Admin'}
+                                                                                                </div>
+                                                                                            </div>
+                                                                                            <div style={{ flex: 1 }}>
+                                                                                                <div style={{ fontWeight: 700, color: '#0f172a', marginBottom: '8px', fontSize: '15px' }}>{log.action}</div>
+                                                                                                <div style={{ fontSize: '14px', color: '#475569', lineHeight: '1.6', background: '#f8fafc', padding: '12px', borderRadius: '8px' }}>
+                                                                                                    {/* Simple rendering of details, can be enhanced like in modal */}
+                                                                                                    {log.details.split('Perubahan:').map((part, i) => (
+                                                                                                        <div key={i} style={{ marginBottom: i === 0 ? '4px' : '0' }}>
+                                                                                                            {i === 1 ? (
+                                                                                                                <div>
+                                                                                                                    <span style={{ fontWeight: 600, color: '#334155' }}>Perubahan: </span>
+                                                                                                                    {part}
+                                                                                                                </div>
+                                                                                                            ) : part}
+                                                                                                        </div>
+                                                                                                    ))}
+                                                                                                </div>
+                                                                                            </div>
+                                                                                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', justifyContent: 'center', gap: '8px' }}>
+                                                                                                <span style={{ fontSize: '12px', padding: '6px 12px', background: '#eff6ff', color: '#2563eb', borderRadius: '20px', fontWeight: 600, border: '1px solid #dbeafe' }}>
+                                                                                                    Dokumen Tersimpan
+                                                                                                </span>
+                                                                                                <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                                                                                                    <button
+                                                                                                        onClick={() => handleOpenHistoryDetail(log)}
+                                                                                                        style={{ fontSize: '12px', color: '#64748b', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}
+                                                                                                        title="Lihat detail riwayat"
+                                                                                                    >
+                                                                                                        Lihat Detail
+                                                                                                    </button>
+                                                                                                    {log.id && (
+                                                                                                        <button
+                                                                                                            onClick={() => handleDeleteHistory(log.id, asset.id)}
+                                                                                                            title="Hapus Riyawat"
+                                                                                                            style={{
+                                                                                                                color: '#ef4444',
+                                                                                                                background: '#fee2e2',
+                                                                                                                border: 'none',
+                                                                                                                borderRadius: '6px',
+                                                                                                                padding: '6px',
+                                                                                                                cursor: 'pointer',
+                                                                                                                display: 'flex',
+                                                                                                                alignItems: 'center',
+                                                                                                                justifyContent: 'center',
+                                                                                                                transition: 'all 0.2s'
+                                                                                                            }}
+                                                                                                        >
+                                                                                                            <Trash2 size={16} />
+                                                                                                        </button>
+                                                                                                    )}
+                                                                                                </div>
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    ));
+                                                                                } else {
+                                                                                    return (
+                                                                                        <div style={{ textAlign: 'center', padding: '40px 24px', color: '#94a3b8', background: '#f8fafc', borderRadius: '12px', border: '1px dashed #cbd5e1' }}>
+                                                                                            <div style={{ display: 'inline-flex', padding: '16px', background: '#f1f5f9', borderRadius: '50%', marginBottom: '16px' }}>
+                                                                                                <History size={32} style={{ opacity: 0.5 }} />
+                                                                                            </div>
+                                                                                            <p style={{ margin: 0, fontWeight: 500 }}>
+                                                                                                {activeHistoryTab === 'amendments' ? 'Belum ada amandemen' : activeHistoryTab === 'progress' ? 'Belum ada progress tracker' : 'Belum ada riwayat'}
+                                                                                            </p>
+                                                                                            <p style={{ margin: '4px 0 0 0', fontSize: '13px', opacity: 0.8 }}>
+                                                                                                {activeHistoryTab === 'amendments' ? 'Klik tombol "Buat Amandemen" untuk memulai revisi kontrak.' : activeHistoryTab === 'progress' ? 'Klik tombol "Buat Progress Tracker" untuk menambahkan progress.' : 'Klik tombol di atas untuk menambahkan riwayat.'}
+                                                                                            </p>
+                                                                                        </div>
+                                                                                    );
+                                                                                }
+                                                                            })()
+                                                                        }
+                                                                    </div>
+                                                                </>
+                                                            )}
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            )}
+                                        </Fragment>
+                                    )
+                                })
                             ) : (
                                 <tr>
                                     <td colSpan={getVisibleColumnsCount() + 1} className="no-data">
@@ -1459,7 +1596,7 @@ function ManajemenAset() {
                                                 </div>
                                             </div>
                                             <div className="detail-item">
-                                                <label className="detail-label">Nomor Tagihan</label>
+                                                <label className="detail-label">ID Kontrak</label>
                                                 <div className="detail-value">{selectedAsset.invoiceNumber}</div>
                                             </div>
                                             <div className="detail-item">
@@ -1527,6 +1664,20 @@ function ManajemenAset() {
                                                     <tr>
                                                         <td>Lokasi Pekerjaan</td>
                                                         <td>{selectedAsset.location}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Terakhir Diupdate</td>
+                                                        <td>
+                                                            <span style={{ fontSize: '14px', color: '#1e293b', fontWeight: 500 }}>
+                                                                {selectedAsset.updatedAt ? new Date(selectedAsset.updatedAt).toLocaleString('id-ID', {
+                                                                    year: 'numeric',
+                                                                    month: 'long',
+                                                                    day: 'numeric',
+                                                                    hour: '2-digit',
+                                                                    minute: '2-digit'
+                                                                }) : 'Belum ada update'}
+                                                            </span>
+                                                        </td>
                                                     </tr>
                                                 </tbody>
                                             </table>
@@ -1708,15 +1859,14 @@ function ManajemenAset() {
                                         </div>
 
                                         <div className="form-group">
-                                            <label htmlFor="invoiceNumber">Nomor Tagihan <span className="required">*</span></label>
+                                            <label htmlFor="invoiceNumber">ID Kontrak</label>
                                             <input
                                                 type="text"
                                                 id="invoiceNumber"
                                                 name="invoiceNumber"
                                                 value={formData.invoiceNumber}
                                                 onChange={handleInputChange}
-                                                placeholder="Contoh: INV-2025-001"
-                                                required
+                                                placeholder="Contoh: K-2025-001"
                                             />
                                         </div>
 
@@ -1789,8 +1939,6 @@ function ManajemenAset() {
                                                 onChange={handleInputChange}
                                                 required
                                             >
-                                                <option value="Terkontrak">Terkontrak</option>
-                                                <option value="Dalam Proses Pekerjaan">Dalam Proses Pekerjaan</option>
                                                 <option value="Selesai">Selesai</option>
                                                 <option value="Dalam Pemeriksaan">Dalam Pemeriksaan</option>
                                                 <option value="Telah Diperiksa">Telah Diperiksa</option>

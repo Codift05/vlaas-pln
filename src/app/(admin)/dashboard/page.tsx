@@ -133,18 +133,15 @@ export default function DashboardPage() {
         let pendingContracts = 0
 
         // Status breakdown for Pie Chart
-        let dist = { terkontrak: 0, onprogress: 0, selesai: 0, terbayar: 0, total: totalContracts }
+        let dist = { selesai: 0, telahdiperiksa: 0, terbayar: 0, total: totalContracts }
 
         contracts.forEach(c => {
             const status = (c.status || '').toLowerCase()
-            if (status === 'terkontrak') {
+            if (status === 'selesai') {
                 activeContracts++
-                dist.terkontrak++
-            } else if (status.includes('proses') || status.includes('pekerjaan') || status.includes('pemeriksaan') || status.includes('diperiksa')) {
-                pendingContracts++
-                dist.onprogress++
-            } else if (status === 'selesai') {
                 dist.selesai++
+            } else if (status.includes('diperiksa')) {
+                dist.telahdiperiksa++
             } else if (status === 'terbayar') {
                 dist.terbayar++
             }
@@ -229,10 +226,9 @@ export default function DashboardPage() {
 
     // Memoize pieGradient to prevent recalculation on each render
     const pieGradient = useMemo(() => `conic-gradient(
-        #2ecc71 0% ${getPieRotation((contractStatusDist.terkontrak / contractStatusDist.total) * 100 || 0)}deg, 
-        #3b82f6 ${getPieRotation((contractStatusDist.terkontrak / contractStatusDist.total) * 100 || 0)}deg ${getPieRotation(((contractStatusDist.terkontrak + contractStatusDist.selesai) / contractStatusDist.total) * 100 || 0)}deg,
-        #f39c12 ${getPieRotation(((contractStatusDist.terkontrak + contractStatusDist.selesai) / contractStatusDist.total) * 100 || 0)}deg ${getPieRotation(((contractStatusDist.terkontrak + contractStatusDist.selesai + contractStatusDist.onprogress) / contractStatusDist.total) * 100 || 0)}deg,
-        #e74c3c ${getPieRotation(((contractStatusDist.terkontrak + contractStatusDist.selesai + contractStatusDist.onprogress) / contractStatusDist.total) * 100 || 0)}deg 100%
+        #f39c12 0% ${getPieRotation((contractStatusDist.selesai / contractStatusDist.total) * 100 || 0)}deg, 
+        #9333ea ${getPieRotation((contractStatusDist.selesai / contractStatusDist.total) * 100 || 0)}deg ${getPieRotation(((contractStatusDist.selesai + contractStatusDist.telahdiperiksa) / contractStatusDist.total) * 100 || 0)}deg,
+        #2ecc71 ${getPieRotation(((contractStatusDist.selesai + contractStatusDist.telahdiperiksa) / contractStatusDist.total) * 100 || 0)}deg 100%
     )`, [contractStatusDist])
 
     return (
@@ -329,22 +325,17 @@ export default function DashboardPage() {
                     </div>
                     <div className="pie-legend">
                         <div className="legend-item">
-                            <span className="legend-color" style={{ background: '#2ecc71' }}></span>
-                            <span className="legend-text">Terkontrak</span>
-                            <span className="legend-value">{contractStatusDist.terkontrak}</span>
-                        </div>
-                        <div className="legend-item">
-                            <span className="legend-color" style={{ background: '#3b82f6' }}></span>
+                            <span className="legend-color" style={{ background: '#f39c12' }}></span>
                             <span className="legend-text">Selesai</span>
                             <span className="legend-value">{contractStatusDist.selesai}</span>
                         </div>
                         <div className="legend-item">
-                            <span className="legend-color" style={{ background: '#f39c12' }}></span>
-                            <span className="legend-text">OnProgress</span>
-                            <span className="legend-value">{contractStatusDist.onprogress}</span>
+                            <span className="legend-color" style={{ background: '#9333ea' }}></span>
+                            <span className="legend-text">Telah Diperiksa</span>
+                            <span className="legend-value">{contractStatusDist.telahdiperiksa}</span>
                         </div>
                         <div className="legend-item">
-                            <span className="legend-color" style={{ background: '#e74c3c' }}></span>
+                            <span className="legend-color" style={{ background: '#2ecc71' }}></span>
                             <span className="legend-text">Terbayar</span>
                             <span className="legend-value">{contractStatusDist.terbayar}</span>
                         </div>
