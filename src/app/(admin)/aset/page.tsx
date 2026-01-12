@@ -137,7 +137,8 @@ function ManajemenAset() {
             }))
             setAssets(formattedData)
         } catch (err) {
-            console.error('Error fetching contracts:', err.message)
+            console.error('Error fetching contracts:', err)
+            setAssets([])
         }
     }
 
@@ -217,6 +218,7 @@ function ManajemenAset() {
     // Close dropdown when clicking outside
     useEffect(() => {
         const handleClickOutside = (event) => {
+            if (!event || !event.target) return
             if (columnSelectorRef.current && !columnSelectorRef.current.contains(event.target)) {
                 setShowColumnSelector(false)
             }
@@ -453,7 +455,7 @@ function ManajemenAset() {
 
     const handleCreateAmendment = (asset) => {
         // Calculate amendment number
-        const existingAmendments = asset.history ? asset.history.filter(h => h.action.includes('Amandemen')).length : 0;
+        const existingAmendments = asset.history ? asset.history.filter(h => h && h.action && h.action.includes('Amandemen')).length : 0;
         const nextAmendmentNum = existingAmendments + 1;
 
         setPendingAmendment({ asset, nextAmendmentNum })
@@ -1048,18 +1050,6 @@ function ManajemenAset() {
                                                 <span>Tanggal Selesai</span>
                                             </label>
                                         </div>
-                                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'center', gap: '2px' }}>
-                                            <label style={{ display: 'block', fontSize: '12px', color: '#64748b', marginBottom: '4px' }}>Dibuat Oleh</label>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                                                <span style={{ background: '#e0e7ff', color: '#3730a3', borderRadius: '50%', width: 24, height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 14 }}>A</span>
-                                                <span style={{ fontWeight: 600, color: '#0f172a', fontSize: 15 }}>Admin</span>
-                                                {/* Removed progressDateTime usage to fix error */}
-                                            </div>
-                                        </div>
-                                        <div style={{ gridColumn: '1 / -1' }}>
-                                            <label style={{ display: 'block', fontSize: '12px', color: '#64748b', marginBottom: '4px' }}>Aksi</label>
-                                            <div style={{ fontWeight: 600, color: '#0f172a' }}>{selectedHistoryLog.action}</div>
-                                        </div>
                                     </div>
                                 </div>
                             )}
@@ -1423,9 +1413,9 @@ function ManajemenAset() {
                                                                             (() => {
                                                                                 let filteredHistory = asset.history || [];
                                                                                 if (activeHistoryTab === 'amendments') {
-                                                                                    filteredHistory = filteredHistory.filter(h => h.action.includes('Amandemen'));
+                                                                                    filteredHistory = filteredHistory.filter(h => h && h.action && h.action.includes('Amandemen'));
                                                                                 } else if (activeHistoryTab === 'progress') {
-                                                                                    filteredHistory = filteredHistory.filter(h => h.action.includes('Progress Tracker'));
+                                                                                    filteredHistory = filteredHistory.filter(h => h && h.action && h.action.includes('Progress Tracker'));
                                                                                 }
                                                                                 if (filteredHistory.length > 0) {
                                                                                     return filteredHistory.slice().reverse().map((log, idx) => (
@@ -1443,7 +1433,7 @@ function ManajemenAset() {
                                                                                                 <div style={{ fontWeight: 700, color: '#0f172a', marginBottom: '8px', fontSize: '15px' }}>{log.action}</div>
                                                                                                 <div style={{ fontSize: '14px', color: '#475569', lineHeight: '1.6', background: '#f8fafc', padding: '12px', borderRadius: '8px' }}>
                                                                                                     {/* Simple rendering of details, can be enhanced like in modal */}
-                                                                                                    {log.details.split('Perubahan:').map((part, i) => (
+                                                                                                    {(log.details || '').split('Perubahan:').map((part, i) => (
                                                                                                         <div key={i} style={{ marginBottom: i === 0 ? '4px' : '0' }}>
                                                                                                             {i === 1 ? (
                                                                                                                 <div>
@@ -1692,7 +1682,7 @@ function ManajemenAset() {
                                             </h3>
                                             <div className="history-list">
                                                 {selectedAsset.history && selectedAsset.history.length > 0 ? (
-                                                    selectedAsset.history.slice().reverse().map((log, index) => (
+                                                    selectedAsset.history.filter(h => h && h.action).slice().reverse().map((log, index) => (
                                                         <div key={index} className="history-item" style={{ display: 'flex', gap: '16px', marginBottom: '16px', paddingLeft: '8px', borderLeft: '3px solid #e2e8f0' }}>
                                                             <div className="history-time" style={{ minWidth: '130px', color: '#64748b', fontSize: '13px', paddingTop: '2px' }}>
                                                                 {log.date}

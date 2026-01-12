@@ -697,15 +697,17 @@ function Laporan() {
                     </div>
                     <div className="bar-chart-container">
                         {(monthlyData as any[]).map((data, index) => {
-                            const maxTotal = monthlyData.length > 0 ? Math.max(...(monthlyData as any[]).map(d => d.total), 1) : 10;
-                            const heightPercentage = maxTotal > 0 ? (data.total / maxTotal) * 100 : 0;
+                            // Hitung berdasarkan jumlah yang benar-benar ditampilkan (dalamProses + terbayar)
+                            const displayedCount = data.dalamProses + data.terbayar;
+                            const maxDisplayed = monthlyData.length > 0 ? Math.max(...(monthlyData as any[]).map(d => d.dalamProses + d.terbayar), 1) : 10;
+                            const heightPercentage = maxDisplayed > 0 ? (displayedCount / maxDisplayed) * 100 : 0;
 
-                            const dalamProsesHeight = data.total > 0 ? (data.dalamProses / data.total) * 100 : 0;
-                            const terbayarHeight = data.total > 0 ? (data.terbayar / data.total) * 100 : 0;
+                            const dalamProsesHeight = displayedCount > 0 ? (data.dalamProses / displayedCount) * 100 : 0;
+                            const terbayarHeight = displayedCount > 0 ? (data.terbayar / displayedCount) * 100 : 0;
 
                             return (
                                 <div key={index} className="bar-wrapper">
-                                    <div className="bar-stack-container" style={{ height: `${heightPercentage}%`, minHeight: data.total > 0 ? '4px' : '0' }}>
+                                    <div className="bar-stack-container" style={{ height: `${heightPercentage}%`, minHeight: displayedCount > 0 ? '4px' : '0' }}>
                                         {/* Tooltip */}
                                         <div className="bar-tooltip">
                                             <div className="tooltip-header">{data.month}</div>
