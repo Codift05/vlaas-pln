@@ -853,76 +853,70 @@ function ManajemenAset() {
         return (
             <>
                 {/* Deadline Alert Cards */}
-                {(deadlineStats.overdue > 0 || deadlineStats.warning > 0) && (
-                    <div style={{ display: 'flex', gap: '16px', marginBottom: '20px' }}>
-                        {deadlineStats.overdue > 0 && (
-                            <div style={{
-                                flex: 1,
-                                background: '#fff',
-                                borderRadius: '16px',
-                                padding: '20px',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '16px',
-                                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)'
-                            }}>
-                                <div style={{
-                                    background: '#fee2e2',
-                                    borderRadius: '50%',
-                                    width: '56px',
-                                    height: '56px',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    flexShrink: 0
-                                }}>
-                                    <AlertOctagon size={28} style={{ color: '#dc2626' }} />
-                                </div>
-                                <div style={{ flex: 1 }}>
-                                    <div style={{ fontSize: '28px', fontWeight: 700, color: '#1e293b', lineHeight: 1 }}>
-                                        {deadlineStats.overdue}
-                                    </div>
-                                    <div style={{ fontSize: '13px', color: '#64748b', marginTop: '4px' }}>
-                                        Kontrak Terlambat
-                                    </div>
-                                </div>
+                <div style={{ display: 'flex', gap: '16px', marginBottom: '20px' }}>
+                    <div style={{
+                        flex: 1,
+                        background: '#fff',
+                        borderRadius: '16px',
+                        padding: '20px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '16px',
+                        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)'
+                    }}>
+                        <div style={{
+                            background: '#fee2e2',
+                            borderRadius: '50%',
+                            width: '56px',
+                            height: '56px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            flexShrink: 0
+                        }}>
+                            <AlertOctagon size={28} style={{ color: '#dc2626' }} />
+                        </div>
+                        <div style={{ flex: 1 }}>
+                            <div style={{ fontSize: '28px', fontWeight: 700, color: '#1e293b', lineHeight: 1 }}>
+                                {deadlineStats.overdue}
                             </div>
-                        )}
-                        {deadlineStats.warning > 0 && (
-                            <div style={{
-                                flex: 1,
-                                background: '#fff',
-                                borderRadius: '16px',
-                                padding: '20px',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '16px',
-                                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)'
-                            }}>
-                                <div style={{
-                                    background: '#fef3c7',
-                                    borderRadius: '50%',
-                                    width: '56px',
-                                    height: '56px',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    flexShrink: 0
-                                }}>
-                                    <Clock size={28} style={{ color: '#d97706' }} />
-                                </div>
-                                <div style={{ flex: 1 }}>
-                                    <div style={{ fontSize: '28px', fontWeight: 700, color: '#1e293b', lineHeight: 1 }}>
-                                        {deadlineStats.warning}
-                                    </div>
-                                    <div style={{ fontSize: '13px', color: '#64748b', marginTop: '4px' }}>
-                                        Mendekati Deadline
-                                    </div>
-                                </div>
+                            <div style={{ fontSize: '13px', color: '#64748b', marginTop: '4px' }}>
+                                Kontrak Terlambat
                             </div>
-                        )}
+                        </div>
                     </div>
-                )}
+                    <div style={{
+                        flex: 1,
+                        background: '#fff',
+                        borderRadius: '16px',
+                        padding: '20px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '16px',
+                        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)'
+                    }}>
+                        <div style={{
+                            background: '#fef3c7',
+                            borderRadius: '50%',
+                            width: '56px',
+                            height: '56px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            flexShrink: 0
+                        }}>
+                            <Clock size={28} style={{ color: '#d97706' }} />
+                        </div>
+                        <div style={{ flex: 1 }}>
+                            <div style={{ fontSize: '28px', fontWeight: 700, color: '#1e293b', lineHeight: 1 }}>
+                                {deadlineStats.warning}
+                            </div>
+                            <div style={{ fontSize: '13px', color: '#64748b', marginTop: '4px' }}>
+                                Mendekati Deadline
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
                 {/* Action Bar */}
                 <div className="action-bar">
@@ -1123,30 +1117,37 @@ function ManajemenAset() {
                                                 </td>
                                                 {columnVisibility.id && (
                                                     <td className="asset-id">
-                                                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                                            {asset.id}
-                                                            {deadlineStatus === 'overdue' && (
-                                                                <span style={{
-                                                                    background: '#fee2e2',
-                                                                    color: '#dc2626',
+                                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                                            {/* Badge di atas nomor kontrak */}
+                                                            {(deadlineStatus === 'overdue' || deadlineStatus === 'warning') && (
+                                                                <div style={{
+                                                                    background: deadlineStatus === 'overdue' ? '#fee2e2' : '#fef3c7',
+                                                                    color: deadlineStatus === 'overdue' ? '#dc2626' : '#d97706',
+                                                                    padding: '4px 8px',
                                                                     fontSize: '10px',
                                                                     fontWeight: 600,
-                                                                    padding: '3px 8px',
                                                                     borderRadius: '6px',
-                                                                    border: '1px solid #fca5a5'
-                                                                }}>Terlambat</span>
+                                                                    borderLeft: `3px solid ${deadlineStatus === 'overdue' ? '#dc2626' : '#f59e0b'}`,
+                                                                    display: 'inline-flex',
+                                                                    alignItems: 'center',
+                                                                    gap: '4px',
+                                                                    width: 'fit-content'
+                                                                }}>
+                                                                    {deadlineStatus === 'overdue' ? (
+                                                                        <>
+                                                                            <AlertOctagon size={12} />
+                                                                            <span>Terlambat</span>
+                                                                        </>
+                                                                    ) : (
+                                                                        <>
+                                                                            <Clock size={12} />
+                                                                            <span>Urgent</span>
+                                                                        </>
+                                                                    )}
+                                                                </div>
                                                             )}
-                                                            {deadlineStatus === 'warning' && (
-                                                                <span style={{
-                                                                    background: '#fef3c7',
-                                                                    color: '#d97706',
-                                                                    fontSize: '10px',
-                                                                    fontWeight: 600,
-                                                                    padding: '3px 8px',
-                                                                    borderRadius: '6px',
-                                                                    border: '1px solid #fcd34d'
-                                                                }}>Urgent</span>
-                                                            )}
+                                                            {/* Nomor Kontrak */}
+                                                            <span>{asset.id}</span>
                                                         </div>
                                                     </td>
                                                 )}
@@ -1167,7 +1168,6 @@ function ManajemenAset() {
                                                         </span>
                                                     </td>
                                                 )}
-
                                                 {columnVisibility.location && <td>{asset.location}</td>}
                                                 {columnVisibility.status && (
                                                     <td>
@@ -1514,8 +1514,9 @@ function ManajemenAset() {
                                                         </div>
                                                     </td>
                                                 </tr>
-                                            )}
-                                        </Fragment>
+                                            )
+                                            }
+                                        </Fragment >
                                     )
                                 })
                             ) : (
@@ -1529,43 +1530,45 @@ function ManajemenAset() {
                                     </td>
                                 </tr>
                             )}
-                        </tbody>
-                    </table>
-                </div>
+                        </tbody >
+                    </table >
+                </div >
 
                 {/* Pagination */}
-                {filteredAssets.length > 0 && (
-                    <div className="table-pagination">
-                        <span className="pagination-info">
-                            Menampilkan 1-{filteredAssets.length} dari {filteredAssets.length} data
-                        </span>
-                        <div className="pagination-controls">
-                            <button
-                                className={`pagination-btn${filteredAssets.length <= 10 ? ' disabled-btn' : ''}`}
-                                disabled={filteredAssets.length <= 10}
-                                style={{ cursor: filteredAssets.length <= 10 ? 'not-allowed' : 'pointer', opacity: filteredAssets.length <= 10 ? 0.5 : 1, position: 'relative', textAlign: 'center', justifyContent: 'center', alignItems: 'center', display: 'flex' }}
-                            >
-                                ‹ Sebelumnya
-                            </button>
-                            {filteredAssets.length > 10 ? (
-                                <>
+                {
+                    filteredAssets.length > 0 && (
+                        <div className="table-pagination">
+                            <span className="pagination-info">
+                                Menampilkan 1-{filteredAssets.length} dari {filteredAssets.length} data
+                            </span>
+                            <div className="pagination-controls">
+                                <button
+                                    className={`pagination-btn${filteredAssets.length <= 10 ? ' disabled-btn' : ''}`}
+                                    disabled={filteredAssets.length <= 10}
+                                    style={{ cursor: filteredAssets.length <= 10 ? 'not-allowed' : 'pointer', opacity: filteredAssets.length <= 10 ? 0.5 : 1, position: 'relative', textAlign: 'center', justifyContent: 'center', alignItems: 'center', display: 'flex' }}
+                                >
+                                    ‹ Sebelumnya
+                                </button>
+                                {filteredAssets.length > 10 ? (
+                                    <>
+                                        <button className="pagination-btn active">1</button>
+                                        <button className="pagination-btn">2</button>
+                                        <button className="pagination-btn">3</button>
+                                    </>
+                                ) : (
                                     <button className="pagination-btn active">1</button>
-                                    <button className="pagination-btn">2</button>
-                                    <button className="pagination-btn">3</button>
-                                </>
-                            ) : (
-                                <button className="pagination-btn active">1</button>
-                            )}
-                            <button
-                                className={`pagination-btn${filteredAssets.length <= 10 ? ' disabled-btn' : ''}`}
-                                disabled={filteredAssets.length <= 10}
-                                style={{ cursor: filteredAssets.length <= 10 ? 'not-allowed' : 'pointer', opacity: filteredAssets.length <= 10 ? 0.5 : 1, position: 'relative', textAlign: 'center', justifyContent: 'center', alignItems: 'center', display: 'flex' }}
-                            >
-                                Selanjutnya ›
-                            </button>
+                                )}
+                                <button
+                                    className={`pagination-btn${filteredAssets.length <= 10 ? ' disabled-btn' : ''}`}
+                                    disabled={filteredAssets.length <= 10}
+                                    style={{ cursor: filteredAssets.length <= 10 ? 'not-allowed' : 'pointer', opacity: filteredAssets.length <= 10 ? 0.5 : 1, position: 'relative', textAlign: 'center', justifyContent: 'center', alignItems: 'center', display: 'flex' }}
+                                >
+                                    Selanjutnya ›
+                                </button>
+                            </div>
                         </div>
-                    </div>
-                )}
+                    )
+                }
 
                 {/* Modal Detail Kontrak */}
                 {
@@ -2400,291 +2403,297 @@ function ManajemenAset() {
                 }
 
                 {/* Modal Detail Riwayat */}
-                {showHistoryDetailModal && selectedHistoryLog && (
-                    <div style={{
-                        position: 'fixed',
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        background: 'rgba(0,0,0,0.5)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        zIndex: 2000
-                    }}>
+                {
+                    showHistoryDetailModal && selectedHistoryLog && (
                         <div style={{
-                            background: 'white',
-                            borderRadius: '12px',
-                            width: '600px',
-                            maxWidth: '90%',
-                            maxHeight: '80vh',
+                            position: 'fixed',
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            bottom: 0,
+                            background: 'rgba(0,0,0,0.5)',
                             display: 'flex',
-                            flexDirection: 'column',
-                            boxShadow: '0 4px 20px rgba(0,0,0,0.15)'
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            zIndex: 2000
                         }}>
-                            <div style={{ padding: '20px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                    <History size={20} /> Detail Riwayat
-                                </h3>
-                                <button onClick={handleCloseHistoryDetail} style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#64748b' }} aria-label="Tutup detail riwayat">
-                                    <X size={24} />
-                                </button>
-                            </div>
+                            <div style={{
+                                background: 'white',
+                                borderRadius: '12px',
+                                width: '600px',
+                                maxWidth: '90%',
+                                maxHeight: '80vh',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                boxShadow: '0 4px 20px rgba(0,0,0,0.15)'
+                            }}>
+                                <div style={{ padding: '20px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                        <History size={20} /> Detail Riwayat
+                                    </h3>
+                                    <button onClick={handleCloseHistoryDetail} style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#64748b' }} aria-label="Tutup detail riwayat">
+                                        <X size={24} />
+                                    </button>
+                                </div>
 
-                            <div style={{ padding: '24px', overflowY: 'auto' }}>
-                                {(() => {
-                                    // Extract progress date & time from details
-                                    const details = selectedHistoryLog.details || '';
-                                    let progressDateTime = '';
-                                    const dateMatch = details.match(/Tanggal: ([0-9\-]+ [0-9:]+)/);
-                                    if (dateMatch) progressDateTime = dateMatch[1];
+                                <div style={{ padding: '24px', overflowY: 'auto' }}>
+                                    {(() => {
+                                        // Extract progress date & time from details
+                                        const details = selectedHistoryLog.details || '';
+                                        let progressDateTime = '';
+                                        const dateMatch = details.match(/Tanggal: ([0-9\-]+ [0-9:]+)/);
+                                        if (dateMatch) progressDateTime = dateMatch[1];
 
-                                    return (
-                                        <>
-                                            {/* Meta Info */}
-                                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '24px', background: '#f8fafc', padding: '16px', borderRadius: '8px' }}>
-                                                <div>
-                                                    <label style={{ display: 'block', fontSize: '12px', color: '#64748b', marginBottom: '4px' }}>Tanggal & Waktu</label>
-                                                    <div style={{ fontWeight: 600, color: '#334155' }}>
-                                                        {progressDateTime || selectedHistoryLog.date}
-                                                    </div>
-                                                </div>
-                                                <div>
-                                                    <label style={{ display: 'block', fontSize: '12px', color: '#64748b', marginBottom: '4px' }}>Dibuat Oleh</label>
-                                                    <div style={{ fontWeight: 600, color: '#334155', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                                        <div style={{ width: '20px', height: '20px', background: '#e2e8f0', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px' }}>
-                                                            {(selectedHistoryLog.user || 'Admin').charAt(0).toUpperCase()}
+                                        return (
+                                            <>
+                                                {/* Meta Info */}
+                                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '24px', background: '#f8fafc', padding: '16px', borderRadius: '8px' }}>
+                                                    <div>
+                                                        <label style={{ display: 'block', fontSize: '12px', color: '#64748b', marginBottom: '4px' }}>Tanggal & Waktu</label>
+                                                        <div style={{ fontWeight: 600, color: '#334155' }}>
+                                                            {progressDateTime || selectedHistoryLog.date}
                                                         </div>
-                                                        {selectedHistoryLog.user || 'Admin'}
+                                                    </div>
+                                                    <div>
+                                                        <label style={{ display: 'block', fontSize: '12px', color: '#64748b', marginBottom: '4px' }}>Dibuat Oleh</label>
+                                                        <div style={{ fontWeight: 600, color: '#334155', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                            <div style={{ width: '20px', height: '20px', background: '#e2e8f0', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px' }}>
+                                                                {(selectedHistoryLog.user || 'Admin').charAt(0).toUpperCase()}
+                                                            </div>
+                                                            {selectedHistoryLog.user || 'Admin'}
+                                                        </div>
+                                                    </div>
+                                                    <div style={{ gridColumn: '1 / -1' }}>
+                                                        <label style={{ display: 'block', fontSize: '12px', color: '#64748b', marginBottom: '4px' }}>Aksi</label>
+                                                        <div style={{ fontWeight: 600, color: '#0f172a' }}>{selectedHistoryLog.action}</div>
                                                     </div>
                                                 </div>
-                                                <div style={{ gridColumn: '1 / -1' }}>
-                                                    <label style={{ display: 'block', fontSize: '12px', color: '#64748b', marginBottom: '4px' }}>Aksi</label>
-                                                    <div style={{ fontWeight: 600, color: '#0f172a' }}>{selectedHistoryLog.action}</div>
-                                                </div>
-                                            </div>
 
-                                            {/* Changes Table */}
-                                            {(() => {
-                                                const details = selectedHistoryLog.details || '';
-                                                let changes = [];
-                                                let note = '';
+                                                {/* Changes Table */}
+                                                {(() => {
+                                                    const details = selectedHistoryLog.details || '';
+                                                    let changes = [];
+                                                    let note = '';
 
-                                                // Parse Note and Changes based on format
-                                                const ketMatch = details.match(/Ket:\s*(.*?)(?=\.?\s*Perubahan:|$)/);
-                                                if (ketMatch) note = ketMatch[1];
-                                                else note = details.split('Perubahan:')[0]; // Fallback
+                                                    // Parse Note and Changes based on format
+                                                    const ketMatch = details.match(/Ket:\s*(.*?)(?=\.?\s*Perubahan:|$)/);
+                                                    if (ketMatch) note = ketMatch[1];
+                                                    else note = details.split('Perubahan:')[0]; // Fallback
 
-                                                // Extract progress date & time if present
-                                                let progressDateTime = '';
-                                                const dateMatch = details.match(/Tanggal: ([0-9\-]+ [0-9:]+)/);
-                                                if (dateMatch) progressDateTime = dateMatch[1];
+                                                    // Extract progress date & time if present
+                                                    let progressDateTime = '';
+                                                    const dateMatch = details.match(/Tanggal: ([0-9\-]+ [0-9:]+)/);
+                                                    if (dateMatch) progressDateTime = dateMatch[1];
 
-                                                // Remove "Tanggal: ..." from note to avoid duplication
-                                                note = note.replace(/\s*Tanggal:\s*[0-9\-]+\s*[0-9:]+/g, '').trim();
+                                                    // Remove "Tanggal: ..." from note to avoid duplication
+                                                    note = note.replace(/\s*Tanggal:\s*[0-9\-]+\s*[0-9:]+/g, '').trim();
 
-                                                const changesMatch = details.match(/Perubahan:\s*(.*)/);
-                                                if (changesMatch) {
-                                                    changes = changesMatch[1].split('; ').map(c => c.trim()); // Use semicolon or handle comma better
-                                                    if (changes.length === 1 && changes[0].includes(',')) {
-                                                        changes = changesMatch[1].split(', ').map(c => c.trim());
+                                                    const changesMatch = details.match(/Perubahan:\s*(.*)/);
+                                                    if (changesMatch) {
+                                                        changes = changesMatch[1].split('; ').map(c => c.trim()); // Use semicolon or handle comma better
+                                                        if (changes.length === 1 && changes[0].includes(',')) {
+                                                            changes = changesMatch[1].split(', ').map(c => c.trim());
+                                                        }
                                                     }
-                                                }
 
-                                                return (
-                                                    <>
-                                                        {/* Note Section */}
-                                                        {note && (
-                                                            <div style={{ marginBottom: '24px' }}>
-                                                                <h4 style={{ fontSize: '14px', fontWeight: 600, color: '#475569', marginBottom: '8px' }}>Keterangan / Catatan</h4>
-                                                                <div style={{ padding: '12px', background: '#fffbeb', border: '1px solid #fef3c7', borderRadius: '6px', color: '#92400e', fontSize: '14px', lineHeight: '1.5' }}>
-                                                                    {note}
+                                                    return (
+                                                        <>
+                                                            {/* Note Section */}
+                                                            {note && (
+                                                                <div style={{ marginBottom: '24px' }}>
+                                                                    <h4 style={{ fontSize: '14px', fontWeight: 600, color: '#475569', marginBottom: '8px' }}>Keterangan / Catatan</h4>
+                                                                    <div style={{ padding: '12px', background: '#fffbeb', border: '1px solid #fef3c7', borderRadius: '6px', color: '#92400e', fontSize: '14px', lineHeight: '1.5' }}>
+                                                                        {note}
+                                                                    </div>
                                                                 </div>
-                                                            </div>
-                                                        )}
+                                                            )}
 
-                                                        {/* Changes Table */}
-                                                        {changes.length > 0 && (
-                                                            <div>
-                                                                <h4 style={{ fontSize: '14px', fontWeight: 600, color: '#475569', marginBottom: '12px' }}>Rincian Perubahan</h4>
-                                                                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
-                                                                    <thead>
-                                                                        <tr style={{ background: '#f1f5f9', textAlign: 'left' }}>
-                                                                            <th style={{ padding: '10px', border: '1px solid #e2e8f0', width: '30%', color: '#475569' }}>Data Terkait</th>
-                                                                            <th style={{ padding: '10px', border: '1px solid #e2e8f0', width: '35%', color: '#475569' }}>Semula</th>
-                                                                            <th style={{ padding: '10px', border: '1px solid #e2e8f0', width: '35%', color: '#475569' }}>Menjadi</th>
-                                                                        </tr>
-                                                                    </thead>
-                                                                    <tbody>
-                                                                        {changes.map((change, idx) => {
-                                                                            const parts = change.split('➝');
-                                                                            if (parts.length === 2) {
-                                                                                const fieldPart = parts[0].split(':');
-                                                                                const fieldName = fieldPart[0].trim();
-                                                                                const oldValue = fieldPart[1] ? fieldPart[1].trim().replace(/^"|"$/g, '') : '-';
-                                                                                const newValue = parts[1].trim().replace(/^"|"$/g, '');
+                                                            {/* Changes Table */}
+                                                            {changes.length > 0 && (
+                                                                <div>
+                                                                    <h4 style={{ fontSize: '14px', fontWeight: 600, color: '#475569', marginBottom: '12px' }}>Rincian Perubahan</h4>
+                                                                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
+                                                                        <thead>
+                                                                            <tr style={{ background: '#f1f5f9', textAlign: 'left' }}>
+                                                                                <th style={{ padding: '10px', border: '1px solid #e2e8f0', width: '30%', color: '#475569' }}>Data Terkait</th>
+                                                                                <th style={{ padding: '10px', border: '1px solid #e2e8f0', width: '35%', color: '#475569' }}>Semula</th>
+                                                                                <th style={{ padding: '10px', border: '1px solid #e2e8f0', width: '35%', color: '#475569' }}>Menjadi</th>
+                                                                            </tr>
+                                                                        </thead>
+                                                                        <tbody>
+                                                                            {changes.map((change, idx) => {
+                                                                                const parts = change.split('➝');
+                                                                                if (parts.length === 2) {
+                                                                                    const fieldPart = parts[0].split(':');
+                                                                                    const fieldName = fieldPart[0].trim();
+                                                                                    const oldValue = fieldPart[1] ? fieldPart[1].trim().replace(/^"|"$/g, '') : '-';
+                                                                                    const newValue = parts[1].trim().replace(/^"|"$/g, '');
 
-                                                                                return (
-                                                                                    <tr key={idx}>
-                                                                                        <td style={{ padding: '10px', border: '1px solid #e2e8f0', fontWeight: 500 }}>{fieldName}</td>
-                                                                                        <td style={{ padding: '10px', border: '1px solid #e2e8f0', color: '#ef4444', backgroundColor: '#fef2f2' }}>{oldValue}</td>
-                                                                                        <td style={{ padding: '10px', border: '1px solid #e2e8f0', color: '#16a34a', backgroundColor: '#f0fdf4', fontWeight: 600 }}>{newValue}</td>
-                                                                                    </tr>
-                                                                                );
-                                                                            } else {
-                                                                                return (
-                                                                                    <tr key={idx}>
-                                                                                        <td colSpan={3} style={{ padding: '10px', border: '1px solid #e2e8f0' }}>{change}</td>
-                                                                                    </tr>
-                                                                                )
-                                                                            }
-                                                                        })}
-                                                                    </tbody>
-                                                                </table>
-                                                            </div>
-                                                        )}
-                                                    </>
-                                                );
-                                            })()}
-                                        </>
-                                    );
-                                })()}
-                            </div>
+                                                                                    return (
+                                                                                        <tr key={idx}>
+                                                                                            <td style={{ padding: '10px', border: '1px solid #e2e8f0', fontWeight: 500 }}>{fieldName}</td>
+                                                                                            <td style={{ padding: '10px', border: '1px solid #e2e8f0', color: '#ef4444', backgroundColor: '#fef2f2' }}>{oldValue}</td>
+                                                                                            <td style={{ padding: '10px', border: '1px solid #e2e8f0', color: '#16a34a', backgroundColor: '#f0fdf4', fontWeight: 600 }}>{newValue}</td>
+                                                                                        </tr>
+                                                                                    );
+                                                                                } else {
+                                                                                    return (
+                                                                                        <tr key={idx}>
+                                                                                            <td colSpan={3} style={{ padding: '10px', border: '1px solid #e2e8f0' }}>{change}</td>
+                                                                                        </tr>
+                                                                                    )
+                                                                                }
+                                                                            })}
+                                                                        </tbody>
+                                                                    </table>
+                                                                </div>
+                                                            )}
+                                                        </>
+                                                    );
+                                                })()}
+                                            </>
+                                        );
+                                    })()}
+                                </div>
 
-                            <div style={{ padding: '20px', borderTop: '1px solid #e2e8f0', display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
-                                <button
-                                    style={{
-                                        display: 'flex', alignItems: 'center', gap: '8px',
-                                        padding: '10px 16px', borderRadius: '8px', border: '1px solid #e2e8f0', background: 'white', color: '#475569', fontWeight: 600, cursor: 'pointer'
-                                    }}
-                                >
-                                    <FileText size={16} /> Unduh Dokumen Pendukung
-                                </button>
-                                <button
-                                    onClick={handleCloseHistoryDetail}
-                                    className="btn-primary"
-                                    style={{ padding: '10px 24px' }}
-                                >
-                                    Tutup
-                                </button>
+                                <div style={{ padding: '20px', borderTop: '1px solid #e2e8f0', display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+                                    <button
+                                        style={{
+                                            display: 'flex', alignItems: 'center', gap: '8px',
+                                            padding: '10px 16px', borderRadius: '8px', border: '1px solid #e2e8f0', background: 'white', color: '#475569', fontWeight: 600, cursor: 'pointer'
+                                        }}
+                                    >
+                                        <FileText size={16} /> Unduh Dokumen Pendukung
+                                    </button>
+                                    <button
+                                        onClick={handleCloseHistoryDetail}
+                                        className="btn-primary"
+                                        style={{ padding: '10px 24px' }}
+                                    >
+                                        Tutup
+                                    </button>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                )}
+                    )
+                }
 
                 {/* --- GLOBAL CUSTOM MODALS --- */}
 
                 {/* Modern Alert Modal */}
-                {alertState.show && (
-                    <div className="modal-overlay" style={{ zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={closeAlert}>
-                        <div
-                            className="bg-white rounded-2xl p-6 shadow-2xl max-w-sm w-full mx-4"
-                            style={{
-                                background: 'white',
-                                borderRadius: '16px',
-                                padding: '24px',
-                                maxWidth: '380px',
-                                animation: 'scaleIn 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
-                                textAlign: 'center'
-                            }}
-                            onClick={e => e.stopPropagation()}
-                        >
-                            <div style={{
-                                width: '60px', height: '60px', borderRadius: '50%', margin: '0 auto 16px',
-                                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                background: alertState.type === 'success' ? '#def7ec' : alertState.type === 'error' ? '#fde8e8' : '#e1effe',
-                                color: alertState.type === 'success' ? '#057a55' : alertState.type === 'error' ? '#c81e1e' : '#1a56db'
-                            }}>
-                                {alertState.type === 'success' && <CheckCircle size={32} />}
-                                {alertState.type === 'error' && <AlertCircle size={32} />}
-                                {alertState.type === 'info' && <Info size={32} />}
-                            </div>
-
-                            <h3 style={{ margin: '0 0 8px', fontSize: '18px', fontWeight: 700, color: '#1f2937' }}>
-                                {alertState.title}
-                            </h3>
-
-                            <p style={{ margin: '0 0 20px', fontSize: '14px', color: '#6b7280', lineHeight: 1.5 }}>
-                                {alertState.message}
-                            </p>
-
-                            <button
-                                onClick={closeAlert}
+                {
+                    alertState.show && (
+                        <div className="modal-overlay" style={{ zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={closeAlert}>
+                            <div
+                                className="bg-white rounded-2xl p-6 shadow-2xl max-w-sm w-full mx-4"
                                 style={{
-                                    width: '100%', padding: '10px', borderRadius: '8px', border: 'none',
-                                    fontWeight: 600, fontSize: '14px', cursor: 'pointer',
-                                    background: alertState.type === 'success' ? '#057a55' : alertState.type === 'error' ? '#c81e1e' : '#1a56db',
-                                    color: 'white',
-                                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                                    background: 'white',
+                                    borderRadius: '16px',
+                                    padding: '24px',
+                                    maxWidth: '380px',
+                                    animation: 'scaleIn 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
+                                    textAlign: 'center'
                                 }}
+                                onClick={e => e.stopPropagation()}
                             >
-                                OK
-                            </button>
-                        </div>
-                    </div>
-                )}
+                                <div style={{
+                                    width: '60px', height: '60px', borderRadius: '50%', margin: '0 auto 16px',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    background: alertState.type === 'success' ? '#def7ec' : alertState.type === 'error' ? '#fde8e8' : '#e1effe',
+                                    color: alertState.type === 'success' ? '#057a55' : alertState.type === 'error' ? '#c81e1e' : '#1a56db'
+                                }}>
+                                    {alertState.type === 'success' && <CheckCircle size={32} />}
+                                    {alertState.type === 'error' && <AlertCircle size={32} />}
+                                    {alertState.type === 'info' && <Info size={32} />}
+                                </div>
 
-                {/* Modern Confirm Modal */}
-                {confirmState.show && (
-                    <div className="modal-overlay" style={{ zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={closeConfirm}>
-                        <div
-                            className="bg-white rounded-2xl p-6 shadow-2xl max-w-sm w-full mx-4"
-                            style={{
-                                background: 'white',
-                                borderRadius: '16px',
-                                padding: '24px',
-                                maxWidth: '400px',
-                                animation: 'scaleIn 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
-                                textAlign: 'center'
-                            }}
-                            onClick={e => e.stopPropagation()}
-                        >
-                            <div style={{
-                                width: '60px', height: '60px', borderRadius: '50%', margin: '0 auto 16px',
-                                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                background: '#fde8e8', color: '#c81e1e'
-                            }}>
-                                <AlertTriangle size={32} />
-                            </div>
+                                <h3 style={{ margin: '0 0 8px', fontSize: '18px', fontWeight: 700, color: '#1f2937' }}>
+                                    {alertState.title}
+                                </h3>
 
-                            <h3 style={{ margin: '0 0 8px', fontSize: '18px', fontWeight: 700, color: '#1f2937' }}>
-                                {confirmState.title}
-                            </h3>
+                                <p style={{ margin: '0 0 20px', fontSize: '14px', color: '#6b7280', lineHeight: 1.5 }}>
+                                    {alertState.message}
+                                </p>
 
-                            <p style={{ margin: '0 0 24px', fontSize: '14px', color: '#6b7280', lineHeight: 1.5 }}>
-                                {confirmState.message}
-                            </p>
-
-                            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
                                 <button
-                                    onClick={closeConfirm}
+                                    onClick={closeAlert}
                                     style={{
-                                        padding: '10px 20px', borderRadius: '8px', border: '1px solid #d1d5db',
+                                        width: '100%', padding: '10px', borderRadius: '8px', border: 'none',
                                         fontWeight: 600, fontSize: '14px', cursor: 'pointer',
-                                        background: 'white', color: '#374151'
-                                    }}
-                                >
-                                    Batal
-                                </button>
-                                <button
-                                    onClick={() => {
-                                        if (confirmState.action) confirmState.action();
-                                        closeConfirm();
-                                    }}
-                                    style={{
-                                        padding: '10px 20px', borderRadius: '8px', border: 'none',
-                                        fontWeight: 600, fontSize: '14px', cursor: 'pointer',
-                                        background: '#c81e1e', color: 'white',
+                                        background: alertState.type === 'success' ? '#057a55' : alertState.type === 'error' ? '#c81e1e' : '#1a56db',
+                                        color: 'white',
                                         boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
                                     }}
                                 >
-                                    Ya, Lanjutkan
+                                    OK
                                 </button>
                             </div>
                         </div>
-                    </div>
-                )}
+                    )
+                }
+
+                {/* Modern Confirm Modal */}
+                {
+                    confirmState.show && (
+                        <div className="modal-overlay" style={{ zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={closeConfirm}>
+                            <div
+                                className="bg-white rounded-2xl p-6 shadow-2xl max-w-sm w-full mx-4"
+                                style={{
+                                    background: 'white',
+                                    borderRadius: '16px',
+                                    padding: '24px',
+                                    maxWidth: '400px',
+                                    animation: 'scaleIn 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
+                                    textAlign: 'center'
+                                }}
+                                onClick={e => e.stopPropagation()}
+                            >
+                                <div style={{
+                                    width: '60px', height: '60px', borderRadius: '50%', margin: '0 auto 16px',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    background: '#fde8e8', color: '#c81e1e'
+                                }}>
+                                    <AlertTriangle size={32} />
+                                </div>
+
+                                <h3 style={{ margin: '0 0 8px', fontSize: '18px', fontWeight: 700, color: '#1f2937' }}>
+                                    {confirmState.title}
+                                </h3>
+
+                                <p style={{ margin: '0 0 24px', fontSize: '14px', color: '#6b7280', lineHeight: 1.5 }}>
+                                    {confirmState.message}
+                                </p>
+
+                                <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+                                    <button
+                                        onClick={closeConfirm}
+                                        style={{
+                                            padding: '10px 20px', borderRadius: '8px', border: '1px solid #d1d5db',
+                                            fontWeight: 600, fontSize: '14px', cursor: 'pointer',
+                                            background: 'white', color: '#374151'
+                                        }}
+                                    >
+                                        Batal
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            if (confirmState.action) confirmState.action();
+                                            closeConfirm();
+                                        }}
+                                        style={{
+                                            padding: '10px 20px', borderRadius: '8px', border: 'none',
+                                            fontWeight: 600, fontSize: '14px', cursor: 'pointer',
+                                            background: '#c81e1e', color: 'white',
+                                            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                                        }}
+                                    >
+                                        Ya, Lanjutkan
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )
+                }
             </>
         )
 

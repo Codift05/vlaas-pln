@@ -126,6 +126,33 @@ export default function DashboardPage() {
         }
     }
 
+    const processContractChartData = (contracts: any[], year: number) => {
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des']
+        const newChartData = months.map(m => ({ month: m, dalamProses: 0, terbayar: 0, total: 0 }))
+
+        contracts.forEach(contract => {
+            if (!contract.start_date) return
+
+            const date = new Date(contract.start_date)
+            const contractYear = date.getFullYear()
+            const monthIndex = date.getMonth()
+
+            if (contractYear === year && monthIndex >= 0 && monthIndex < 12) {
+                const status = (contract.status || '').toLowerCase()
+
+                if (status === 'dalam proses pekerjaan') {
+                    newChartData[monthIndex].dalamProses += 1
+                } else if (status === 'terbayar') {
+                    newChartData[monthIndex].terbayar += 1
+                }
+
+                newChartData[monthIndex].total += 1
+            }
+        })
+
+        setChartData(newChartData)
+    }
+
     const processStatsAndActivities = (contracts: any[]) => {
         // 1. Calculate Stats
         const totalContracts = contracts.length
@@ -177,7 +204,7 @@ export default function DashboardPage() {
 
             const date = new Date(vendor.created_at)
             const vendorYear = date.getFullYear()
-            const monthIndex = date.getMonth() // 0-11
+            const monthIndex = date.getMonth()
 
             if (vendorYear === year && monthIndex >= 0 && monthIndex < 12) {
                 newChartData[monthIndex].total += 1
@@ -230,7 +257,6 @@ export default function DashboardPage() {
         #9333ea ${getPieRotation((contractStatusDist.selesai / contractStatusDist.total) * 100 || 0)}deg ${getPieRotation(((contractStatusDist.selesai + contractStatusDist.telahdiperiksa) / contractStatusDist.total) * 100 || 0)}deg,
         #2ecc71 ${getPieRotation(((contractStatusDist.selesai + contractStatusDist.telahdiperiksa) / contractStatusDist.total) * 100 || 0)}deg 100%
     )`, [contractStatusDist])
-
     return (
         <div>
             {/* Stats Cards */}
@@ -282,7 +308,6 @@ export default function DashboardPage() {
                     <div className="chart-placeholder">
                         <div className="bar-chart">
                             {chartData.map((data, index) => {
-                                // Fixed height: 200px jika ada data, 0 jika tidak
                                 const barHeight = data.total > 0 ? 200 : 0;
 
                                 return (

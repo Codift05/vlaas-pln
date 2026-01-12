@@ -36,11 +36,9 @@ interface RemainingContract {
 
 interface MonthlyData {
     month: string
-    active: number
-    warning: number
-    danger: number
+    dalamProses: number
+    terbayar: number
     total: number
-    count?: number // Keep optional for backward compatibility if needed, or remove
 }
 
 function Laporan() {
@@ -185,10 +183,12 @@ function Laporan() {
         const remainingValue = totalValue - paidValue
 
         // Simpan kontrak yang belum terbayar untuk detail modal
-        const unpaidContracts = contracts.filter(c => 
-            (c.status || '').toLowerCase() !== 'terbayar' && 
-            (c.status || '').toLowerCase() !== 'batal'
-        ).map(c => ({
+        // Filter: Hanya tampilkan status "Dalam Pekerjaan - Telah Diperiksa" saja (tidak termasuk "Terbayar")
+        const unpaidContracts = contracts.filter(c => {
+            const status = (c.status || '').toLowerCase()
+            // Fokus pada "Telah Diperiksa" dan "Dalam Proses Pekerjaan" - tidak tampilkan "Terbayar"
+            return status === 'telah diperiksa' || status === 'dalam proses pekerjaan'
+        }).map(c => ({
             id: c.id,
             name: c.name,
             vendor_name: c.vendor_name,
@@ -231,7 +231,7 @@ function Laporan() {
                     }
                     return sum
                 }, 0) /
-                  contracts.filter(c => c.created_at && c.end_date).length || 0
+                contracts.filter(c => c.created_at && c.end_date).length || 0
                 : 0
 
         const approvedStatuses = ['selesai', 'terbayar', 'telah diperiksa', 'aktif']
@@ -292,9 +292,9 @@ function Laporan() {
         })
         setBudgetTypeData(typeBuckets)
 
-        // 3. Monthly Volume (Stacked Data)
+        // 4. Monthly Volume - Dalam Proses & Terbayar
         const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des']
-        const chartData = months.map(m => ({ month: m, active: 0, warning: 0, danger: 0, total: 0 }))
+        const chartData = months.map(m => ({ month: m, dalamProses: 0, terbayar: 0, total: 0 }))
 
         contracts.forEach(c => {
             if (!c.start_date) return
@@ -305,15 +305,13 @@ function Laporan() {
             if (monthIdx >= 0 && monthIdx < 12) {
                 const status = (c.status || '').toLowerCase()
 
-                if (['selesai', 'terbayar', 'telah diperiksa', 'aktif'].includes(status)) {
-                    chartData[monthIdx].active += 1
-                } else if (
-                    ['proses', 'pemeriksaan', 'terkontrak', 'amandemen', 'perbaikan'].some(k => status.includes(k))
-                ) {
-                    chartData[monthIdx].warning += 1
-                } else {
-                    chartData[monthIdx].danger += 1
+                if (status === 'dalam proses pekerjaan') {
+                    chartData[monthIdx].dalamProses += 1
+                } else if (status === 'terbayar') {
+                    chartData[monthIdx].terbayar += 1
                 }
+
+                // Hitung total semua kontrak untuk visualisasi
                 chartData[monthIdx].total += 1
             }
         })
@@ -666,8 +664,8 @@ function Laporan() {
                     const IconComponent = stat.icon;
                     const cardClass = index === 0 ? 'blue' : index === 1 ? 'orange' : 'green';
                     return (
-                        <div 
-                            key={index} 
+                        <div
+                            key={index}
                             className={`kpi-card ${cardClass}`}
                             onClick={stat.clickable ? () => setShowRemainingModal(true) : undefined}
                             style={stat.clickable ? { cursor: 'pointer', transition: 'transform 0.2s, box-shadow 0.2s' } : {}}
@@ -702,9 +700,8 @@ function Laporan() {
                             const maxTotal = monthlyData.length > 0 ? Math.max(...(monthlyData as any[]).map(d => d.total), 1) : 10;
                             const heightPercentage = maxTotal > 0 ? (data.total / maxTotal) * 100 : 0;
 
-                            const activeHeigth = data.total > 0 ? (data.active / data.total) * 100 : 0;
-                            const warningHeight = data.total > 0 ? (data.warning / data.total) * 100 : 0;
-                            const dangerHeight = data.total > 0 ? (data.danger / data.total) * 100 : 0;
+                            const dalamProsesHeight = data.total > 0 ? (data.dalamProses / data.total) * 100 : 0;
+                            const terbayarHeight = data.total > 0 ? (data.terbayar / data.total) * 100 : 0;
 
                             return (
                                 <div key={index} className="bar-wrapper">
@@ -712,16 +709,14 @@ function Laporan() {
                                         {/* Tooltip */}
                                         <div className="bar-tooltip">
                                             <div className="tooltip-header">{data.month}</div>
-                                            <div className="tooltip-row"><span className="dot active"></span> Selesai/Aktif: {data.active}</div>
-                                            <div className="tooltip-row"><span className="dot warning"></span> Proses/Rev: {data.warning}</div>
-                                            <div className="tooltip-row"><span className="dot danger"></span> Batal/Lain: {data.danger}</div>
+                                            <div className="tooltip-row"><span className="dot" style={{ background: '#f59e0b' }}></span> Dalam Proses: {data.dalamProses}</div>
+                                            <div className="tooltip-row"><span className="dot" style={{ background: '#6366f1' }}></span> Terbayar: {data.terbayar}</div>
                                             <div className="tooltip-total">Total: {data.total}</div>
                                         </div>
 
-                                        {/* Segments (Reverse order: Danger Bottom, Warning Middle, Active Top) */}
-                                        {data.danger > 0 && <div className="bar-segment danger" style={{ height: `${dangerHeight}%` }}></div>}
-                                        {data.warning > 0 && <div className="bar-segment warning" style={{ height: `${warningHeight}%` }}></div>}
-                                        {data.active > 0 && <div className="bar-segment active" style={{ height: `${activeHeigth}%` }}></div>}
+                                        {/* Segments - Stacked */}
+                                        {data.terbayar > 0 && <div className="bar-segment" style={{ height: `${terbayarHeight}%`, backgroundColor: '#6366f1' }}></div>}
+                                        {data.dalamProses > 0 && <div className="bar-segment" style={{ height: `${dalamProsesHeight}%`, backgroundColor: '#f59e0b' }}></div>}
                                     </div>
                                     <span className="bar-label">{data.month}</span>
                                 </div>
@@ -939,7 +934,7 @@ function Laporan() {
                                                         </span>
                                                     </td>
                                                     <td style={{ fontSize: '13px' }}>
-                                                        {contract.start_date && contract.end_date 
+                                                        {contract.start_date && contract.end_date
                                                             ? `${contract.start_date} - ${contract.end_date}`
                                                             : '-'
                                                         }
