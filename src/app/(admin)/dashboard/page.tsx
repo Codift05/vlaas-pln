@@ -306,30 +306,113 @@ export default function DashboardPage() {
                         </div>
                     </div>
                     <div className="chart-placeholder">
-                        <div className="bar-chart">
-                            {chartData.map((data, index) => {
-                                const barHeight = data.total > 0 ? 200 : 0;
+                        <div className="line-chart-container" style={{ 
+                            position: 'relative', 
+                            height: '280px', 
+                            padding: '20px',
+                            display: 'flex',
+                            flexDirection: 'column'
+                        }}>
+                            {/* Y-axis labels */}
+                            <div style={{ position: 'absolute', left: '0', top: '20px', bottom: '40px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', fontSize: '12px', color: '#64748b' }}>
+                                {[Math.max(...chartData.map(d => d.total)), Math.floor(Math.max(...chartData.map(d => d.total)) * 0.75), Math.floor(Math.max(...chartData.map(d => d.total)) * 0.5), Math.floor(Math.max(...chartData.map(d => d.total)) * 0.25), 0].map((val, i) => (
+                                    <span key={i}>{val}</span>
+                                ))}
+                            </div>
 
-                                return (
-                                    <div key={`${data.month}-${data.total}-${selectedYear}`} className="bar-wrapper">
-                                        <div
-                                            className="bar-stack-container"
-                                            style={{
-                                                height: `${barHeight}px`,
-                                                backgroundColor: data.total > 0 ? '#2ecc71' : 'transparent',
-                                                borderRadius: '6px 6px 0 0',
-                                                boxShadow: data.total > 0 ? '0 0 10px rgba(46, 204, 113, 0.2)' : 'none'
-                                            }}
-                                        >
-                                            <div className="bar-tooltip">
-                                                <div className="tooltip-header">{data.month} {selectedYear}</div>
-                                                <div className="tooltip-total">Vendor Baru: {data.total}</div>
-                                            </div>
-                                        </div>
-                                        <span className="bar-label">{data.month}</span>
-                                    </div>
-                                )
-                            })}
+                            {/* Chart area */}
+                            <svg 
+                                width="100%" 
+                                height="220" 
+                                style={{ marginLeft: '40px', marginTop: '10px' }}
+                                viewBox="0 0 880 200"
+                                preserveAspectRatio="xMidYMid meet"
+                            >
+                                {/* Grid lines */}
+                                {[0, 1, 2, 3, 4].map(i => (
+                                    <line
+                                        key={i}
+                                        x1="25"
+                                        y1={i * 50}
+                                        x2="840"
+                                        y2={i * 50}
+                                        stroke="#e2e8f0"
+                                        strokeWidth="1"
+                                    />
+                                ))}
+
+                                {/* Area fill */}
+                                <defs>
+                                    <linearGradient id="areaGradient" x1="0" x2="0" y1="0" y2="1">
+                                        <stop offset="0%" stopColor="#2ecc71" stopOpacity="0.3"/>
+                                        <stop offset="100%" stopColor="#2ecc71" stopOpacity="0.05"/>
+                                    </linearGradient>
+                                </defs>
+                                
+                                {chartData.length > 0 && (() => {
+                                    const maxValue = Math.max(...chartData.map(d => d.total), 1);
+                                    const paddingLeft = 25;
+                                    const paddingRight = 40;
+                                    const chartWidth = 815;
+                                    const spacing = chartWidth / (chartData.length - 1);
+                                    const points = chartData.map((data, index) => {
+                                        const x = paddingLeft + (index * spacing);
+                                        const y = 200 - (data.total / maxValue) * 200;
+                                        return `${x},${y}`;
+                                    }).join(' ');
+                                    
+                                    const areaPoints = `${paddingLeft},200 ${points} ${paddingLeft + chartWidth},200`;
+                                    
+                                    return (
+                                        <>
+                                            <polyline
+                                                points={areaPoints}
+                                                fill="url(#areaGradient)"
+                                            />
+                                            <polyline
+                                                points={points}
+                                                fill="none"
+                                                stroke="#2ecc71"
+                                                strokeWidth="3"
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                            />
+                                            {chartData.map((data, index) => {
+                                                const x = paddingLeft + (index * spacing);
+                                                const y = 200 - (data.total / maxValue) * 200;
+                                                return (
+                                                    <g key={index}>
+                                                        <circle
+                                                            cx={x}
+                                                            cy={y}
+                                                            r="5"
+                                                            fill="#fff"
+                                                            stroke="#2ecc71"
+                                                            strokeWidth="3"
+                                                            style={{ cursor: 'pointer' }}
+                                                        />
+                                                        <title>{`${data.month} ${selectedYear}: ${data.total} vendor`}</title>
+                                                    </g>
+                                                );
+                                            })}
+                                        </>
+                                    );
+                                })()}
+                            </svg>
+
+                            {/* X-axis labels */}
+                            <div style={{ 
+                                display: 'flex', 
+                                justifyContent: 'space-between', 
+                                paddingLeft: '40px',
+                                fontSize: '12px',
+                                color: '#64748b',
+                                fontWeight: 500
+                            }}>
+                                {chartData.map((data, index) => (
+                                    <span key={index}>{data.month}</span>
+                                ))}
+                            </div>
                         </div>
                     </div>
                 </div>

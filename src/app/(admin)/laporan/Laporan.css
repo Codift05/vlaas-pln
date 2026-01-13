@@ -1032,7 +1032,6 @@
   .budget-section {
     grid-template-columns: 1fr;
   }
-<<<<<<< HEAD
 }
 
 /* Modal Styles */
@@ -1220,10 +1219,4 @@
 .status-ditolak {
   background: #fee2e2;
   color: #991b1b;
-=======
-
-  .pie-legend-grid {
-    grid-template-columns: 1fr;
-  }
->>>>>>> kasesambung
 }

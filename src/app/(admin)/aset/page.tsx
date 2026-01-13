@@ -294,8 +294,8 @@ function ManajemenAset() {
     const [paymentFormData, setPaymentFormData] = useState({
         contractId: '',
         name: '',
-        percentage: 100,
-        amount: 0,
+        percentage: '100',
+        amount: '0',
         dueDate: ''
     })
 
@@ -354,8 +354,8 @@ function ManajemenAset() {
         setPaymentFormData({
             contractId: contract.id,
             name: 'Pembayaran Lunas',
-            percentage: 100,
-            amount: contract.amount,
+            percentage: '100',
+            amount: String(contract.amount || 0),
             dueDate: ''
         })
         setPaymentMode('single')
@@ -387,8 +387,8 @@ function ManajemenAset() {
             const payload = {
                 contract_id: paymentFormData.contractId,
                 name: paymentFormData.name,
-                percentage: parseFloat(paymentFormData.percentage) || 0,
-                value: parseFloat(paymentFormData.amount) || 0,
+                percentage: String(parseFloat(paymentFormData.percentage) || 0),
+                value: String(parseFloat(paymentFormData.amount) || 0),
                 due_date: paymentFormData.dueDate || null,
                 status: 'Pending'
             }
@@ -927,7 +927,6 @@ function ManajemenAset() {
                             value={filterStatus}
                             onChange={(e) => setFilterStatus(e.target.value)}
                             className="filter-select"
-                            title="Pilih status kontrak"
                             title="Pilih status kontrak"
                         >
                             <option value="all">Semua Status</option>
@@ -2268,7 +2267,7 @@ function ManajemenAset() {
                                                             setPaymentFormData(prev => ({
                                                                 ...prev,
                                                                 name: 'Pelunasan (100%)',
-                                                                percentage: 100,
+                                                                percentage: '100',
                                                                 amount: prev.amount // Keep total
                                                             }))
                                                         }}
@@ -2283,12 +2282,15 @@ function ManajemenAset() {
                                                         checked={paymentMode === 'termin'}
                                                         onChange={() => {
                                                             setPaymentMode('termin');
-                                                            setPaymentFormData(prev => ({
-                                                                ...prev,
-                                                                name: 'Termin 1 (DP)',
-                                                                percentage: 30, // Default DP
-                                                                amount: (prev.amount * 0.3)
-                                                            }))
+                                                            setPaymentFormData(prev => {
+                                                                const prevAmount = parseFloat(prev.amount) || 0;
+                                                                return {
+                                                                    ...prev,
+                                                                    name: 'Termin 1 (DP)',
+                                                                    percentage: '30', // Default DP
+                                                                    amount: (prevAmount * 0.3).toString()
+                                                                }
+                                                            })
                                                         }}
                                                     />
                                                     <span style={{ fontWeight: 500 }}>Bertahap (Termin)</span>
@@ -2316,7 +2318,7 @@ function ManajemenAset() {
                                                     className="input-modern"
                                                     value={paymentFormData.percentage}
                                                     onChange={(e) => {
-                                                        const pct = parseFloat(e.target.value);
+                                                        const pct = parseFloat(e.target.value) || 0;
                                                         // Calculate nominal automatically
                                                         const contract = assets.find(a => a.id === paymentFormData.contractId);
                                                         const contractAmount = contract ? Number(contract.amount) : 0;
@@ -2324,8 +2326,8 @@ function ManajemenAset() {
 
                                                         setPaymentFormData({
                                                             ...paymentFormData,
-                                                            percentage: pct,
-                                                            amount: calculatedAmount
+                                                            percentage: pct.toString(),
+                                                            amount: calculatedAmount.toString()
                                                         })
                                                     }}
                                                     title="Masukkan persentase pembayaran"
@@ -2338,7 +2340,7 @@ function ManajemenAset() {
                                                     type="number"
                                                     className="input-modern"
                                                     value={
-                                                        paymentFormData.amount === 0 || paymentFormData.amount === undefined || paymentFormData.amount === null || isNaN(paymentFormData.amount)
+                                                        paymentFormData.amount === '0' || paymentFormData.amount === '' || !paymentFormData.amount
                                                             ? ''
                                                             : paymentFormData.amount
                                                     }
@@ -2354,8 +2356,8 @@ function ManajemenAset() {
 
                                                         setPaymentFormData({
                                                             ...paymentFormData,
-                                                            amount: newAmount,
-                                                            percentage: parseFloat(calculatedPct.toFixed(2)) // Limit decimals
+                                                            amount: val === '' ? '0' : newAmount.toString(),
+                                                            percentage: parseFloat(calculatedPct.toFixed(2)).toString() // Limit decimals
                                                         });
                                                     }}
                                                     readOnly={paymentMode === 'single'}
