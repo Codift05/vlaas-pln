@@ -3,6 +3,7 @@ import { useState, useRef, useEffect, Fragment } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { Eye, Edit, Trash2, Search, ChevronDown, ChevronUp, Plus, Save, Upload, Calendar, Clock, ArrowRight, FileText, AlertCircle, AlertTriangle, FileCheck, History, Activity, X, CheckCircle, Info, AlertOctagon } from 'lucide-react'
 import { supabase } from '../../../lib/supabaseClient'
+import { useContracts, useContractDetail } from '../../../hooks/useContracts'
 import './ManajemenAset.css'
 
 function ManajemenAset() {
@@ -10,6 +11,7 @@ function ManajemenAset() {
     console.log('ManajemenAset render start');
     const searchParams = useSearchParams()
     const [searchTerm, setSearchTerm] = useState('');
+    const [currentPage, setCurrentPage] = useState(1);
     const [filterStatus, setFilterStatus] = useState('all');
     const [showModal, setShowModal] = useState(false);
     const [showColumnSelector, setShowColumnSelector] = useState(false);
@@ -29,10 +31,13 @@ function ManajemenAset() {
     });
     // State untuk Detail Modal
     const [showDetailModal, setShowDetailModal] = useState(false)
-    const [selectedAsset, setSelectedAsset] = useState(null)
+    const [selectedContractId, setSelectedContractId] = useState(null)
+
+    // Fetch contract detail dengan SWR
+    const { data: contractDetail, mutate: refreshDetail } = useContractDetail(selectedContractId)
 
     const handleViewDetail = (asset) => {
-        setSelectedAsset(asset)
+        setSelectedContractId(asset.id)
         setShowDetailModal(true)
     }
     // State untuk upload PDF
@@ -41,11 +46,11 @@ function ManajemenAset() {
     const [uploadError, setUploadError] = useState('')
     const [uploadSuccess, setUploadSuccess] = useState('')
     const [selectedFile, setSelectedFile] = useState(null)
-    const [selectedContractId, setSelectedContractId] = useState(null)
+    const [uploadContractId, setUploadContractId] = useState(null)
 
     // Buka modal upload
     function openUploadModal(contractId) {
-        setSelectedContractId(contractId)
+        setUploadContractId(contractId)
         setUploadError('')
         setUploadSuccess('')
         setSelectedFile(null)
@@ -60,7 +65,7 @@ function ManajemenAset() {
         try {
             const formData = new FormData()
             formData.append('file', selectedFile)
-            formData.append('contract_id', selectedContractId)
+            formData.append('contract_id', uploadContractId)
             const res = await fetch('/functions/v1/upload_pdf_to_drive', {
                 method: 'POST',
                 body: formData
@@ -70,10 +75,12 @@ function ManajemenAset() {
             // Simpan ke Supabase table
             const { error } = await supabase
                 .from('contract_files')
-                .insert([{ contract_id: selectedContractId, file_url: data.webViewLink }])
+                .insert([{ contract_id: uploadContractId, file_url: data.webViewLink }])
             if (error) throw new Error(error.message)
             showAlert('success', 'Berhasil', 'Upload berhasil! Link: ' + data.webViewLink)
             setUploadSuccess('Upload berhasil! Link: ' + data.webViewLink)
+            // Refresh contract detail
+            refreshDetail()
         } catch (err) {
             setUploadError(err.message)
             showAlert('error', 'Gagal', 'Gagal upload: ' + err.message)
@@ -99,53 +106,20 @@ function ManajemenAset() {
         amendmentDescription: '' // New field
     });
 
-    // State untuk data aset (dari Supabase)
-    const [assets, setAssets] = useState([])
-
-    // Fetch data contracts & history from Supabase
-    const fetchContracts = async () => {
-        try {
-            const { data, error } = await supabase
-                .from('contracts')
-                .select(`
-                    *,
-                    history:contract_history(*)
-                `)
-
-            if (error) throw error
-
-            console.log('Raw data from Supabase:', data) // Debug log
-
-            // Format data sesuai struktur UI
-            const formattedData = data.map(contract => ({
-                id: contract.id || '',
-                name: contract.name || '',
-                vendorName: contract.vendor_name || '', // Map snake_case -> camelCase
-                recipient: contract.recipient || '',
-                invoiceNumber: contract.invoice_number || '',
-                amount: contract.amount ? parseFloat(contract.amount) : 0,
-                budgetType: contract.budget_type || '',
-                contractType: contract.contract_type || '',
-                category: contract.category || '',
-                location: contract.location || '',
-                status: contract.status || 'Aktif',
-                startDate: contract.start_date || '',
-                endDate: contract.end_date || '',
-                updatedAt: contract.updated_at || contract.created_at || '',
-                progress: contract.progress || 0,
-                history: contract.history || []
-            }))
-            setAssets(formattedData)
-        } catch (err) {
-            console.error('Error fetching contracts:', err)
-            setAssets([])
-        }
-    }
-
-    // Load data on mount
-    useEffect(() => {
-        fetchContracts()
-    }, [])
+    // State untuk data aset (dari API dengan SWR)
+    const {
+        data: assets,
+        pagination,
+        isLoading,
+        error: dataError,
+        mutate: refreshContracts
+    } = useContracts({
+        page: currentPage,
+        search: searchTerm,
+        status: filterStatus,
+        sortBy: 'updated_at',
+        sortOrder: 'desc'
+    })
 
     // Handle URL parameter untuk auto-expand kontrak yang dipilih
     useEffect(() => {
@@ -169,16 +143,13 @@ function ManajemenAset() {
         }
     }, [assets, searchParams])
 
-    const getBadgeClass = (status) => {
-        if (!status) return ''
-        const normalized = status.toLowerCase()
-        if (normalized === 'aktif') return 'status-active' // Legacy mapping
-        if (normalized === 'perbaikan') return 'status-maintenance'
-        if (normalized === 'tidak aktif') return 'status-inactive'
-
-        // Slugify for new statuses
-        return `status-${normalized.replace(/\s+/g, '-')}`
-    }
+    // Debounce search untuk optimize performa
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setCurrentPage(1) // Reset ke halaman 1 saat search
+        }, 300)
+        return () => clearTimeout(timer)
+    }, [searchTerm, filterStatus])
 
     // State untuk mode edit
     const [isEditing, setIsEditing] = useState(false);
@@ -188,15 +159,15 @@ function ManajemenAset() {
     // Countdown timer for detail modal
     const [timeRemaining, setTimeRemaining] = useState('');
     useEffect(() => {
-        if (!showDetailModal || !selectedAsset || !selectedAsset.endDate) return;
+        if (!showDetailModal || !contractDetail || !contractDetail.endDate) return;
         function updateCountdown() {
             const now = new Date();
             let end;
             // Handle YYYY-MM-DD (Supabase) or DD/MM/YYYY (Legacy)
-            if (selectedAsset.endDate.includes('/')) {
-                end = new Date(selectedAsset.endDate.split('/').reverse().join('-'));
+            if (contractDetail.endDate.includes('/')) {
+                end = new Date(contractDetail.endDate.split('/').reverse().join('-'));
             } else {
-                end = new Date(selectedAsset.endDate);
+                end = new Date(contractDetail.endDate);
             }
 
             const diff = end.getTime() - now.getTime();
@@ -213,7 +184,7 @@ function ManajemenAset() {
         updateCountdown();
         const interval = setInterval(updateCountdown, 1000);
         return () => clearInterval(interval);
-    }, [showDetailModal, selectedAsset]);
+    }, [showDetailModal, contractDetail]);
 
     // Close dropdown when clicking outside
     useEffect(() => {
@@ -786,7 +757,7 @@ function ManajemenAset() {
                 if (error) throw error
 
                 showAlert('success', 'Berhasil', 'Kontrak berhasil dihapus')
-                fetchContracts() // Refresh data
+                refreshContracts() // Refresh data dengan SWR
             } catch (err) {
                 console.error('Error deleting contract:', err)
                 showAlert('error', 'Gagal', 'Gagal menghapus: ' + err.message)
@@ -805,51 +776,24 @@ function ManajemenAset() {
                 if (error) throw error
                 showAlert('success', 'Berhasil', 'Riwayat berhasil dihapus')
 
-                // Refresh data - we need to refresh the selectedAsset as well
-                // But fetchContracts updates 'assets', so we need to re-find the asset
-                await fetchContracts()
-
-                // Re-select the asset to update the view
-                const updatedAssets = await supabase
-                    .from('contracts')
-                    .select(`*, history:contract_history(*)`)
-                    .eq('id', contractId)
-                    .single()
-
-                if (updatedAssets.data) {
-                    // Manually format to match our internal structure if needed, or better, just re-use the fetched list
-                    // Since fetchContracts() updates 'assets' state, we can just find it from there? 
-                    // Wait, fetchContracts is async and sets state. We can't immediately get the state.
-                    // Better to fetch specific contract and update selectedAsset
-                    const raw = updatedAssets.data
-                    const formatted = {
-                        id: raw.id || '',
-                        name: raw.name || '',
-                        vendorName: raw.vendor_name || '',
-                        recipient: raw.recipient || '',
-                        invoiceNumber: raw.invoice_number || '',
-                        amount: raw.amount ? parseFloat(raw.amount) : 0,
-                        budgetType: raw.budget_type || '',
-                        contractType: raw.contract_type || '',
-                        category: raw.category || '',
-                        location: raw.location || '',
-                        status: raw.status || 'Aktif',
-                        startDate: raw.start_date || '',
-                        endDate: raw.end_date || '',
-                        progress: raw.progress || 0,
-                        history: raw.history || []
-                    }
-                    setSelectedAsset(formatted)
-                }
-
+                // Refresh contract detail dan list
+                refreshDetail()
+                refreshContracts()
             } catch (err) {
                 console.error('Error deleting history:', err)
-                showAlert('success', 'Gagal', 'Gagal menghapus riwayat: ' + err.message)
+                showAlert('error', 'Gagal', 'Gagal menghapus: ' + err.message)
             }
         })
     }
 
-
+    const getBadgeClass = (status: string) => {
+        if (!status) return ''
+        const normalized = status.toLowerCase()
+        if (normalized === 'aktif') return 'status-active'
+        if (normalized === 'perbaikan') return 'status-maintenance'
+        if (normalized === 'tidak aktif') return 'status-inactive'
+        return `status-${normalized.replace(/\s+/g, '-')}`
+    }
 
     try {
         return (
