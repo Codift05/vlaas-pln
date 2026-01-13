@@ -689,41 +689,175 @@ function Laporan() {
 
             {/* Charts Section */}
             <div className="charts-container">
-                {/* Bar Chart - Perbandingan Dalam Proses & Terbayar */}
+                {/* Line Chart - Perbandingan Dalam Proses & Terbayar */}
                 <div className="chart-card large">
                     <div className="chart-header">
                         <h3><BarChart2 size={20} style={{ display: 'inline', marginRight: '8px' }} /> Tren Kontrak Bulanan</h3>
                         <span className="chart-subtitle">Distribusi status kontrak per bulan</span>
                     </div>
-                    <div className="bar-chart-container">
-                        {(monthlyData as any[]).map((data, index) => {
-                            // Hitung berdasarkan jumlah yang benar-benar ditampilkan (dalamProses + terbayar)
-                            const displayedCount = data.dalamProses + data.terbayar;
-                            const maxDisplayed = monthlyData.length > 0 ? Math.max(...(monthlyData as any[]).map(d => d.dalamProses + d.terbayar), 1) : 10;
-                            const heightPercentage = maxDisplayed > 0 ? (displayedCount / maxDisplayed) * 100 : 0;
+                    <div className="line-chart-container" style={{ 
+                        position: 'relative', 
+                        height: '280px', 
+                        padding: '20px',
+                        display: 'flex',
+                        flexDirection: 'column'
+                    }}>
+                        {/* Y-axis labels */}
+                        <div style={{ position: 'absolute', left: '0', top: '20px', bottom: '40px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', fontSize: '12px', color: '#64748b' }}>
+                            {(() => {
+                                const maxVal = Math.max(...(monthlyData as any[]).map(d => Math.max(d.dalamProses, d.terbayar)), 1);
+                                return [maxVal, Math.floor(maxVal * 0.75), Math.floor(maxVal * 0.5), Math.floor(maxVal * 0.25), 0].map((val, i) => (
+                                    <span key={i}>{val}</span>
+                                ));
+                            })()}
+                        </div>
 
-                            const dalamProsesHeight = displayedCount > 0 ? (data.dalamProses / displayedCount) * 100 : 0;
-                            const terbayarHeight = displayedCount > 0 ? (data.terbayar / displayedCount) * 100 : 0;
+                        {/* Chart area */}
+                        <svg 
+                            width="99%" 
+                            height="220" 
+                            style={{ marginLeft: '5px', marginTop: '10px' }}
+                            viewBox="0 0 1000 200"
+                            preserveAspectRatio="xMidYMid meet"
+                        >
+                            {/* Grid lines */}
+                            {[0, 1, 2, 3, 4].map(i => (
+                                <line
+                                    key={i}
+                                    x1="50"
+                                    y1={i * 50}
+                                    x2="950"
+                                    y2={i * 50}
+                                    stroke="#e2e8f0"
+                                    strokeWidth="1"
+                                />
+                            ))}
 
-                            return (
-                                <div key={index} className="bar-wrapper">
-                                    <div className="bar-stack-container" style={{ height: `${heightPercentage}%`, minHeight: displayedCount > 0 ? '4px' : '0' }}>
-                                        {/* Tooltip */}
-                                        <div className="bar-tooltip">
-                                            <div className="tooltip-header">{data.month}</div>
-                                            <div className="tooltip-row"><span className="dot" style={{ background: '#f59e0b' }}></span> Dalam Proses: {data.dalamProses}</div>
-                                            <div className="tooltip-row"><span className="dot" style={{ background: '#6366f1' }}></span> Terbayar: {data.terbayar}</div>
-                                            <div className="tooltip-total">Total: {data.total}</div>
-                                        </div>
+                            {/* Area fills and lines */}
+                            <defs>
+                                <linearGradient id="areaGradientDalamProses" x1="0" x2="0" y1="0" y2="1">
+                                    <stop offset="0%" stopColor="#f59e0b" stopOpacity="0.2"/>
+                                    <stop offset="100%" stopColor="#f59e0b" stopOpacity="0.02"/>
+                                </linearGradient>
+                                <linearGradient id="areaGradientTerbayar" x1="0" x2="0" y1="0" y2="1">
+                                    <stop offset="0%" stopColor="#6366f1" stopOpacity="0.2"/>
+                                    <stop offset="100%" stopColor="#6366f1" stopOpacity="0.02"/>
+                                </linearGradient>
+                            </defs>
+                            
+                            {monthlyData.length > 0 && (() => {
+                                const maxValue = Math.max(...(monthlyData as any[]).map(d => Math.max(d.dalamProses, d.terbayar)), 1);
+                                const paddingLeft = 50;
+                                const paddingRight = 50;
+                                const chartWidth = 900;
+                                const spacing = chartWidth / (monthlyData.length - 1);
+                                
+                                // Dalam Proses line
+                                const dalamProsesPoints = (monthlyData as any[]).map((data, index) => {
+                                    const x = paddingLeft + (index * spacing);
+                                    const y = 200 - (data.dalamProses / maxValue) * 200;
+                                    return `${x},${y}`;
+                                }).join(' ');
+                                
+                                const dalamProsesAreaPoints = `${paddingLeft},200 ${dalamProsesPoints} ${paddingLeft + chartWidth},200`;
+                                
+                                // Terbayar line
+                                const terbayarPoints = (monthlyData as any[]).map((data, index) => {
+                                    const x = paddingLeft + (index * spacing);
+                                    const y = 200 - (data.terbayar / maxValue) * 200;
+                                    return `${x},${y}`;
+                                }).join(' ');
+                                
+                                const terbayarAreaPoints = `${paddingLeft},200 ${terbayarPoints} ${paddingLeft + chartWidth},200`;
+                                
+                                return (
+                                    <>
+                                        {/* Dalam Proses area and line */}
+                                        <polyline
+                                            points={dalamProsesAreaPoints}
+                                            fill="url(#areaGradientDalamProses)"
+                                        />
+                                        <polyline
+                                            points={dalamProsesPoints}
+                                            fill="none"
+                                            stroke="#f59e0b"
+                                            strokeWidth="3"
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                        />
+                                        
+                                        {/* Terbayar area and line */}
+                                        <polyline
+                                            points={terbayarAreaPoints}
+                                            fill="url(#areaGradientTerbayar)"
+                                        />
+                                        <polyline
+                                            points={terbayarPoints}
+                                            fill="none"
+                                            stroke="#6366f1"
+                                            strokeWidth="3"
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                        />
+                                        
+                                        {/* Dalam Proses points */}
+                                        {(monthlyData as any[]).map((data, index) => {
+                                            const x = paddingLeft + (index * spacing);
+                                            const y = 200 - (data.dalamProses / maxValue) * 200;
+                                            return (
+                                                <g key={`dp-${index}`}>
+                                                    <circle
+                                                        cx={x}
+                                                        cy={y}
+                                                        r="5"
+                                                        fill="#fff"
+                                                        stroke="#f59e0b"
+                                                        strokeWidth="3"
+                                                        style={{ cursor: 'pointer' }}
+                                                    />
+                                                    <title>{`${data.month}: Dalam Proses ${data.dalamProses}`}</title>
+                                                </g>
+                                            );
+                                        })}
+                                        
+                                        {/* Terbayar points */}
+                                        {(monthlyData as any[]).map((data, index) => {
+                                            const x = paddingLeft + (index * spacing);
+                                            const y = 200 - (data.terbayar / maxValue) * 200;
+                                            return (
+                                                <g key={`tb-${index}`}>
+                                                    <circle
+                                                        cx={x}
+                                                        cy={y}
+                                                        r="5"
+                                                        fill="#fff"
+                                                        stroke="#6366f1"
+                                                        strokeWidth="3"
+                                                        style={{ cursor: 'pointer' }}
+                                                    />
+                                                    <title>{`${data.month}: Terbayar ${data.terbayar}`}</title>
+                                                </g>
+                                            );
+                                        })}
+                                    </>
+                                );
+                            })()}
+                        </svg>
 
-                                        {/* Segments - Stacked */}
-                                        {data.terbayar > 0 && <div className="bar-segment" style={{ height: `${terbayarHeight}%`, backgroundColor: '#6366f1' }}></div>}
-                                        {data.dalamProses > 0 && <div className="bar-segment" style={{ height: `${dalamProsesHeight}%`, backgroundColor: '#f59e0b' }}></div>}
-                                    </div>
-                                    <span className="bar-label">{data.month}</span>
-                                </div>
-                            )
-                        })}
+                        {/* X-axis labels */}
+                        <div style={{
+                            display: 'flex', 
+                            justifyContent: 'space-between', 
+                            paddingLeft: '50px',
+                            paddingRight: '50px',
+                            fontSize: '12px',
+                            color: '#64748b',
+                            fontWeight: 500
+                        }}>
+                            {(monthlyData as any[]).map((data, index) => (
+                                <span key={index}>{data.month}</span>
+                            ))}
+                        </div>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'center', gap: 18, marginTop: 10 }}>
                         <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}><span style={{ width: 14, height: 8, background: '#f59e0b', borderRadius: 4, display: 'inline-block' }}></span> Dalam Proses</span>

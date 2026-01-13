@@ -26,9 +26,8 @@ export default function DashboardPage() {
     const [recentActivities, setRecentActivities] = useState<any[]>([])
     const [recentVendors, setRecentVendors] = useState<any[]>([])
     const [contractStatusDist, setContractStatusDist] = useState({
-        terkontrak: 0,
-        onprogress: 0,
         selesai: 0,
+        telahdiperiksa: 0,
         terbayar: 0,
         total: 0
     })
@@ -351,7 +350,7 @@ export default function DashboardPage() {
                                 
                                 {chartData.length > 0 && (() => {
                                     const maxValue = Math.max(...chartData.map(d => d.total), 1);
-                                    const paddingLeft = 25;
+                                    const paddingLeft = 13;
                                     const paddingRight = 40;
                                     const chartWidth = 815;
                                     const spacing = chartWidth / (chartData.length - 1);
