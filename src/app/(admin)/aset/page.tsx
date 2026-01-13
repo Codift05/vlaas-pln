@@ -506,7 +506,7 @@ function ManajemenAset() {
             }
 
             showAlert('success', 'Berhasil', 'Progress tracker berhasil ditambahkan!')
-            fetchContracts()
+            refreshContracts()
             setShowProgressModal(false)
             setProgressFormData({
                 contractId: '',
@@ -713,7 +713,7 @@ function ManajemenAset() {
             }
 
             // Refresh data
-            fetchContracts()
+            refreshContracts()
             handleCloseModal()
 
         } catch (err) {
@@ -1505,7 +1505,7 @@ function ManajemenAset() {
 
                 {/* Modal Detail Kontrak */}
                 {
-                    showDetailModal && selectedAsset && (
+                    showDetailModal && contractDetail && (
                         <div className="modal-overlay" onClick={() => setShowDetailModal(false)}>
                             <div className="modal-content" onClick={(e) => e.stopPropagation()}>
                                 <div className="modal-header">
@@ -1521,35 +1521,35 @@ function ManajemenAset() {
                                         <div className="detail-grid">
                                             <div className="detail-item">
                                                 <label className="detail-label">Nomor Kontrak</label>
-                                                <div className="detail-value">{selectedAsset.id}</div>
+                                                <div className="detail-value">{contractDetail.id}</div>
                                             </div>
                                             <div className="detail-item">
                                                 <label className="detail-label">Status Saat Ini</label>
                                                 <div>
-                                                    <span className={`status-badge ${getBadgeClass(selectedAsset.status)}`}>
-                                                        {selectedAsset.status}
+                                                    <span className={`status-badge ${getBadgeClass(contractDetail.status)}`}>
+                                                        {contractDetail.status}
                                                     </span>
                                                 </div>
                                             </div>
                                             <div className="detail-item">
                                                 <label className="detail-label">ID Kontrak</label>
-                                                <div className="detail-value">{selectedAsset.invoiceNumber}</div>
+                                                <div className="detail-value">{contractDetail.invoiceNumber}</div>
                                             </div>
                                             <div className="detail-item">
                                                 <label className="detail-label">Nilai Kontrak</label>
-                                                <div className="detail-value">Rp {selectedAsset.amount?.toLocaleString('id-ID')}</div>
+                                                <div className="detail-value">Rp {contractDetail.amount?.toLocaleString('id-ID')}</div>
                                             </div>
                                             <div className="detail-item full-width">
                                                 <label className="detail-label">Nama Pekerjaan / Kontrak</label>
-                                                <div className="detail-value detail-value-lg">{selectedAsset.name}</div>
+                                                <div className="detail-value detail-value-lg">{contractDetail.name}</div>
                                             </div>
                                             <div className="detail-item full-width">
                                                 <label className="detail-label">Pelaksana (Vendor)</label>
-                                                <div className="detail-value">{selectedAsset.vendorName}</div>
+                                                <div className="detail-value">{contractDetail.vendorName}</div>
                                             </div>
                                             <div className="detail-item full-width">
                                                 <label className="detail-label">Ditujukan Kepada</label>
-                                                <div className="detail-value">{selectedAsset.recipient}</div>
+                                                <div className="detail-value">{contractDetail.recipient}</div>
                                             </div>
                                         </div>
 
@@ -1559,17 +1559,17 @@ function ManajemenAset() {
                                         <div className="time-range-container">
                                             <div className="time-box">
                                                 <div className="time-label">Tanggal Mulai</div>
-                                                <div className="time-value">{selectedAsset.startDate}</div>
+                                                <div className="time-value">{contractDetail.startDate}</div>
                                             </div>
                                             <div className="time-arrow">
                                                 <ArrowRight size={24} strokeWidth={1.5} />
                                             </div>
                                             <div className="time-box">
                                                 <div className="time-label">Tanggal Selesai</div>
-                                                <div className="time-value">{selectedAsset.endDate}</div>
+                                                <div className="time-value">{contractDetail.endDate}</div>
                                             </div>
                                         </div>
-                                        {selectedAsset.status?.toLowerCase() !== 'selesai' && selectedAsset.status?.toLowerCase() !== 'terbayar' && (
+                                        {contractDetail.status?.toLowerCase() !== 'selesai' && contractDetail.status?.toLowerCase() !== 'terbayar' && (
                                             <>
                                                 <div className="time-remaining-info" style={{ marginTop: 8, fontWeight: 500, color: timeRemaining.includes('melewati') ? 'red' : '#219150' }}>
                                                     Sisa waktu: {timeRemaining}
@@ -1587,25 +1587,25 @@ function ManajemenAset() {
                                                 <tbody>
                                                     <tr>
                                                         <td>Tipe Anggaran</td>
-                                                        <td><span className={`budget-badge budget-${selectedAsset.budgetType.toLowerCase()}`}>{selectedAsset.budgetType}</span></td>
+                                                        <td><span className={`budget-badge budget-${contractDetail.budgetType.toLowerCase()}`}>{contractDetail.budgetType}</span></td>
                                                     </tr>
                                                     <tr>
                                                         <td>Tipe Kontrak</td>
-                                                        <td><span className={`contract-badge contract-${selectedAsset.contractType.toLowerCase()}`}>{selectedAsset.contractType}</span></td>
+                                                        <td><span className={`contract-badge contract-${contractDetail.contractType.toLowerCase()}`}>{contractDetail.contractType}</span></td>
                                                     </tr>
                                                     <tr>
                                                         <td>Kategori Aset</td>
-                                                        <td>{selectedAsset.category}</td>
+                                                        <td>{contractDetail.category}</td>
                                                     </tr>
                                                     <tr>
                                                         <td>Lokasi Pekerjaan</td>
-                                                        <td>{selectedAsset.location}</td>
+                                                        <td>{contractDetail.location}</td>
                                                     </tr>
                                                     <tr>
                                                         <td>Terakhir Diupdate</td>
                                                         <td>
                                                             <span style={{ fontSize: '14px', color: '#1e293b', fontWeight: 500 }}>
-                                                                {selectedAsset.updatedAt ? new Date(selectedAsset.updatedAt).toLocaleString('id-ID', {
+                                                                {contractDetail.updatedAt ? new Date(contractDetail.updatedAt).toLocaleString('id-ID', {
                                                                     year: 'numeric',
                                                                     month: 'long',
                                                                     day: 'numeric',
@@ -1624,8 +1624,8 @@ function ManajemenAset() {
                                                 <Clock size={20} /> Riwayat Perubahan
                                             </h3>
                                             <div className="history-list">
-                                                {selectedAsset.history && selectedAsset.history.length > 0 ? (
-                                                    selectedAsset.history.filter(h => h && h.action).slice().reverse().map((log, index) => (
+                                                {contractDetail.history && contractDetail.history.length > 0 ? (
+                                                    contractDetail.history.filter(h => h && h.action).slice().reverse().map((log, index) => (
                                                         <div key={index} className="history-item" style={{ display: 'flex', gap: '16px', marginBottom: '16px', paddingLeft: '8px', borderLeft: '3px solid #e2e8f0' }}>
                                                             <div className="history-time" style={{ minWidth: '130px', color: '#64748b', fontSize: '13px', paddingTop: '2px' }}>
                                                                 {log.date}
