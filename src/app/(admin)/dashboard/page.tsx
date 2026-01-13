@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { Briefcase, CheckCircle, Clock, Users, FileText, TrendingUp, Activity } from 'lucide-react'
 import { supabase } from '../../../lib/supabaseClient'
@@ -11,7 +11,6 @@ export default function DashboardPage() {
     const currentYear = new Date().getFullYear()
     const [selectedYear, setSelectedYear] = useState(currentYear)
     const [allVendors, setAllVendors] = useState<any[]>([])
-    const [isLoading, setIsLoading] = useState(true)
     const [chartData, setChartData] = useState(Array(12).fill(null).map((_, i) => ({
         month: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'][i],
         total: 0
@@ -38,32 +37,18 @@ export default function DashboardPage() {
         let mounted = true
 
         const loadData = async () => {
-            if (mounted) {
-                setIsLoading(true)
-                await fetchDashboardData()
-                setIsLoading(false)
-            }
+            await fetchDashboardData()
         }
 
         // Initial load
         loadData()
 
-        // Listen for auth state changes (handling race condition on login)
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-            console.log('Auth state change:', event)
-            if (mounted && (event === 'SIGNED_IN' || event === 'INITIAL_SESSION' || event === 'TOKEN_REFRESHED')) {
-                // Re-fetch data when auth is confirmed
-                fetchDashboardData()
-            }
-        })
-
         return () => {
             mounted = false
-            subscription.unsubscribe()
         }
     }, [])
 
-    // Re-process vendor chart data saat year berubah
+    // Re-process vendor chart data saat allVendors atau year berubah
     useEffect(() => {
         if (allVendors.length > 0) {
             processVendorChartData(allVendors, selectedYear)
@@ -72,49 +57,46 @@ export default function DashboardPage() {
 
     const fetchDashboardData = async () => {
         try {
-            console.log('Starting dashboard data fetch...')
             const results = await Promise.all([
                 fetchContractData(),
                 fetchVendorData()
             ])
-            console.log('Dashboard data fetch completed')
-            return results
         } catch (error) {
             console.error('Error fetching dashboard data:', error)
-        } finally {
-            setIsLoading(false)
         }
     }
 
     const fetchVendorData = async () => {
-        const result = await vendorService.getDashboardVendorData()
-        if (result.success && 'data' in result) {
-            const { total, recent, allVendors: vendorsForChart } = result.data
-            setStats(prev => ({
-                ...prev,
-                totalVendors: total || 0
-            }))
-            setRecentVendors(recent || [])
+        try {
+            const result = await vendorService.getDashboardVendorData()
 
-            if (vendorsForChart) {
-                setAllVendors(vendorsForChart)
+            if (result.success && 'data' in result) {
+                const { total, recent, allVendors: vendorsForChart } = result.data
+                setStats(prev => ({
+                    ...prev,
+                    totalVendors: total || 0
+                }))
+                setRecentVendors(recent || [])
 
-                // Cek tahun yang tersedia dari data
-                const years = new Set<number>()
-                vendorsForChart.forEach((v: any) => {
-                    if (v.created_at) years.add(new Date(v.created_at).getFullYear())
-                })
-                const yearArray = Array.from(years).sort((a, b) => b - a)
+                if (vendorsForChart && vendorsForChart.length > 0) {
+                    // Cek tahun yang tersedia dari data
+                    const years = new Set<number>()
+                    vendorsForChart.forEach((v: any) => {
+                        if (v.created_at) years.add(new Date(v.created_at).getFullYear())
+                    })
+                    const yearArray = Array.from(years).sort((a, b) => b - a)
 
-                // Jika tahun sekarang tidak ada datanya, gunakan tahun terbaru yang ada datanya
-                let yearToUse = selectedYear
-                if (yearArray.length > 0 && !yearArray.includes(selectedYear)) {
-                    yearToUse = yearArray[0]
-                    setSelectedYear(yearToUse)
+                    // Jika tahun sekarang tidak ada datanya, gunakan tahun terbaru yang ada datanya
+                    if (yearArray.length > 0 && !yearArray.includes(selectedYear)) {
+                        setSelectedYear(yearArray[0])
+                    }
+
+                    // Set vendors LAST - useEffect will handle chart processing
+                    setAllVendors(vendorsForChart)
                 }
-
-                processVendorChartData(vendorsForChart, yearToUse)
             }
+        } catch (error) {
+            console.error('Error in fetchVendorData:', error)
         }
     }
 
@@ -133,7 +115,6 @@ export default function DashboardPage() {
             }
 
             if (data) {
-                console.log('Dashboard Data:', data) // Debug log
                 processStatsAndActivities(data)
             }
         } catch (error: any) {
@@ -145,6 +126,33 @@ export default function DashboardPage() {
         }
     }
 
+    const processContractChartData = (contracts: any[], year: number) => {
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des']
+        const newChartData = months.map(m => ({ month: m, dalamProses: 0, terbayar: 0, total: 0 }))
+
+        contracts.forEach(contract => {
+            if (!contract.start_date) return
+
+            const date = new Date(contract.start_date)
+            const contractYear = date.getFullYear()
+            const monthIndex = date.getMonth()
+
+            if (contractYear === year && monthIndex >= 0 && monthIndex < 12) {
+                const status = (contract.status || '').toLowerCase()
+
+                if (status === 'dalam proses pekerjaan') {
+                    newChartData[monthIndex].dalamProses += 1
+                } else if (status === 'terbayar') {
+                    newChartData[monthIndex].terbayar += 1
+                }
+
+                newChartData[monthIndex].total += 1
+            }
+        })
+
+        setChartData(newChartData)
+    }
+
     const processStatsAndActivities = (contracts: any[]) => {
         // 1. Calculate Stats
         const totalContracts = contracts.length
@@ -152,18 +160,15 @@ export default function DashboardPage() {
         let pendingContracts = 0
 
         // Status breakdown for Pie Chart
-        let dist = { terkontrak: 0, onprogress: 0, selesai: 0, terbayar: 0, total: totalContracts }
+        let dist = { selesai: 0, telahdiperiksa: 0, terbayar: 0, total: totalContracts }
 
         contracts.forEach(c => {
             const status = (c.status || '').toLowerCase()
-            if (status === 'terkontrak') {
+            if (status === 'selesai') {
                 activeContracts++
-                dist.terkontrak++
-            } else if (status.includes('proses') || status.includes('pekerjaan') || status.includes('pemeriksaan') || status.includes('diperiksa')) {
-                pendingContracts++
-                dist.onprogress++
-            } else if (status === 'selesai') {
                 dist.selesai++
+            } else if (status.includes('diperiksa')) {
+                dist.telahdiperiksa++
             } else if (status === 'terbayar') {
                 dist.terbayar++
             }
@@ -191,7 +196,6 @@ export default function DashboardPage() {
     }
 
     const processVendorChartData = (vendors: any[], year: number) => {
-        console.log('Processing vendor chart data for year:', year, 'Total vendors:', vendors.length)
         const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des']
         const newChartData = months.map(m => ({ month: m, total: 0 }))
 
@@ -200,24 +204,23 @@ export default function DashboardPage() {
 
             const date = new Date(vendor.created_at)
             const vendorYear = date.getFullYear()
-            const monthIndex = date.getMonth() // 0-11
+            const monthIndex = date.getMonth()
 
             if (vendorYear === year && monthIndex >= 0 && monthIndex < 12) {
                 newChartData[monthIndex].total += 1
             }
         })
 
-        console.log('Chart data processed:', newChartData)
         setChartData(newChartData)
     }
 
-    const handleYearChange = (year: number) => {
+    // Memoize handlers to prevent unnecessary re-renders
+    const handleYearChange = useCallback((year: number) => {
         setSelectedYear(year)
-        processVendorChartData(allVendors, year)
-    }
+    }, [])
 
-    // Generate available years from vendor data
-    const getAvailableYears = () => {
+    // Memoize available years - only recalculate when allVendors changes
+    const availableYears = useMemo(() => {
         const years = new Set<number>()
         allVendors.forEach(vendor => {
             if (vendor.created_at) {
@@ -227,55 +230,35 @@ export default function DashboardPage() {
         const yearArray = Array.from(years).sort((a, b) => b - a)
         if (yearArray.length === 0) yearArray.push(currentYear)
         return yearArray
-    }
+    }, [allVendors, currentYear])
 
-    const handleContractClick = (contractId: string) => {
+    const handleContractClick = useCallback((contractId: string) => {
         router.push(`/aset?id=${contractId}`)
-    }
+    }, [router])
 
-    const handleVendorClick = () => {
+    const handleVendorClick = useCallback(() => {
         router.push('/vendor')
-    }
+    }, [router])
 
-    const statCards = [
+    // Memoize statCards to prevent recreation on each render
+    const statCards = useMemo(() => [
         { title: 'Total Kontrak', value: stats.totalContracts, icon: Briefcase, className: 'stat-blue' },
         { title: 'Kontrak Aktif', value: stats.activeContracts, icon: CheckCircle, className: 'stat-green' },
         { title: 'Proses / Review', value: stats.pendingContracts, icon: Clock, className: 'stat-orange' },
         { title: 'Total Vendor', value: stats.totalVendors, icon: Users, className: 'stat-purple' },
-    ]
+    ], [stats])
 
     // Pie Chart Calculations
     const getPieRotation = (percentage: number) => percentage * 3.6 // 360deg / 100%
 
-    // Pie Slices (Simplified for visual distribution)
-    // We will use CSS Conic Gradients for a cleaner multi-segment donut
-    const pieGradient = `conic-gradient(
-        #2ecc71 0% ${getPieRotation((contractStatusDist.terkontrak / contractStatusDist.total) * 100 || 0)}deg, 
-        #3b82f6 ${getPieRotation((contractStatusDist.terkontrak / contractStatusDist.total) * 100 || 0)}deg ${getPieRotation(((contractStatusDist.terkontrak + contractStatusDist.selesai) / contractStatusDist.total) * 100 || 0)}deg,
-        #f39c12 ${getPieRotation(((contractStatusDist.terkontrak + contractStatusDist.selesai) / contractStatusDist.total) * 100 || 0)}deg ${getPieRotation(((contractStatusDist.terkontrak + contractStatusDist.selesai + contractStatusDist.onprogress) / contractStatusDist.total) * 100 || 0)}deg,
-        #e74c3c ${getPieRotation(((contractStatusDist.terkontrak + contractStatusDist.selesai + contractStatusDist.onprogress) / contractStatusDist.total) * 100 || 0)}deg 100%
-    )`
-
+    // Memoize pieGradient to prevent recalculation on each render
+    const pieGradient = useMemo(() => `conic-gradient(
+        #f39c12 0% ${getPieRotation((contractStatusDist.selesai / contractStatusDist.total) * 100 || 0)}deg, 
+        #9333ea ${getPieRotation((contractStatusDist.selesai / contractStatusDist.total) * 100 || 0)}deg ${getPieRotation(((contractStatusDist.selesai + contractStatusDist.telahdiperiksa) / contractStatusDist.total) * 100 || 0)}deg,
+        #2ecc71 ${getPieRotation(((contractStatusDist.selesai + contractStatusDist.telahdiperiksa) / contractStatusDist.total) * 100 || 0)}deg 100%
+    )`, [contractStatusDist])
     return (
         <div>
-            {/* Loading Overlay */}
-            {isLoading && (
-                <div style={{
-                    position: 'absolute', inset: 0, background: 'rgba(255,255,255,0.7)',
-                    backdropFilter: 'blur(2px)', zIndex: 10, display: 'flex',
-                    alignItems: 'center', justifyContent: 'center'
-                }}>
-                    <div className="spinner" style={{
-                        width: '40px', height: '40px', border: '3px solid #f3f3f3',
-                        borderTop: '3px solid #3b82f6', borderRadius: '50%',
-                        animation: 'spin 1s linear infinite'
-                    }}></div>
-                    <style jsx>{`
-                        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-                    `}</style>
-                </div>
-            )}
-
             {/* Stats Cards */}
             <div className="stats-grid">
                 {statCards.map((stat, index) => {
@@ -315,7 +298,7 @@ export default function DashboardPage() {
                                     outline: 'none'
                                 }}
                             >
-                                {getAvailableYears().map(year => (
+                                {availableYears.map(year => (
                                     <option key={year} value={year}>{year}</option>
                                 ))}
                             </select>
@@ -325,22 +308,23 @@ export default function DashboardPage() {
                     <div className="chart-placeholder">
                         <div className="bar-chart">
                             {chartData.map((data, index) => {
-                                const maxTotal = Math.max(...chartData.map(d => d.total), 1);
-                                const heightPercentage = maxTotal > 0 ? (data.total / maxTotal) * 100 : 0;
-                                // Dynamic minHeight based on data value
-                                const dynamicMinHeight = data.total > 0 ? Math.max(data.total * 8, 12) : 0;
+                                const barHeight = data.total > 0 ? 200 : 0;
 
                                 return (
-                                    <div key={index} className="bar-wrapper">
-                                        <div className="bar-stack-container" style={{
-                                            height: `${heightPercentage}%`,
-                                            minHeight: data.total > 0 ? `${dynamicMinHeight}px` : '0'
-                                        }}>
+                                    <div key={`${data.month}-${data.total}-${selectedYear}`} className="bar-wrapper">
+                                        <div
+                                            className="bar-stack-container"
+                                            style={{
+                                                height: `${barHeight}px`,
+                                                backgroundColor: data.total > 0 ? '#2ecc71' : 'transparent',
+                                                borderRadius: '6px 6px 0 0',
+                                                boxShadow: data.total > 0 ? '0 0 10px rgba(46, 204, 113, 0.2)' : 'none'
+                                            }}
+                                        >
                                             <div className="bar-tooltip">
                                                 <div className="tooltip-header">{data.month} {selectedYear}</div>
                                                 <div className="tooltip-total">Vendor Baru: {data.total}</div>
                                             </div>
-                                            {data.total > 0 && <div className="bar-segment active" style={{ height: '100%' }}></div>}
                                         </div>
                                         <span className="bar-label">{data.month}</span>
                                     </div>
@@ -366,22 +350,17 @@ export default function DashboardPage() {
                     </div>
                     <div className="pie-legend">
                         <div className="legend-item">
-                            <span className="legend-color" style={{ background: '#2ecc71' }}></span>
-                            <span className="legend-text">Terkontrak</span>
-                            <span className="legend-value">{contractStatusDist.terkontrak}</span>
-                        </div>
-                        <div className="legend-item">
-                            <span className="legend-color" style={{ background: '#3b82f6' }}></span>
+                            <span className="legend-color" style={{ background: '#f39c12' }}></span>
                             <span className="legend-text">Selesai</span>
                             <span className="legend-value">{contractStatusDist.selesai}</span>
                         </div>
                         <div className="legend-item">
-                            <span className="legend-color" style={{ background: '#f39c12' }}></span>
-                            <span className="legend-text">OnProgress</span>
-                            <span className="legend-value">{contractStatusDist.onprogress}</span>
+                            <span className="legend-color" style={{ background: '#9333ea' }}></span>
+                            <span className="legend-text">Telah Diperiksa</span>
+                            <span className="legend-value">{contractStatusDist.telahdiperiksa}</span>
                         </div>
                         <div className="legend-item">
-                            <span className="legend-color" style={{ background: '#e74c3c' }}></span>
+                            <span className="legend-color" style={{ background: '#2ecc71' }}></span>
                             <span className="legend-text">Terbayar</span>
                             <span className="legend-value">{contractStatusDist.terbayar}</span>
                         </div>

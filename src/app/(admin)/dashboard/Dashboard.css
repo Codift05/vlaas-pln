@@ -223,8 +223,9 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
+  justify-content: flex-end;
   min-width: 0;
+  height: 100%;
 }
 
 .bar-stack-container {
@@ -232,8 +233,7 @@
   display: flex;
   flex-direction: column-reverse;
   /* Stack from bottom up */
-  background: rgba(226, 232, 240, 0.3);
-  /* Subtle track background */
+  /* background removed - controlled by inline style */
   border-radius: 6px 6px 0 0;
   position: relative;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -374,6 +374,8 @@
   text-align: center;
   white-space: nowrap;
   font-family: 'Inter', sans-serif;
+  margin-top: 12px;
+  flex-shrink: 0;
 }
 
 /* Pie Chart */
@@ -711,4 +713,29 @@
 .vendor-status-inactive {
   background: rgba(231, 76, 60, 0.15);
   color: #c0392b;
+}
+
+/* Skeleton Loading Animation */
+.skeleton-bar {
+  background: linear-gradient(90deg, #e2e8f0 0%, #f1f5f9 50%, #e2e8f0 100%);
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite !important;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
 }

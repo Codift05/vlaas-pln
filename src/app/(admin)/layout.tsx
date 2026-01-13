@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import styled from 'styled-components'
 import Sidebar from '../../components/Sidebar'
 import Header from '../../components/Header'
@@ -58,6 +58,23 @@ const ContentArea = styled.div`
 export default function AdminLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false) // Mobile drawer
   const [isExpanded, setIsExpanded] = useState(false) // Desktop mini/full
+  const [isHydrated, setIsHydrated] = useState(false)
+
+  // Load sidebar state from localStorage on mount
+  useEffect(() => {
+    const saved = localStorage.getItem('sidebarExpanded')
+    if (saved !== null) {
+      setIsExpanded(saved === 'true')
+    }
+    setIsHydrated(true)
+  }, [])
+
+  // Save sidebar state to localStorage when changed
+  const toggleSidebar = () => {
+    const newState = !isExpanded
+    setIsExpanded(newState)
+    localStorage.setItem('sidebarExpanded', String(newState))
+  }
 
   return (
     <ProtectedRoute>
@@ -66,9 +83,9 @@ export default function AdminLayout({ children }) {
           isOpen={sidebarOpen}
           onClose={() => setSidebarOpen(false)}
           isExpanded={isExpanded}
-          toggleSidebar={() => setIsExpanded(!isExpanded)}
+          toggleSidebar={toggleSidebar}
         />
-        <MainContent style={{ marginLeft: isExpanded ? '280px' : '88px' }}>
+        <MainContent style={{ marginLeft: isHydrated ? (isExpanded ? '280px' : '88px') : '88px' }}>
           <Header onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
           <ContentArea>
             {children}

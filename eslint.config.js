@@ -22,6 +22,9 @@ export default defineConfig([
     },
     rules: {
       'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]' }],
+      // Disable inline styles warnings - prioritize functionality over style organization
+      'style-loader': 'off',
+      'no-style-in-dom': 'off',
     },
   },
 ])
