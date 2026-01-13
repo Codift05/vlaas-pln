@@ -5,7 +5,63 @@ import { supabase, handleSupabaseError, handleSupabaseSuccess } from '../lib/sup
  * CRUD operations untuk data aset
  */
 
-// Get all assets
+interface FetchOptions {
+  page?: number;
+  pageSize?: number;
+  search?: string;
+  status?: string;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+}
+
+// Fetch contracts dengan pagination (dari API)
+export const getContracts = async (options: FetchOptions = {}) => {
+  try {
+    const {
+      page = 1,
+      pageSize = 20,
+      search = '',
+      status = 'all',
+      sortBy = 'created_at',
+      sortOrder = 'desc'
+    } = options;
+
+    const params = new URLSearchParams({
+      page: page.toString(),
+      search,
+      status,
+      sortBy,
+      sortOrder
+    });
+
+    const response = await fetch(`/api/contracts?${params}`);
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch contracts');
+    }
+
+    return handleSupabaseSuccess(await response.json());
+  } catch (error) {
+    return handleSupabaseError(error);
+  }
+};
+
+// Get contract detail (dari API)
+export const getContractDetail = async (id: string) => {
+  try {
+    const response = await fetch(`/api/contracts/detail?id=${id}`);
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch contract details');
+    }
+
+    return handleSupabaseSuccess(await response.json());
+  } catch (error) {
+    return handleSupabaseError(error);
+  }
+};
+
+// Get all assets (deprecated - gunakan getContracts instead)
 export const getAllAssets = async () => {
   try {
     const { data, error } = await supabase
@@ -14,7 +70,7 @@ export const getAllAssets = async () => {
       .order('created_at', { ascending: false });
 
     if (error) return handleSupabaseError(error);
-    
+
     return handleSupabaseSuccess(data);
   } catch (error) {
     return handleSupabaseError(error);
@@ -31,7 +87,7 @@ export const getAssetById = async (id) => {
       .single();
 
     if (error) return handleSupabaseError(error);
-    
+
     return handleSupabaseSuccess(data);
   } catch (error) {
     return handleSupabaseError(error);
@@ -48,7 +104,7 @@ export const createAsset = async (assetData) => {
       .single();
 
     if (error) return handleSupabaseError(error);
-    
+
     return handleSupabaseSuccess(data);
   } catch (error) {
     return handleSupabaseError(error);
@@ -66,7 +122,7 @@ export const updateAsset = async (id, assetData) => {
       .single();
 
     if (error) return handleSupabaseError(error);
-    
+
     return handleSupabaseSuccess(data);
   } catch (error) {
     return handleSupabaseError(error);
@@ -82,42 +138,52 @@ export const deleteAsset = async (id) => {
       .eq('id', id);
 
     if (error) return handleSupabaseError(error);
-    
+
     return handleSupabaseSuccess({ message: 'Aset berhasil dihapus' });
   } catch (error) {
     return handleSupabaseError(error);
   }
 };
 
-// Search assets
-export const searchAssets = async (searchTerm) => {
+// Search assets (optimized server-side)
+export const searchAssets = async (searchTerm: string, page: number = 1) => {
   try {
-    const { data, error } = await supabase
-      .from('assets')
-      .select('*')
-      .or(`name.ilike.%${searchTerm}%,category.ilike.%${searchTerm}%,location.ilike.%${searchTerm}%`)
-      .order('created_at', { ascending: false });
+    const params = new URLSearchParams({
+      page: page.toString(),
+      search: searchTerm,
+      sortBy: 'created_at',
+      sortOrder: 'desc'
+    });
 
-    if (error) return handleSupabaseError(error);
-    
-    return handleSupabaseSuccess(data);
+    const response = await fetch(`/api/contracts?${params}`);
+
+    if (!response.ok) {
+      throw new Error('Search failed');
+    }
+
+    return handleSupabaseSuccess(await response.json());
   } catch (error) {
     return handleSupabaseError(error);
   }
 };
 
-// Filter assets by status
-export const filterAssetsByStatus = async (status) => {
+// Filter assets by status (optimized server-side)
+export const filterAssetsByStatus = async (status: string, page: number = 1) => {
   try {
-    const { data, error } = await supabase
-      .from('assets')
-      .select('*')
-      .eq('status', status)
-      .order('created_at', { ascending: false });
+    const params = new URLSearchParams({
+      page: page.toString(),
+      status,
+      sortBy: 'created_at',
+      sortOrder: 'desc'
+    });
 
-    if (error) return handleSupabaseError(error);
-    
-    return handleSupabaseSuccess(data);
+    const response = await fetch(`/api/contracts?${params}`);
+
+    if (!response.ok) {
+      throw new Error('Filter failed');
+    }
+
+    return handleSupabaseSuccess(await response.json());
   } catch (error) {
     return handleSupabaseError(error);
   }
@@ -139,7 +205,7 @@ export const getAssetStatistics = async () => {
       perbaikan: data.filter(a => a.status === 'Perbaikan').length,
       tidakAktif: data.filter(a => a.status === 'Tidak Aktif').length
     };
-    
+
     return handleSupabaseSuccess(stats);
   } catch (error) {
     return handleSupabaseError(error);
