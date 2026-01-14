@@ -7,6 +7,9 @@ import { Readable } from 'stream';
 const CREDENTIALS_PATH = path.join(process.cwd(), 'credentials.json');
 const TOKEN_PATH = path.join(process.cwd(), 'token.json');
 
+// Google Drive Folder ID untuk menyimpan file PDF kontrak
+const DRIVE_FOLDER_ID = process.env.GOOGLE_DRIVE_FOLDER_ID || '14gA6lGqE0vmZ2vAxruZjmKu7mSHqw6jx';
+
 function getDriveService() {
     let credentials;
     let token;
@@ -56,8 +59,10 @@ export async function POST(request) {
 
         const drive = getDriveService();
 
+        // Metadata file dengan folder parent
         const fileMetadata = {
             name: file.name,
+            parents: [DRIVE_FOLDER_ID], // Upload ke folder spesifik
         };
 
         const media = {
@@ -68,8 +73,19 @@ export async function POST(request) {
         const response = await drive.files.create({
             requestBody: fileMetadata,
             media: media,
-            fields: 'id, webViewLink, webContentLink',
+            fields: 'id, name, webViewLink, webContentLink',
         });
+
+        // Set permission agar file bisa diakses dengan link
+        await drive.permissions.create({
+            fileId: response.data.id,
+            requestBody: {
+                role: 'reader',
+                type: 'anyone',
+            },
+        });
+
+        console.log('✅ File uploaded:', response.data.name, '| ID:', response.data.id);
 
         return NextResponse.json({ success: true, file: response.data });
     } catch (err) {
