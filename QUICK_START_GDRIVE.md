@@ -7,11 +7,13 @@ Panduan cepat untuk mengaktifkan upload PDF ke Google Drive (5 menit).
 ### Step 1: Setup Credentials
 
 Jalankan script setup (Windows PowerShell):
+
 ```powershell
 .\scripts\setup-credentials.ps1
 ```
 
 Atau (Linux/Mac):
+
 ```bash
 chmod +x scripts/setup-credentials.sh
 ./scripts/setup-credentials.sh
@@ -26,6 +28,7 @@ npm run setup-gdrive
 ```
 
 Ikuti instruksi:
+
 1. Browser akan terbuka dengan URL authorization
 2. Login dengan Google Account Anda
 3. Klik "Allow" untuk memberikan akses
@@ -37,11 +40,12 @@ Ikuti instruksi:
 ### Step 3: Test Upload
 
 1. Jalankan dev server:
+
    ```bash
    npm run dev
    ```
 
-2. Buka browser: http://localhost:3001
+2. Buka browser: <http://localhost:3001>
 3. Login ke admin panel
 4. Masuk ke Manajemen Kontrak
 5. Klik tombol "Upload" pada salah satu kontrak
@@ -53,19 +57,24 @@ Ikuti instruksi:
 ## Verifikasi
 
 Cek apakah file-file ini sudah ada:
+
 - ✅ `credentials.json` - OAuth client credentials
 - ✅ `token.json` - Access token (auto-generated)
 
 ## Troubleshooting
 
 ### "Client secret file not found"
+
 ➡️ File `client_secret_*.json` di folder `src/services/server/` harus dipindah ke root folder dulu, atau download credentials baru dari Google Cloud Console.
 
 ### "Invalid grant" error saat generate token
+
 ➡️ Delete `token.json` dan jalankan ulang `npm run setup-gdrive`
 
 ### Upload gagal
+
 ➡️ Pastikan:
+
 1. `credentials.json` dan `token.json` ada di root folder
 2. Google Drive API sudah enabled
 3. Jalankan ulang dev server (`npm run dev`)
@@ -91,8 +100,10 @@ VLAAS/
 ## Production Deployment
 
 Untuk production (Vercel/Netlify):
+
 1. Jangan commit `credentials.json` dan `token.json`
 2. Set environment variables di hosting:
+
    ```
    GOOGLE_CREDENTIALS={"installed":{...}}
    GOOGLE_TOKEN={"access_token":"...","refresh_token":"..."}
