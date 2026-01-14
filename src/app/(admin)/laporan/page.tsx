@@ -78,6 +78,8 @@ function Laporan() {
     })
     const [showRemainingModal, setShowRemainingModal] = useState(false)
     const [remainingContracts, setRemainingContracts] = useState<RemainingContract[]>([])
+    const [showDeadlineModal, setShowDeadlineModal] = useState(false)
+    const [deadlineContracts, setDeadlineContracts] = useState<RemainingContract[]>([])
     // (removed grouped bar chart logic, keep only stacked bar logic)
     const [monthlyData, setMonthlyData] = useState<MonthlyData[]>([])
     const [allContracts, setAllContracts] = useState<Contract[]>([])
@@ -206,11 +208,23 @@ function Laporan() {
         // Kontrak Mendekati Jatuh Tempo (30 hari)
         const now = new Date()
         const thirtyDaysFromNow = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000)
-        const nearDeadline = contracts.filter(c => {
+        const nearDeadlineContracts = contracts.filter(c => {
             if (!c.end_date) return false
             const endDate = new Date(c.end_date)
             return endDate > now && endDate <= thirtyDaysFromNow
-        }).length
+        })
+        const nearDeadline = nearDeadlineContracts.length
+
+        // Simpan data kontrak mendekati deadline untuk modal
+        setDeadlineContracts(nearDeadlineContracts.map(c => ({
+            id: c.id,
+            name: c.name || '',
+            vendor_name: c.vendor_name || '',
+            amount: Number(c.amount) || 0,
+            status: c.status,
+            start_date: c.start_date,
+            end_date: c.end_date
+        })))
 
         // Tingkat Penyelesaian Rata-rata
         const activeContracts = contracts.filter(c => {
@@ -267,7 +281,7 @@ function Laporan() {
         contracts.forEach(c => {
             const amount = Number(c.amount) || 0
             const status = (c.status || '').toLowerCase()
-            
+
             if (status === 'dalam pekerjaan' || status === 'dalam proses pekerjaan' || status === 'aktif') {
                 buckets.dalamProses += amount
             } else if (status === 'telah diperiksa') {
@@ -665,7 +679,8 @@ function Laporan() {
                         color: '#3b82f6',
                         bgColor: '#eff6ff',
                         badge: { text: 'Belum terbayar', type: 'neutral' },
-                        clickable: true
+                        clickable: true,
+                        onClick: () => setShowRemainingModal(true)
                     },
                     {
                         title: 'Mendekati Deadline',
@@ -674,23 +689,17 @@ function Laporan() {
                         color: '#f39c12',
                         bgColor: '#fff8e1',
                         badge: { text: 'Dalam 30 hari', type: 'warning' },
-                    },
-                    {
-                        title: 'Tingkat Penyelesaian',
-                        value: `${kpiData.avgCompletion.toFixed(2)}%`,
-                        icon: Target,
-                        color: '#10b981',
-                        bgColor: '#e8f5e9',
-                        badge: { text: 'Rata-rata progress', type: 'positive' },
+                        clickable: true,
+                        onClick: () => setShowDeadlineModal(true)
                     },
                 ].map((stat, index) => {
                     const IconComponent = stat.icon;
-                    const cardClass = index === 0 ? 'blue' : index === 1 ? 'orange' : 'green';
+                    const cardClass = index === 0 ? 'blue' : 'orange';
                     return (
                         <div
                             key={index}
                             className={`kpi-card ${cardClass}`}
-                            onClick={stat.clickable ? () => setShowRemainingModal(true) : undefined}
+                            onClick={stat.clickable ? stat.onClick : undefined}
                             style={stat.clickable ? { cursor: 'pointer', transition: 'transform 0.2s, box-shadow 0.2s' } : {}}
                             onMouseEnter={(e) => stat.clickable && (e.currentTarget.style.transform = 'translateY(-4px)')}
                             onMouseLeave={(e) => stat.clickable && (e.currentTarget.style.transform = 'translateY(0)')}
@@ -746,9 +755,9 @@ function Laporan() {
                             ))}
                         </select>
                     </div>
-                    <div className="line-chart-container" style={{ 
-                        position: 'relative', 
-                        height: '280px', 
+                    <div className="line-chart-container" style={{
+                        position: 'relative',
+                        height: '280px',
                         padding: '20px',
                         display: 'flex',
                         flexDirection: 'column'
@@ -762,7 +771,7 @@ function Laporan() {
                                         <span key={i} style={{ position: 'absolute', top: '0px' }}>{val}</span>
                                     ))
                                 }
-                                
+
                                 // Buat array nilai unik tanpa duplikasi
                                 const uniqueValues = new Set<number>()
                                 uniqueValues.add(maxVal)
@@ -777,10 +786,10 @@ function Laporan() {
                                     }
                                 }
                                 uniqueValues.add(0)
-                                
+
                                 const labels = Array.from(uniqueValues).sort((a, b) => b - a)
                                 const gridSpacing = 200 / (labels.length - 1)
-                                
+
                                 return labels.map((val, i) => (
                                     <span key={i} style={{ position: 'absolute', top: `${i * gridSpacing - 3}px` }}>{val}</span>
                                 ))
@@ -788,9 +797,9 @@ function Laporan() {
                         </div>
 
                         {/* Chart area */}
-                        <svg 
-                            width="99%" 
-                            height="220" 
+                        <svg
+                            width="99%"
+                            height="220"
                             style={{ marginLeft: '5px', marginTop: '10px' }}
                             viewBox="0 0 1000 200"
                             preserveAspectRatio="xMidYMid meet"
@@ -810,7 +819,7 @@ function Laporan() {
                                         />
                                     )
                                 }
-                                
+
                                 const uniqueValues = new Set<number>()
                                 uniqueValues.add(maxVal)
                                 if (maxVal >= 4) {
@@ -823,10 +832,10 @@ function Laporan() {
                                     }
                                 }
                                 uniqueValues.add(0)
-                                
+
                                 const gridCount = uniqueValues.size
                                 const gridSpacing = 200 / (gridCount - 1)
-                                
+
                                 return Array.from({ length: gridCount }).map((_, i) => (
                                     <line
                                         key={i}
@@ -843,53 +852,53 @@ function Laporan() {
                             {/* Area fills and lines */}
                             <defs>
                                 <linearGradient id="areaGradientDalamPekerjaan" x1="0" x2="0" y1="0" y2="1">
-                                    <stop offset="0%" stopColor="#f59e0b" stopOpacity="0.2"/>
-                                    <stop offset="100%" stopColor="#f59e0b" stopOpacity="0.02"/>
+                                    <stop offset="0%" stopColor="#f59e0b" stopOpacity="0.2" />
+                                    <stop offset="100%" stopColor="#f59e0b" stopOpacity="0.02" />
                                 </linearGradient>
                                 <linearGradient id="areaGradientTelahDiperiksa" x1="0" x2="0" y1="0" y2="1">
-                                    <stop offset="0%" stopColor="#8b5cf6" stopOpacity="0.2"/>
-                                    <stop offset="100%" stopColor="#8b5cf6" stopOpacity="0.02"/>
+                                    <stop offset="0%" stopColor="#8b5cf6" stopOpacity="0.2" />
+                                    <stop offset="100%" stopColor="#8b5cf6" stopOpacity="0.02" />
                                 </linearGradient>
                                 <linearGradient id="areaGradientTerbayar" x1="0" x2="0" y1="0" y2="1">
-                                    <stop offset="0%" stopColor="#10b981" stopOpacity="0.2"/>
-                                    <stop offset="100%" stopColor="#10b981" stopOpacity="0.02"/>
+                                    <stop offset="0%" stopColor="#10b981" stopOpacity="0.2" />
+                                    <stop offset="100%" stopColor="#10b981" stopOpacity="0.02" />
                                 </linearGradient>
                             </defs>
-                            
+
                             {monthlyData.length > 0 && (() => {
                                 const maxValue = Math.max(...(monthlyData as any[]).map(d => Math.max(d.dalamPekerjaan, d.telahDiperiksa, d.terbayar)), 1);
                                 const paddingLeft = 50;
                                 const paddingRight = 50;
                                 const chartWidth = 900;
                                 const spacing = chartWidth / (monthlyData.length - 1);
-                                
+
                                 // Dalam Pekerjaan line
                                 const dalamPekerjaanPoints = (monthlyData as any[]).map((data, index) => {
                                     const x = paddingLeft + (index * spacing);
                                     const y = 200 - (data.dalamPekerjaan / maxValue) * 200;
                                     return `${x},${y}`;
                                 }).join(' ');
-                                
+
                                 const dalamPekerjaanAreaPoints = `${paddingLeft},200 ${dalamPekerjaanPoints} ${paddingLeft + chartWidth},200`;
-                                
+
                                 // Telah Diperiksa line
                                 const telahDiperiksaPoints = (monthlyData as any[]).map((data, index) => {
                                     const x = paddingLeft + (index * spacing);
                                     const y = 200 - (data.telahDiperiksa / maxValue) * 200;
                                     return `${x},${y}`;
                                 }).join(' ');
-                                
+
                                 const telahDiperiksaAreaPoints = `${paddingLeft},200 ${telahDiperiksaPoints} ${paddingLeft + chartWidth},200`;
-                                
+
                                 // Terbayar line
                                 const terbayarPoints = (monthlyData as any[]).map((data, index) => {
                                     const x = paddingLeft + (index * spacing);
                                     const y = 200 - (data.terbayar / maxValue) * 200;
                                     return `${x},${y}`;
                                 }).join(' ');
-                                
+
                                 const terbayarAreaPoints = `${paddingLeft},200 ${terbayarPoints} ${paddingLeft + chartWidth},200`;
-                                
+
                                 return (
                                     <>
                                         {/* Dalam Pekerjaan area and line */}
@@ -905,7 +914,7 @@ function Laporan() {
                                             strokeLinecap="round"
                                             strokeLinejoin="round"
                                         />
-                                        
+
                                         {/* Telah Diperiksa area and line */}
                                         <polyline
                                             points={telahDiperiksaAreaPoints}
@@ -919,7 +928,7 @@ function Laporan() {
                                             strokeLinecap="round"
                                             strokeLinejoin="round"
                                         />
-                                        
+
                                         {/* Terbayar area and line */}
                                         <polyline
                                             points={terbayarAreaPoints}
@@ -933,7 +942,7 @@ function Laporan() {
                                             strokeLinecap="round"
                                             strokeLinejoin="round"
                                         />
-                                        
+
                                         {/* Dalam Pekerjaan points */}
                                         {(monthlyData as any[]).map((data, index) => {
                                             const x = paddingLeft + (index * spacing);
@@ -953,7 +962,7 @@ function Laporan() {
                                                 </g>
                                             );
                                         })}
-                                        
+
                                         {/* Telah Diperiksa points */}
                                         {(monthlyData as any[]).map((data, index) => {
                                             const x = paddingLeft + (index * spacing);
@@ -973,7 +982,7 @@ function Laporan() {
                                                 </g>
                                             );
                                         })}
-                                        
+
                                         {/* Terbayar points */}
                                         {(monthlyData as any[]).map((data, index) => {
                                             const x = paddingLeft + (index * spacing);
@@ -1000,8 +1009,8 @@ function Laporan() {
 
                         {/* X-axis labels */}
                         <div style={{
-                            display: 'flex', 
-                            justifyContent: 'space-between', 
+                            display: 'flex',
+                            justifyContent: 'space-between',
                             paddingLeft: '50px',
                             paddingRight: '50px',
                             fontSize: '12px',
@@ -1238,6 +1247,97 @@ function Laporan() {
                             ) : (
                                 <div style={{ textAlign: 'center', padding: '40px', color: '#64748b' }}>
                                     <p>Tidak ada kontrak yang belum terbayar</p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Modal Detail Kontrak Mendekati Deadline */}
+            {showDeadlineModal && (
+                <div className="modal-overlay" onClick={() => setShowDeadlineModal(false)}>
+                    <div className="modal-content" style={{ maxWidth: '900px', maxHeight: '80vh', overflow: 'auto' }} onClick={(e) => e.stopPropagation()}>
+                        <div className="modal-header">
+                            <h2>Kontrak Mendekati Deadline</h2>
+                            <button className="modal-close" onClick={() => setShowDeadlineModal(false)}>✕</button>
+                        </div>
+                        <div className="modal-body">
+                            <div style={{ marginBottom: '20px', padding: '16px', background: '#fff8e1', borderRadius: '12px', border: '1px solid #ffd54f' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <div>
+                                        <p style={{ fontSize: '14px', color: '#f57c00', margin: '0 0 4px 0' }}>Kontrak Berakhir dalam 30 Hari</p>
+                                        <p style={{ fontSize: '28px', fontWeight: 700, color: '#e65100', margin: 0 }}>
+                                            {deadlineContracts.length} Kontrak
+                                        </p>
+                                    </div>
+                                    <div style={{ textAlign: 'right' }}>
+                                        <p style={{ fontSize: '14px', color: '#f57c00', margin: '0 0 4px 0' }}>Total Nilai</p>
+                                        <p style={{ fontSize: '28px', fontWeight: 700, color: '#f39c12', margin: 0 }}>
+                                            {formatCompactCurrency(deadlineContracts.reduce((sum, c) => sum + c.amount, 0))}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {deadlineContracts.length > 0 ? (
+                                <div style={{ overflowX: 'auto' }}>
+                                    <table className="assets-table" style={{ fontSize: '14px' }}>
+                                        <thead>
+                                            <tr>
+                                                <th>No</th>
+                                                <th>ID Kontrak</th>
+                                                <th>Nama Kontrak</th>
+                                                <th>Vendor</th>
+                                                <th>Nilai</th>
+                                                <th>Status</th>
+                                                <th>Tanggal Berakhir</th>
+                                                <th>Sisa Hari</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {deadlineContracts.map((contract, idx) => {
+                                                const now = new Date()
+                                                const endDate = new Date(contract.end_date)
+                                                const daysLeft = Math.ceil((endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+                                                return (
+                                                    <tr key={contract.id}>
+                                                        <td style={{ textAlign: 'center' }}>{idx + 1}</td>
+                                                        <td>{contract.id}</td>
+                                                        <td>{contract.name}</td>
+                                                        <td>{contract.vendor_name || '-'}</td>
+                                                        <td style={{ textAlign: 'right', fontWeight: 600 }}>
+                                                            {contract.amount.toLocaleString('id-ID', { style: 'currency', currency: 'IDR' })}
+                                                        </td>
+                                                        <td>
+                                                            <span className={`status-badge status-${contract.status?.toLowerCase().replace(/\s+/g, '-')}`}>
+                                                                {contract.status}
+                                                            </span>
+                                                        </td>
+                                                        <td style={{ fontSize: '13px' }}>
+                                                            {contract.end_date ? new Date(contract.end_date).toLocaleDateString('id-ID') : '-'}
+                                                        </td>
+                                                        <td style={{ textAlign: 'center' }}>
+                                                            <span style={{
+                                                                padding: '4px 12px',
+                                                                borderRadius: '12px',
+                                                                fontSize: '13px',
+                                                                fontWeight: 600,
+                                                                background: daysLeft <= 7 ? '#ffebee' : '#fff3e0',
+                                                                color: daysLeft <= 7 ? '#c62828' : '#ef6c00'
+                                                            }}>
+                                                                {daysLeft} hari
+                                                            </span>
+                                                        </td>
+                                                    </tr>
+                                                )
+                                            })}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            ) : (
+                                <div style={{ textAlign: 'center', padding: '40px', color: '#64748b' }}>
+                                    <p>Tidak ada kontrak yang mendekati deadline dalam 30 hari ke depan</p>
                                 </div>
                             )}
                         </div>
