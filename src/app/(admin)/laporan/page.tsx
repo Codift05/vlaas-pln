@@ -36,7 +36,8 @@ interface RemainingContract {
 
 interface MonthlyData {
     month: string
-    dalamProses: number
+    dalamPekerjaan: number
+    telahDiperiksa: number
     terbayar: number
     total: number
 }
@@ -94,6 +95,9 @@ function Laporan() {
         ao: 0  // Anggaran Operasional
     })
 
+    const [selectedContractYear, setSelectedContractYear] = useState(new Date().getFullYear())
+    const [availableContractYears, setAvailableContractYears] = useState<number[]>([new Date().getFullYear()])
+
     useEffect(() => {
         fetchData()
     }, [])
@@ -120,7 +124,7 @@ function Laporan() {
         if (allContracts.length > 0) {
             applyFilters()
         }
-    }, [dateRange, filterStatus, startDate, endDate, allContracts])
+    }, [dateRange, filterStatus, startDate, endDate, allContracts, selectedContractYear])
 
     const applyFilters = () => {
         let filtered = [...allContracts]
@@ -262,17 +266,20 @@ function Laporan() {
 
         contracts.forEach(c => {
             const amount = Number(c.amount) || 0
-            switch (c.status) {
-                case 'Terkontrak':
-                case 'Aktif':
-                    buckets.terkontrak += amount;
-                    break;
-                case 'Dalam Proses Pekerjaan': buckets.dalamProses += amount; break;
-                case 'Selesai': buckets.selesai += amount; break;
-                case 'Dalam Pemeriksaan': buckets.dalamPemeriksaan += amount; break;
-                case 'Telah Diperiksa': buckets.telahDiperiksa += amount; break;
-                case 'Terbayar': buckets.terbayar += amount; break;
-                default: break;
+            const status = (c.status || '').toLowerCase()
+            
+            if (status === 'dalam pekerjaan' || status === 'dalam proses pekerjaan' || status === 'aktif') {
+                buckets.dalamProses += amount
+            } else if (status === 'telah diperiksa') {
+                buckets.telahDiperiksa += amount
+            } else if (status === 'terbayar') {
+                buckets.terbayar += amount
+            } else if (status === 'terkontrak') {
+                buckets.terkontrak += amount
+            } else if (status === 'selesai') {
+                buckets.selesai += amount
+            } else if (status === 'dalam pemeriksaan') {
+                buckets.dalamPemeriksaan += amount
             }
         })
 
@@ -292,21 +299,40 @@ function Laporan() {
         })
         setBudgetTypeData(typeBuckets)
 
-        // 4. Monthly Volume - Dalam Proses & Terbayar
+        // 4. Monthly Volume - Dalam Pekerjaan, Telah Diperiksa & Terbayar
+        // Extract available years from contracts
+        const yearsSet = new Set<number>()
+        contracts.forEach(c => {
+            if (c.start_date) {
+                const year = new Date(c.start_date).getFullYear()
+                yearsSet.add(year)
+            }
+        })
+        const years = Array.from(yearsSet).sort((a, b) => b - a)
+        if (years.length > 0) {
+            setAvailableContractYears(years)
+        }
+
         const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des']
-        const chartData = months.map(m => ({ month: m, dalamProses: 0, terbayar: 0, total: 0 }))
+        const chartData = months.map(m => ({ month: m, dalamPekerjaan: 0, telahDiperiksa: 0, terbayar: 0, total: 0 }))
 
         contracts.forEach(c => {
             if (!c.start_date) return
 
             const date = new Date(c.start_date)
+            const year = date.getFullYear()
             const monthIdx = date.getMonth()
+
+            // Filter by selected year
+            if (year !== selectedContractYear) return
 
             if (monthIdx >= 0 && monthIdx < 12) {
                 const status = (c.status || '').toLowerCase()
 
-                if (status === 'dalam proses pekerjaan') {
-                    chartData[monthIdx].dalamProses += 1
+                if (status === 'dalam pekerjaan' || status === 'dalam proses pekerjaan') {
+                    chartData[monthIdx].dalamPekerjaan += 1
+                } else if (status === 'telah diperiksa') {
+                    chartData[monthIdx].telahDiperiksa += 1
                 } else if (status === 'terbayar') {
                     chartData[monthIdx].terbayar += 1
                 }
@@ -326,14 +352,11 @@ function Laporan() {
         return ((value / totalBudget) * 100);
     };
 
-    // Calculate segments for Pie Chart
+    // Calculate segments for Pie Chart - hanya 3 status
     const segments = [
-        { label: 'Terkontrak', value: budgetData.terkontrak, color: '#3b82f6' }, // Blue
-        { label: 'Dalam Proses', value: budgetData.dalamProses, color: '#f59e0b' }, // Amber
-        { label: 'Selesai', value: budgetData.selesai, color: '#10b981' }, // Emerald
-        { label: 'Dalam Pemeriksaan', value: budgetData.dalamPemeriksaan, color: '#8b5cf6' }, // Violet
-        { label: 'Telah Diperiksa', value: budgetData.telahDiperiksa, color: '#06b6d4' }, // Cyan
-        { label: 'Terbayar', value: budgetData.terbayar, color: '#6366f1' } // Indigo
+        { label: 'Dalam Pekerjaan', value: budgetData.dalamProses, color: '#f59e0b' }, // Orange
+        { label: 'Telah Diperiksa', value: budgetData.telahDiperiksa, color: '#8b5cf6' }, // Purple
+        { label: 'Terbayar', value: budgetData.terbayar, color: '#10b981' } // Hijau
     ];
 
     let currentOffset = 0;
@@ -691,9 +714,37 @@ function Laporan() {
             <div className="charts-container">
                 {/* Line Chart - Perbandingan Dalam Proses & Terbayar */}
                 <div className="chart-card large">
-                    <div className="chart-header">
-                        <h3><BarChart2 size={20} style={{ display: 'inline', marginRight: '8px' }} /> Tren Kontrak Bulanan</h3>
-                        <span className="chart-subtitle">Distribusi status kontrak per bulan</span>
+                    <div className="chart-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                        <div>
+                            <h3><BarChart2 size={20} style={{ display: 'inline', marginRight: '8px' }} /> Tren Kontrak Bulanan</h3>
+                            <span className="chart-subtitle">Distribusi status kontrak per bulan</span>
+                        </div>
+                        <select
+                            value={selectedContractYear}
+                            onChange={(e) => setSelectedContractYear(Number(e.target.value))}
+                            style={{
+                                padding: '8px 32px 8px 16px',
+                                borderRadius: '8px',
+                                border: '1px solid #e2e8f0',
+                                background: '#fff',
+                                color: '#1e293b',
+                                cursor: 'pointer',
+                                fontSize: '14px',
+                                fontWeight: '500',
+                                outline: 'none',
+                                appearance: 'none',
+                                backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'12\' height=\'12\' viewBox=\'0 0 12 12\'%3E%3Cpath fill=\'%2364748b\' d=\'M6 9L1 4h10z\'/%3E%3C/svg%3E")',
+                                backgroundRepeat: 'no-repeat',
+                                backgroundPosition: 'right 12px center',
+                                minWidth: '100px'
+                            }}
+                        >
+                            {availableContractYears.map(year => (
+                                <option key={year} value={year}>
+                                    {year}
+                                </option>
+                            ))}
+                        </select>
                     </div>
                     <div className="line-chart-container" style={{ 
                         position: 'relative', 
@@ -703,12 +754,36 @@ function Laporan() {
                         flexDirection: 'column'
                     }}>
                         {/* Y-axis labels */}
-                        <div style={{ position: 'absolute', left: '0', top: '20px', bottom: '40px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', fontSize: '12px', color: '#64748b' }}>
+                        <div style={{ position: 'absolute', left: '40px', top: '30px', height: '200px', display: 'flex', flexDirection: 'column', fontSize: '13px', color: '#64748b', textAlign: 'right', paddingRight: '5px', width: '22px' }}>
                             {(() => {
-                                const maxVal = Math.max(...(monthlyData as any[]).map(d => Math.max(d.dalamProses, d.terbayar)), 1);
-                                return [maxVal, Math.floor(maxVal * 0.75), Math.floor(maxVal * 0.5), Math.floor(maxVal * 0.25), 0].map((val, i) => (
-                                    <span key={i}>{val}</span>
-                                ));
+                                const maxVal = Math.max(...(monthlyData as any[]).map(d => Math.max(d.dalamPekerjaan, d.telahDiperiksa, d.terbayar)), 0);
+                                if (maxVal === 0) {
+                                    return [0].map((val, i) => (
+                                        <span key={i} style={{ position: 'absolute', top: '0px' }}>{val}</span>
+                                    ))
+                                }
+                                
+                                // Buat array nilai unik tanpa duplikasi
+                                const uniqueValues = new Set<number>()
+                                uniqueValues.add(maxVal)
+                                if (maxVal >= 4) {
+                                    uniqueValues.add(Math.floor(maxVal * 0.75))
+                                    uniqueValues.add(Math.floor(maxVal * 0.5))
+                                    uniqueValues.add(Math.floor(maxVal * 0.25))
+                                } else {
+                                    // Untuk nilai kecil, gunakan semua angka dari max ke 1
+                                    for (let i = maxVal - 1; i >= 1; i--) {
+                                        uniqueValues.add(i)
+                                    }
+                                }
+                                uniqueValues.add(0)
+                                
+                                const labels = Array.from(uniqueValues).sort((a, b) => b - a)
+                                const gridSpacing = 200 / (labels.length - 1)
+                                
+                                return labels.map((val, i) => (
+                                    <span key={i} style={{ position: 'absolute', top: `${i * gridSpacing - 3}px` }}>{val}</span>
+                                ))
                             })()}
                         </div>
 
@@ -720,46 +795,91 @@ function Laporan() {
                             viewBox="0 0 1000 200"
                             preserveAspectRatio="xMidYMid meet"
                         >
-                            {/* Grid lines */}
-                            {[0, 1, 2, 3, 4].map(i => (
-                                <line
-                                    key={i}
-                                    x1="50"
-                                    y1={i * 50}
-                                    x2="950"
-                                    y2={i * 50}
-                                    stroke="#e2e8f0"
-                                    strokeWidth="1"
-                                />
-                            ))}
+                            {/* Grid lines - dinamis sesuai jumlah label Y */}
+                            {(() => {
+                                const maxVal = Math.max(...(monthlyData as any[]).map(d => Math.max(d.dalamPekerjaan, d.telahDiperiksa, d.terbayar)), 0)
+                                if (maxVal === 0) {
+                                    return (
+                                        <line
+                                            x1="50"
+                                            y1="0"
+                                            x2="950"
+                                            y2="0"
+                                            stroke="#e2e8f0"
+                                            strokeWidth="1"
+                                        />
+                                    )
+                                }
+                                
+                                const uniqueValues = new Set<number>()
+                                uniqueValues.add(maxVal)
+                                if (maxVal >= 4) {
+                                    uniqueValues.add(Math.floor(maxVal * 0.75))
+                                    uniqueValues.add(Math.floor(maxVal * 0.5))
+                                    uniqueValues.add(Math.floor(maxVal * 0.25))
+                                } else {
+                                    for (let i = maxVal - 1; i >= 1; i--) {
+                                        uniqueValues.add(i)
+                                    }
+                                }
+                                uniqueValues.add(0)
+                                
+                                const gridCount = uniqueValues.size
+                                const gridSpacing = 200 / (gridCount - 1)
+                                
+                                return Array.from({ length: gridCount }).map((_, i) => (
+                                    <line
+                                        key={i}
+                                        x1="50"
+                                        y1={i * gridSpacing}
+                                        x2="950"
+                                        y2={i * gridSpacing}
+                                        stroke="#e2e8f0"
+                                        strokeWidth="1"
+                                    />
+                                ))
+                            })()}
 
                             {/* Area fills and lines */}
                             <defs>
-                                <linearGradient id="areaGradientDalamProses" x1="0" x2="0" y1="0" y2="1">
+                                <linearGradient id="areaGradientDalamPekerjaan" x1="0" x2="0" y1="0" y2="1">
                                     <stop offset="0%" stopColor="#f59e0b" stopOpacity="0.2"/>
                                     <stop offset="100%" stopColor="#f59e0b" stopOpacity="0.02"/>
                                 </linearGradient>
+                                <linearGradient id="areaGradientTelahDiperiksa" x1="0" x2="0" y1="0" y2="1">
+                                    <stop offset="0%" stopColor="#8b5cf6" stopOpacity="0.2"/>
+                                    <stop offset="100%" stopColor="#8b5cf6" stopOpacity="0.02"/>
+                                </linearGradient>
                                 <linearGradient id="areaGradientTerbayar" x1="0" x2="0" y1="0" y2="1">
-                                    <stop offset="0%" stopColor="#6366f1" stopOpacity="0.2"/>
-                                    <stop offset="100%" stopColor="#6366f1" stopOpacity="0.02"/>
+                                    <stop offset="0%" stopColor="#10b981" stopOpacity="0.2"/>
+                                    <stop offset="100%" stopColor="#10b981" stopOpacity="0.02"/>
                                 </linearGradient>
                             </defs>
                             
                             {monthlyData.length > 0 && (() => {
-                                const maxValue = Math.max(...(monthlyData as any[]).map(d => Math.max(d.dalamProses, d.terbayar)), 1);
+                                const maxValue = Math.max(...(monthlyData as any[]).map(d => Math.max(d.dalamPekerjaan, d.telahDiperiksa, d.terbayar)), 1);
                                 const paddingLeft = 50;
                                 const paddingRight = 50;
                                 const chartWidth = 900;
                                 const spacing = chartWidth / (monthlyData.length - 1);
                                 
-                                // Dalam Proses line
-                                const dalamProsesPoints = (monthlyData as any[]).map((data, index) => {
+                                // Dalam Pekerjaan line
+                                const dalamPekerjaanPoints = (monthlyData as any[]).map((data, index) => {
                                     const x = paddingLeft + (index * spacing);
-                                    const y = 200 - (data.dalamProses / maxValue) * 200;
+                                    const y = 200 - (data.dalamPekerjaan / maxValue) * 200;
                                     return `${x},${y}`;
                                 }).join(' ');
                                 
-                                const dalamProsesAreaPoints = `${paddingLeft},200 ${dalamProsesPoints} ${paddingLeft + chartWidth},200`;
+                                const dalamPekerjaanAreaPoints = `${paddingLeft},200 ${dalamPekerjaanPoints} ${paddingLeft + chartWidth},200`;
+                                
+                                // Telah Diperiksa line
+                                const telahDiperiksaPoints = (monthlyData as any[]).map((data, index) => {
+                                    const x = paddingLeft + (index * spacing);
+                                    const y = 200 - (data.telahDiperiksa / maxValue) * 200;
+                                    return `${x},${y}`;
+                                }).join(' ');
+                                
+                                const telahDiperiksaAreaPoints = `${paddingLeft},200 ${telahDiperiksaPoints} ${paddingLeft + chartWidth},200`;
                                 
                                 // Terbayar line
                                 const terbayarPoints = (monthlyData as any[]).map((data, index) => {
@@ -772,15 +892,29 @@ function Laporan() {
                                 
                                 return (
                                     <>
-                                        {/* Dalam Proses area and line */}
+                                        {/* Dalam Pekerjaan area and line */}
                                         <polyline
-                                            points={dalamProsesAreaPoints}
-                                            fill="url(#areaGradientDalamProses)"
+                                            points={dalamPekerjaanAreaPoints}
+                                            fill="url(#areaGradientDalamPekerjaan)"
                                         />
                                         <polyline
-                                            points={dalamProsesPoints}
+                                            points={dalamPekerjaanPoints}
                                             fill="none"
                                             stroke="#f59e0b"
+                                            strokeWidth="3"
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                        />
+                                        
+                                        {/* Telah Diperiksa area and line */}
+                                        <polyline
+                                            points={telahDiperiksaAreaPoints}
+                                            fill="url(#areaGradientTelahDiperiksa)"
+                                        />
+                                        <polyline
+                                            points={telahDiperiksaPoints}
+                                            fill="none"
+                                            stroke="#8b5cf6"
                                             strokeWidth="3"
                                             strokeLinecap="round"
                                             strokeLinejoin="round"
@@ -794,16 +928,16 @@ function Laporan() {
                                         <polyline
                                             points={terbayarPoints}
                                             fill="none"
-                                            stroke="#6366f1"
+                                            stroke="#10b981"
                                             strokeWidth="3"
                                             strokeLinecap="round"
                                             strokeLinejoin="round"
                                         />
                                         
-                                        {/* Dalam Proses points */}
+                                        {/* Dalam Pekerjaan points */}
                                         {(monthlyData as any[]).map((data, index) => {
                                             const x = paddingLeft + (index * spacing);
-                                            const y = 200 - (data.dalamProses / maxValue) * 200;
+                                            const y = 200 - (data.dalamPekerjaan / maxValue) * 200;
                                             return (
                                                 <g key={`dp-${index}`}>
                                                     <circle
@@ -815,7 +949,27 @@ function Laporan() {
                                                         strokeWidth="3"
                                                         style={{ cursor: 'pointer' }}
                                                     />
-                                                    <title>{`${data.month}: Dalam Proses ${data.dalamProses}`}</title>
+                                                    <title>{`${data.month}: Dalam Pekerjaan ${data.dalamPekerjaan}`}</title>
+                                                </g>
+                                            );
+                                        })}
+                                        
+                                        {/* Telah Diperiksa points */}
+                                        {(monthlyData as any[]).map((data, index) => {
+                                            const x = paddingLeft + (index * spacing);
+                                            const y = 200 - (data.telahDiperiksa / maxValue) * 200;
+                                            return (
+                                                <g key={`td-${index}`}>
+                                                    <circle
+                                                        cx={x}
+                                                        cy={y}
+                                                        r="5"
+                                                        fill="#fff"
+                                                        stroke="#8b5cf6"
+                                                        strokeWidth="3"
+                                                        style={{ cursor: 'pointer' }}
+                                                    />
+                                                    <title>{`${data.month}: Telah Diperiksa ${data.telahDiperiksa}`}</title>
                                                 </g>
                                             );
                                         })}
@@ -831,7 +985,7 @@ function Laporan() {
                                                         cy={y}
                                                         r="5"
                                                         fill="#fff"
-                                                        stroke="#6366f1"
+                                                        stroke="#10b981"
                                                         strokeWidth="3"
                                                         style={{ cursor: 'pointer' }}
                                                     />
@@ -860,8 +1014,9 @@ function Laporan() {
                         </div>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'center', gap: 18, marginTop: 10 }}>
-                        <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}><span style={{ width: 14, height: 8, background: '#f59e0b', borderRadius: 4, display: 'inline-block' }}></span> Dalam Proses</span>
-                        <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}><span style={{ width: 14, height: 8, background: '#6366f1', borderRadius: 4, display: 'inline-block' }}></span> Terbayar</span>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}><span style={{ width: 14, height: 8, background: '#f59e0b', borderRadius: 4, display: 'inline-block' }}></span> Dalam Pekerjaan</span>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}><span style={{ width: 14, height: 8, background: '#8b5cf6', borderRadius: 4, display: 'inline-block' }}></span> Telah Diperiksa</span>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}><span style={{ width: 14, height: 8, background: '#10b981', borderRadius: 4, display: 'inline-block' }}></span> Terbayar</span>
                     </div>
                 </div>
 
@@ -899,15 +1054,15 @@ function Laporan() {
                                 </text>
                             </svg>
                         </div>
-                        <div className="pie-legend" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                        <div className="pie-legend" style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '8px' }}>
                             {pieSegments.map((seg, idx) => (
-                                <div key={idx} className="legend-item" style={{ marginBottom: 0 }}>
-                                    <span className="legend-color" style={{ backgroundColor: seg.color }}></span>
-                                    <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                        <span className="legend-text" style={{ fontSize: '11px', color: '#64748b' }}>{seg.label}</span>
-                                        <span className="legend-count" style={{ fontSize: '13px', fontWeight: 600 }}>
+                                <div key={idx} className="legend-item" style={{ marginBottom: 0, display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                    <span className="legend-color" style={{ backgroundColor: seg.color, width: '12px', height: '12px', borderRadius: '3px', flexShrink: 0 }}></span>
+                                    <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
+                                        <span className="legend-text" style={{ fontSize: '12px', color: '#1e293b', fontWeight: 500 }}>{seg.label}</span>
+                                        <span className="legend-count" style={{ fontSize: '13px', fontWeight: 600, color: seg.color }}>
                                             {seg.percent.toFixed(2)}%
-                                            <span style={{ fontSize: '10px', color: '#94a3b8', marginLeft: '4px', fontWeight: 400 }}>
+                                            <span style={{ fontSize: '11px', color: '#94a3b8', marginLeft: '6px', fontWeight: 400 }}>
                                                 ({seg.value >= 1e9 ? `Rp ${(seg.value / 1e9).toFixed(3)} M` : `Rp ${(seg.value / 1e6).toFixed(2)} Jt`})
                                             </span>
                                         </span>

@@ -42,8 +42,25 @@ export default function DashboardPage() {
         // Initial load
         loadData()
 
+        // Subscribe to real-time vendor changes
+        const vendorSubscription = supabase
+            .channel('dashboard-vendors')
+            .on(
+                'postgres_changes',
+                { event: '*', schema: 'public', table: 'vendors' },
+                (payload) => {
+                    console.log('Vendor change detected:', payload)
+                    if (mounted) {
+                        // Refetch vendor data when vendor is added, updated, or deleted
+                        fetchVendorData()
+                    }
+                }
+            )
+            .subscribe()
+
         return () => {
             mounted = false
+            vendorSubscription.unsubscribe()
         }
     }, [])
 
@@ -81,7 +98,7 @@ export default function DashboardPage() {
                     // Cek tahun yang tersedia dari data
                     const years = new Set<number>()
                     vendorsForChart.forEach((v: any) => {
-                        if (v.created_at) years.add(new Date(v.created_at).getFullYear())
+                        if (v.tanggal_registrasi) years.add(new Date(v.tanggal_registrasi).getFullYear())
                     })
                     const yearArray = Array.from(years).sort((a, b) => b - a)
 
@@ -199,9 +216,9 @@ export default function DashboardPage() {
         const newChartData = months.map(m => ({ month: m, total: 0 }))
 
         vendors.forEach(vendor => {
-            if (!vendor.created_at) return
+            if (!vendor.tanggal_registrasi) return
 
-            const date = new Date(vendor.created_at)
+            const date = new Date(vendor.tanggal_registrasi)
             const vendorYear = date.getFullYear()
             const monthIndex = date.getMonth()
 
@@ -222,8 +239,8 @@ export default function DashboardPage() {
     const availableYears = useMemo(() => {
         const years = new Set<number>()
         allVendors.forEach(vendor => {
-            if (vendor.created_at) {
-                years.add(new Date(vendor.created_at).getFullYear())
+            if (vendor.tanggal_registrasi) {
+                years.add(new Date(vendor.tanggal_registrasi).getFullYear())
             }
         })
         const yearArray = Array.from(years).sort((a, b) => b - a)
@@ -313,10 +330,43 @@ export default function DashboardPage() {
                             flexDirection: 'column'
                         }}>
                             {/* Y-axis labels */}
-                            <div style={{ position: 'absolute', left: '0', top: '20px', bottom: '40px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', fontSize: '12px', color: '#64748b' }}>
-                                {[Math.max(...chartData.map(d => d.total)), Math.floor(Math.max(...chartData.map(d => d.total)) * 0.75), Math.floor(Math.max(...chartData.map(d => d.total)) * 0.5), Math.floor(Math.max(...chartData.map(d => d.total)) * 0.25), 0].map((val, i) => (
-                                    <span key={i}>{val}</span>
-                                ))}
+                            <div style={{ position: 'absolute', left: '40px', top: '30px', height: '100 px', display: 'flex', flexDirection: 'column', fontSize: '12px', color: '#64748b', textAlign: 'right', paddingRight: '5px', width: '22px' }}>
+                                {(() => {
+                                    const maxVal = Math.max(...chartData.map(d => d.total), 0)
+                                    if (maxVal === 0) {
+                                        return [4, 3, 2, 1, 0].map((val, i) => (
+                                            <span key={i} style={{ position: 'absolute', top: `${i * 50 - 6}px` }}>{val}</span>
+                                        ))
+                                    }
+                                    
+                                    // Buat array nilai unik tanpa duplikasi
+                                    const labels = []
+                                    if (maxVal <= 4) {
+                                        // Untuk nilai kecil, gunakan semua angka dari max ke 0
+                                        for (let i = maxVal; i >= 0; i--) {
+                                            labels.push(i)
+                                        }
+                                    } else {
+                                        // Untuk nilai besar, bagi menjadi 5 step unik
+                                        const step = Math.ceil(maxVal / 4)
+                                        const uniqueVals = new Set()
+                                        uniqueVals.add(maxVal)
+                                        uniqueVals.add(Math.floor(maxVal - step))
+                                        uniqueVals.add(Math.floor(maxVal - step * 2))
+                                        uniqueVals.add(Math.floor(maxVal - step * 3))
+                                        uniqueVals.add(0)
+                                        
+                                        const sortedVals = Array.from(uniqueVals).sort((a, b) => b - a)
+                                        labels.push(...sortedVals)
+                                    }
+                                    
+                                    const gridCount = labels.length
+                                    const gridSpacing = 200 / (gridCount - 1)
+                                    
+                                    return labels.map((val, i) => (
+                                        <span key={i} style={{ position: 'absolute', top: `${i * gridSpacing - 6}px` }}>{val}</span>
+                                    ))
+                                })()}
                             </div>
 
                             {/* Chart area */}
@@ -327,18 +377,24 @@ export default function DashboardPage() {
                                 viewBox="0 0 880 200"
                                 preserveAspectRatio="xMidYMid meet"
                             >
-                                {/* Grid lines */}
-                                {[0, 1, 2, 3, 4].map(i => (
-                                    <line
-                                        key={i}
-                                        x1="25"
-                                        y1={i * 50}
-                                        x2="840"
-                                        y2={i * 50}
-                                        stroke="#e2e8f0"
-                                        strokeWidth="1"
-                                    />
-                                ))}
+                                {/* Grid lines - dinamis sesuai jumlah label Y */}
+                                {(() => {
+                                    const maxVal = Math.max(...chartData.map(d => d.total), 0)
+                                    const gridCount = maxVal === 0 ? 5 : (maxVal <= 4 ? maxVal + 1 : 5)
+                                    const gridSpacing = 200 / (gridCount - 1)
+                                    
+                                    return Array.from({ length: gridCount }).map((_, i) => (
+                                        <line
+                                            key={i}
+                                            x1="25"
+                                            y1={i * gridSpacing}
+                                            x2="840"
+                                            y2={i * gridSpacing}
+                                            stroke="#e2e8f0"
+                                            strokeWidth="1"
+                                        />
+                                    ))
+                                })()}
 
                                 {/* Area fill */}
                                 <defs>

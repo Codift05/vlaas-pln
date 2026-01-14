@@ -472,9 +472,10 @@ textarea:focus {
   letter-spacing: 0.2px;
 }
 
-.status-active {
-  background: rgba(46, 204, 113, 0.12);
-  color: #27ae60;
+.status-active,
+.status-dalam-pekerjaan {
+  background: rgba(245, 158, 11, 0.12);
+  color: #f59e0b;
 }
 
 .status-maintenance {
@@ -485,6 +486,16 @@ textarea:focus {
 .status-inactive {
   background: rgba(231, 76, 60, 0.12);
   color: #c0392b;
+}
+
+.status-telah-diperiksa {
+  background: rgba(139, 92, 246, 0.12) !important;
+  color: #8b5cf6 !important;
+}
+
+.status-terbayar {
+  background: rgba(16, 185, 129, 0.12) !important;
+  color: #10b981 !important;
 }
 
 /* New Statuses */

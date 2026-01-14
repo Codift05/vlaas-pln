@@ -3,7 +3,6 @@ import { useState, useRef, useEffect, Fragment } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { Eye, Edit, Trash2, Search, ChevronDown, ChevronUp, Plus, Save, Upload, Calendar, Clock, ArrowRight, FileText, AlertCircle, AlertTriangle, FileCheck, History, Activity, X, CheckCircle, Info, AlertOctagon } from 'lucide-react'
 import { supabase } from '../../../lib/supabaseClient'
-import { useContracts, useContractDetail } from '../../../hooks/useContracts'
 import './ManajemenAset.css'
 
 function ManajemenAset() {
@@ -11,7 +10,6 @@ function ManajemenAset() {
     console.log('ManajemenAset render start');
     const searchParams = useSearchParams()
     const [searchTerm, setSearchTerm] = useState('');
-    const [currentPage, setCurrentPage] = useState(1);
     const [filterStatus, setFilterStatus] = useState('all');
     const [showModal, setShowModal] = useState(false);
     const [showColumnSelector, setShowColumnSelector] = useState(false);
@@ -31,13 +29,10 @@ function ManajemenAset() {
     });
     // State untuk Detail Modal
     const [showDetailModal, setShowDetailModal] = useState(false)
-    const [selectedContractId, setSelectedContractId] = useState(null)
-
-    // Fetch contract detail dengan SWR
-    const { data: contractDetail, mutate: refreshDetail } = useContractDetail(selectedContractId)
+    const [selectedAsset, setSelectedAsset] = useState(null)
 
     const handleViewDetail = (asset) => {
-        setSelectedContractId(asset.id)
+        setSelectedAsset(asset)
         setShowDetailModal(true)
     }
     // State untuk upload PDF
@@ -46,11 +41,11 @@ function ManajemenAset() {
     const [uploadError, setUploadError] = useState('')
     const [uploadSuccess, setUploadSuccess] = useState('')
     const [selectedFile, setSelectedFile] = useState(null)
-    const [uploadContractId, setUploadContractId] = useState(null)
+    const [selectedContractId, setSelectedContractId] = useState(null)
 
     // Buka modal upload
     function openUploadModal(contractId) {
-        setUploadContractId(contractId)
+        setSelectedContractId(contractId)
         setUploadError('')
         setUploadSuccess('')
         setSelectedFile(null)
@@ -65,7 +60,7 @@ function ManajemenAset() {
         try {
             const formData = new FormData()
             formData.append('file', selectedFile)
-            formData.append('contract_id', uploadContractId)
+            formData.append('contract_id', selectedContractId)
             const res = await fetch('/functions/v1/upload_pdf_to_drive', {
                 method: 'POST',
                 body: formData
@@ -75,12 +70,10 @@ function ManajemenAset() {
             // Simpan ke Supabase table
             const { error } = await supabase
                 .from('contract_files')
-                .insert([{ contract_id: uploadContractId, file_url: data.webViewLink }])
+                .insert([{ contract_id: selectedContractId, file_url: data.webViewLink }])
             if (error) throw new Error(error.message)
             showAlert('success', 'Berhasil', 'Upload berhasil! Link: ' + data.webViewLink)
             setUploadSuccess('Upload berhasil! Link: ' + data.webViewLink)
-            // Refresh contract detail
-            refreshDetail()
         } catch (err) {
             setUploadError(err.message)
             showAlert('error', 'Gagal', 'Gagal upload: ' + err.message)
@@ -99,27 +92,60 @@ function ManajemenAset() {
         contractType: '',
         category: '', // added missing field
         location: '',
-        status: 'Aktif',
+        status: 'Dalam Pekerjaan',
         startDate: '',
         endDate: '',
         amendmentDocNumber: '', // New field
         amendmentDescription: '' // New field
     });
 
-    // State untuk data aset (dari API dengan SWR)
-    const {
-        data: assets,
-        pagination,
-        isLoading,
-        error: dataError,
-        mutate: refreshContracts
-    } = useContracts({
-        page: currentPage,
-        search: searchTerm,
-        status: filterStatus,
-        sortBy: 'updated_at',
-        sortOrder: 'desc'
-    })
+    // State untuk data aset (dari Supabase)
+    const [assets, setAssets] = useState([])
+
+    // Fetch data contracts & history from Supabase
+    const fetchContracts = async () => {
+        try {
+            const { data, error } = await supabase
+                .from('contracts')
+                .select(`
+                    *,
+                    history:contract_history(*)
+                `)
+
+            if (error) throw error
+
+            console.log('Raw data from Supabase:', data) // Debug log
+
+            // Format data sesuai struktur UI
+            const formattedData = data.map(contract => ({
+                id: contract.id || '',
+                name: contract.name || '',
+                vendorName: contract.vendor_name || '', // Map snake_case -> camelCase
+                recipient: contract.recipient || '',
+                invoiceNumber: contract.invoice_number || '',
+                amount: contract.amount ? parseFloat(contract.amount) : 0,
+                budgetType: contract.budget_type || '',
+                contractType: contract.contract_type || '',
+                category: contract.category || '',
+                location: contract.location || '',
+                status: contract.status || 'Dalam Pekerjaan',
+                startDate: contract.start_date || '',
+                endDate: contract.end_date || '',
+                updatedAt: contract.updated_at || contract.created_at || '',
+                progress: contract.progress || 0,
+                history: contract.history || []
+            }))
+            setAssets(formattedData)
+        } catch (err) {
+            console.error('Error fetching contracts:', err)
+            setAssets([])
+        }
+    }
+
+    // Load data on mount
+    useEffect(() => {
+        fetchContracts()
+    }, [])
 
     // Handle URL parameter untuk auto-expand kontrak yang dipilih
     useEffect(() => {
@@ -143,13 +169,16 @@ function ManajemenAset() {
         }
     }, [assets, searchParams])
 
-    // Debounce search untuk optimize performa
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            setCurrentPage(1) // Reset ke halaman 1 saat search
-        }, 300)
-        return () => clearTimeout(timer)
-    }, [searchTerm, filterStatus])
+    const getBadgeClass = (status) => {
+        if (!status) return ''
+        const normalized = status.toLowerCase()
+        if (normalized === 'aktif' || normalized === 'dalam pekerjaan' || normalized === 'dalam proses pekerjaan') return 'status-dalam-pekerjaan'
+        if (normalized === 'perbaikan') return 'status-maintenance'
+        if (normalized === 'tidak aktif') return 'status-inactive'
+
+        // Slugify for new statuses
+        return `status-${normalized.replace(/\s+/g, '-')}`
+    }
 
     // State untuk mode edit
     const [isEditing, setIsEditing] = useState(false);
@@ -159,15 +188,15 @@ function ManajemenAset() {
     // Countdown timer for detail modal
     const [timeRemaining, setTimeRemaining] = useState('');
     useEffect(() => {
-        if (!showDetailModal || !contractDetail || !contractDetail.endDate) return;
+        if (!showDetailModal || !selectedAsset || !selectedAsset.endDate) return;
         function updateCountdown() {
             const now = new Date();
             let end;
             // Handle YYYY-MM-DD (Supabase) or DD/MM/YYYY (Legacy)
-            if (contractDetail.endDate.includes('/')) {
-                end = new Date(contractDetail.endDate.split('/').reverse().join('-'));
+            if (selectedAsset.endDate.includes('/')) {
+                end = new Date(selectedAsset.endDate.split('/').reverse().join('-'));
             } else {
-                end = new Date(contractDetail.endDate);
+                end = new Date(selectedAsset.endDate);
             }
 
             const diff = end.getTime() - now.getTime();
@@ -184,7 +213,7 @@ function ManajemenAset() {
         updateCountdown();
         const interval = setInterval(updateCountdown, 1000);
         return () => clearInterval(interval);
-    }, [showDetailModal, contractDetail]);
+    }, [showDetailModal, selectedAsset]);
 
     // Close dropdown when clicking outside
     useEffect(() => {
@@ -265,8 +294,8 @@ function ManajemenAset() {
     const [paymentFormData, setPaymentFormData] = useState({
         contractId: '',
         name: '',
-        percentage: 100,
-        amount: 0,
+        percentage: '100',
+        amount: '0',
         dueDate: ''
     })
 
@@ -325,8 +354,8 @@ function ManajemenAset() {
         setPaymentFormData({
             contractId: contract.id,
             name: 'Pembayaran Lunas',
-            percentage: 100,
-            amount: contract.amount,
+            percentage: '100',
+            amount: String(contract.amount || 0),
             dueDate: ''
         })
         setPaymentMode('single')
@@ -358,8 +387,8 @@ function ManajemenAset() {
             const payload = {
                 contract_id: paymentFormData.contractId,
                 name: paymentFormData.name,
-                percentage: parseFloat(paymentFormData.percentage) || 0,
-                value: parseFloat(paymentFormData.amount) || 0,
+                percentage: String(parseFloat(paymentFormData.percentage) || 0),
+                value: String(parseFloat(paymentFormData.amount) || 0),
                 due_date: paymentFormData.dueDate || null,
                 status: 'Pending'
             }
@@ -544,7 +573,11 @@ function ManajemenAset() {
 
     const getStatusClass = (status) => {
         switch (status) {
-            case 'Aktif': return 'status-active'
+            case 'Aktif': return 'status-dalam-pekerjaan' // Legacy mapping
+            case 'Dalam Pekerjaan': return 'status-dalam-pekerjaan'
+            case 'Dalam Proses Pekerjaan': return 'status-dalam-pekerjaan'
+            case 'Telah Diperiksa': return 'status-telah-diperiksa'
+            case 'Terbayar': return 'status-terbayar'
             case 'Perbaikan': return 'status-maintenance'
             case 'Tidak Aktif': return 'status-inactive'
             default: return ''
@@ -590,7 +623,7 @@ function ManajemenAset() {
             contractType: '',
             category: '',
             location: '',
-            status: 'Aktif',
+            status: 'Dalam Pekerjaan',
             startDate: '',
             endDate: '',
             amendmentDocNumber: '',
@@ -757,7 +790,7 @@ function ManajemenAset() {
                 if (error) throw error
 
                 showAlert('success', 'Berhasil', 'Kontrak berhasil dihapus')
-                refreshContracts() // Refresh data dengan SWR
+                fetchContracts() // Refresh data
             } catch (err) {
                 console.error('Error deleting contract:', err)
                 showAlert('error', 'Gagal', 'Gagal menghapus: ' + err.message)
@@ -776,24 +809,51 @@ function ManajemenAset() {
                 if (error) throw error
                 showAlert('success', 'Berhasil', 'Riwayat berhasil dihapus')
 
-                // Refresh contract detail dan list
-                refreshDetail()
-                refreshContracts()
+                // Refresh data - we need to refresh the selectedAsset as well
+                // But fetchContracts updates 'assets', so we need to re-find the asset
+                await fetchContracts()
+
+                // Re-select the asset to update the view
+                const updatedAssets = await supabase
+                    .from('contracts')
+                    .select(`*, history:contract_history(*)`)
+                    .eq('id', contractId)
+                    .single()
+
+                if (updatedAssets.data) {
+                    // Manually format to match our internal structure if needed, or better, just re-use the fetched list
+                    // Since fetchContracts() updates 'assets' state, we can just find it from there? 
+                    // Wait, fetchContracts is async and sets state. We can't immediately get the state.
+                    // Better to fetch specific contract and update selectedAsset
+                    const raw = updatedAssets.data
+                    const formatted = {
+                        id: raw.id || '',
+                        name: raw.name || '',
+                        vendorName: raw.vendor_name || '',
+                        recipient: raw.recipient || '',
+                        invoiceNumber: raw.invoice_number || '',
+                        amount: raw.amount ? parseFloat(raw.amount) : 0,
+                        budgetType: raw.budget_type || '',
+                        contractType: raw.contract_type || '',
+                        category: raw.category || '',
+                        location: raw.location || '',
+                        status: raw.status || 'Dalam Pekerjaan',
+                        startDate: raw.start_date || '',
+                        endDate: raw.end_date || '',
+                        progress: raw.progress || 0,
+                        history: raw.history || []
+                    }
+                    setSelectedAsset(formatted)
+                }
+
             } catch (err) {
                 console.error('Error deleting history:', err)
-                showAlert('error', 'Gagal', 'Gagal menghapus: ' + err.message)
+                showAlert('success', 'Gagal', 'Gagal menghapus riwayat: ' + err.message)
             }
         })
     }
 
-    const getBadgeClass = (status: string) => {
-        if (!status) return ''
-        const normalized = status.toLowerCase()
-        if (normalized === 'aktif') return 'status-active'
-        if (normalized === 'perbaikan') return 'status-maintenance'
-        if (normalized === 'tidak aktif') return 'status-inactive'
-        return `status-${normalized.replace(/\s+/g, '-')}`
-    }
+
 
     try {
         return (
@@ -871,7 +931,6 @@ function ManajemenAset() {
                             value={filterStatus}
                             onChange={(e) => setFilterStatus(e.target.value)}
                             className="filter-select"
-                            title="Pilih status kontrak"
                             title="Pilih status kontrak"
                         >
                             <option value="all">Semua Status</option>
@@ -1876,8 +1935,7 @@ function ManajemenAset() {
                                                 onChange={handleInputChange}
                                                 required
                                             >
-                                                <option value="Selesai">Selesai</option>
-                                                <option value="Dalam Pemeriksaan">Dalam Pemeriksaan</option>
+                                                <option value="Dalam Pekerjaan">Dalam Pekerjaan</option>
                                                 <option value="Telah Diperiksa">Telah Diperiksa</option>
                                                 <option value="Terbayar">Terbayar</option>
                                             </select>
@@ -2212,7 +2270,7 @@ function ManajemenAset() {
                                                             setPaymentFormData(prev => ({
                                                                 ...prev,
                                                                 name: 'Pelunasan (100%)',
-                                                                percentage: 100,
+                                                                percentage: '100',
                                                                 amount: prev.amount // Keep total
                                                             }))
                                                         }}
@@ -2227,12 +2285,15 @@ function ManajemenAset() {
                                                         checked={paymentMode === 'termin'}
                                                         onChange={() => {
                                                             setPaymentMode('termin');
-                                                            setPaymentFormData(prev => ({
-                                                                ...prev,
-                                                                name: 'Termin 1 (DP)',
-                                                                percentage: 30, // Default DP
-                                                                amount: (prev.amount * 0.3)
-                                                            }))
+                                                            setPaymentFormData(prev => {
+                                                                const prevAmount = parseFloat(prev.amount) || 0;
+                                                                return {
+                                                                    ...prev,
+                                                                    name: 'Termin 1 (DP)',
+                                                                    percentage: '30', // Default DP
+                                                                    amount: (prevAmount * 0.3).toString()
+                                                                }
+                                                            })
                                                         }}
                                                     />
                                                     <span style={{ fontWeight: 500 }}>Bertahap (Termin)</span>
@@ -2260,7 +2321,7 @@ function ManajemenAset() {
                                                     className="input-modern"
                                                     value={paymentFormData.percentage}
                                                     onChange={(e) => {
-                                                        const pct = parseFloat(e.target.value);
+                                                        const pct = parseFloat(e.target.value) || 0;
                                                         // Calculate nominal automatically
                                                         const contract = assets.find(a => a.id === paymentFormData.contractId);
                                                         const contractAmount = contract ? Number(contract.amount) : 0;
@@ -2268,8 +2329,8 @@ function ManajemenAset() {
 
                                                         setPaymentFormData({
                                                             ...paymentFormData,
-                                                            percentage: pct,
-                                                            amount: calculatedAmount
+                                                            percentage: pct.toString(),
+                                                            amount: calculatedAmount.toString()
                                                         })
                                                     }}
                                                     title="Masukkan persentase pembayaran"
@@ -2282,7 +2343,7 @@ function ManajemenAset() {
                                                     type="number"
                                                     className="input-modern"
                                                     value={
-                                                        paymentFormData.amount === 0 || paymentFormData.amount === undefined || paymentFormData.amount === null || isNaN(paymentFormData.amount)
+                                                        paymentFormData.amount === '0' || paymentFormData.amount === '' || !paymentFormData.amount
                                                             ? ''
                                                             : paymentFormData.amount
                                                     }
@@ -2298,8 +2359,8 @@ function ManajemenAset() {
 
                                                         setPaymentFormData({
                                                             ...paymentFormData,
-                                                            amount: newAmount,
-                                                            percentage: parseFloat(calculatedPct.toFixed(2)) // Limit decimals
+                                                            amount: val === '' ? '0' : newAmount.toString(),
+                                                            percentage: parseFloat(calculatedPct.toFixed(2)).toString() // Limit decimals
                                                         });
                                                     }}
                                                     readOnly={paymentMode === 'single'}
