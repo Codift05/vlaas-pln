@@ -43,5 +43,7 @@ yarn-error.log*
 # I will ADD .env to gitignore.
 .env
 
-# Google Credentials
+# Google Credentials & Tokens
+credentials.json
+token.json
 *.apps.googleusercontent.com.json

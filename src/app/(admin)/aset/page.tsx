@@ -54,27 +54,50 @@ function ManajemenAset() {
 
     // Handle upload PDF
     async function handleUpload() {
+        if (!selectedFile) {
+            showAlert('error', 'Gagal', 'Pilih file terlebih dahulu')
+            return
+        }
+
         setUploading(true)
         setUploadError('')
         setUploadSuccess('')
         try {
+            // Upload ke Google Drive via API route
             const formData = new FormData()
             formData.append('file', selectedFile)
-            formData.append('contract_id', selectedContractId)
-            const res = await fetch('/functions/v1/upload_pdf_to_drive', {
+
+            const res = await fetch('/api/upload', {
                 method: 'POST',
                 body: formData
             })
+
             const data = await res.json()
-            if (!res.ok) throw new Error(data.error || 'Upload gagal')
-            // Simpan ke Supabase table
+
+            if (!data.success) {
+                throw new Error(data.error || 'Upload gagal')
+            }
+
+            // Simpan ke Supabase table dengan link Google Drive
             const { error } = await supabase
                 .from('contract_files')
-                .insert([{ contract_id: selectedContractId, file_url: data.webViewLink }])
+                .insert([{
+                    contract_id: selectedContractId,
+                    file_url: data.file.webViewLink,
+                    file_name: data.file.name || selectedFile.name,
+                    file_id: data.file.id
+                }])
+
             if (error) throw new Error(error.message)
-            showAlert('success', 'Berhasil', 'Upload berhasil! Link: ' + data.webViewLink)
-            setUploadSuccess('Upload berhasil! Link: ' + data.webViewLink)
+
+            showAlert('success', 'Berhasil', 'File berhasil diupload ke Google Drive!')
+            setUploadSuccess(`File berhasil diupload! ${data.file.name}`)
+            setShowUploadModal(false)
+
+            // Refresh data
+            fetchContracts()
         } catch (err) {
+            console.error('Upload error:', err)
             setUploadError(err.message)
             showAlert('error', 'Gagal', 'Gagal upload: ' + err.message)
         } finally {
