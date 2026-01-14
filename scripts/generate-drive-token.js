@@ -15,7 +15,8 @@ const fs = require('fs');
 const path = require('path');
 const readline = require('readline');
 
-const SCOPES = ['https://www.googleapis.com/auth/drive.file'];
+// Gunakan scope penuh untuk akses semua file & folder di Drive
+const SCOPES = ['https://www.googleapis.com/auth/drive'];
 const CREDENTIALS_PATH = path.join(process.cwd(), 'credentials.json');
 const TOKEN_PATH = path.join(process.cwd(), 'token.json');
 
