@@ -703,12 +703,36 @@ function Laporan() {
                         flexDirection: 'column'
                     }}>
                         {/* Y-axis labels */}
-                        <div style={{ position: 'absolute', left: '0', top: '20px', bottom: '40px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', fontSize: '12px', color: '#64748b' }}>
+                        <div style={{ position: 'absolute', left: '12px', top: '15px', height: '200px', display: 'flex', flexDirection: 'column', fontSize: '11px', color: '#64748b', textAlign: 'right', paddingRight: '5px', width: '22px' }}>
                             {(() => {
-                                const maxVal = Math.max(...(monthlyData as any[]).map(d => Math.max(d.dalamProses, d.terbayar)), 1);
-                                return [maxVal, Math.floor(maxVal * 0.75), Math.floor(maxVal * 0.5), Math.floor(maxVal * 0.25), 0].map((val, i) => (
-                                    <span key={i}>{val}</span>
-                                ));
+                                const maxVal = Math.max(...(monthlyData as any[]).map(d => Math.max(d.dalamProses, d.terbayar)), 0);
+                                if (maxVal === 0) {
+                                    return [0].map((val, i) => (
+                                        <span key={i} style={{ position: 'absolute', top: '0px' }}>{val}</span>
+                                    ))
+                                }
+                                
+                                // Buat array nilai unik tanpa duplikasi
+                                const uniqueValues = new Set<number>()
+                                uniqueValues.add(maxVal)
+                                if (maxVal >= 4) {
+                                    uniqueValues.add(Math.floor(maxVal * 0.75))
+                                    uniqueValues.add(Math.floor(maxVal * 0.5))
+                                    uniqueValues.add(Math.floor(maxVal * 0.25))
+                                } else {
+                                    // Untuk nilai kecil, gunakan semua angka dari max ke 1
+                                    for (let i = maxVal - 1; i >= 1; i--) {
+                                        uniqueValues.add(i)
+                                    }
+                                }
+                                uniqueValues.add(0)
+                                
+                                const labels = Array.from(uniqueValues).sort((a, b) => b - a)
+                                const gridSpacing = 200 / (labels.length - 1)
+                                
+                                return labels.map((val, i) => (
+                                    <span key={i} style={{ position: 'absolute', top: `${i * gridSpacing - 6}px` }}>{val}</span>
+                                ))
                             })()}
                         </div>
 
@@ -720,18 +744,50 @@ function Laporan() {
                             viewBox="0 0 1000 200"
                             preserveAspectRatio="xMidYMid meet"
                         >
-                            {/* Grid lines */}
-                            {[0, 1, 2, 3, 4].map(i => (
-                                <line
-                                    key={i}
-                                    x1="50"
-                                    y1={i * 50}
-                                    x2="950"
-                                    y2={i * 50}
-                                    stroke="#e2e8f0"
-                                    strokeWidth="1"
-                                />
-                            ))}
+                            {/* Grid lines - dinamis sesuai jumlah label Y */}
+                            {(() => {
+                                const maxVal = Math.max(...(monthlyData as any[]).map(d => Math.max(d.dalamProses, d.terbayar)), 0)
+                                if (maxVal === 0) {
+                                    return (
+                                        <line
+                                            x1="50"
+                                            y1="0"
+                                            x2="950"
+                                            y2="0"
+                                            stroke="#e2e8f0"
+                                            strokeWidth="1"
+                                        />
+                                    )
+                                }
+                                
+                                const uniqueValues = new Set<number>()
+                                uniqueValues.add(maxVal)
+                                if (maxVal >= 4) {
+                                    uniqueValues.add(Math.floor(maxVal * 0.75))
+                                    uniqueValues.add(Math.floor(maxVal * 0.5))
+                                    uniqueValues.add(Math.floor(maxVal * 0.25))
+                                } else {
+                                    for (let i = maxVal - 1; i >= 1; i--) {
+                                        uniqueValues.add(i)
+                                    }
+                                }
+                                uniqueValues.add(0)
+                                
+                                const gridCount = uniqueValues.size
+                                const gridSpacing = 200 / (gridCount - 1)
+                                
+                                return Array.from({ length: gridCount }).map((_, i) => (
+                                    <line
+                                        key={i}
+                                        x1="50"
+                                        y1={i * gridSpacing}
+                                        x2="950"
+                                        y2={i * gridSpacing}
+                                        stroke="#e2e8f0"
+                                        strokeWidth="1"
+                                    />
+                                ))
+                            })()}
 
                             {/* Area fills and lines */}
                             <defs>

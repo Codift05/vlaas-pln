@@ -3,7 +3,6 @@ import { useState, useRef, useEffect, Fragment } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { Eye, Edit, Trash2, Search, ChevronDown, ChevronUp, Plus, Save, Upload, Calendar, Clock, ArrowRight, FileText, AlertCircle, AlertTriangle, FileCheck, History, Activity, X, CheckCircle, Info, AlertOctagon } from 'lucide-react'
 import { supabase } from '../../../lib/supabaseClient'
-import { useContracts, useContractDetail } from '../../../hooks/useContracts'
 import './ManajemenAset.css'
 
 function ManajemenAset() {
@@ -11,7 +10,6 @@ function ManajemenAset() {
     console.log('ManajemenAset render start');
     const searchParams = useSearchParams()
     const [searchTerm, setSearchTerm] = useState('');
-    const [currentPage, setCurrentPage] = useState(1);
     const [filterStatus, setFilterStatus] = useState('all');
     const [showModal, setShowModal] = useState(false);
     const [showColumnSelector, setShowColumnSelector] = useState(false);
@@ -31,13 +29,10 @@ function ManajemenAset() {
     });
     // State untuk Detail Modal
     const [showDetailModal, setShowDetailModal] = useState(false)
-    const [selectedContractId, setSelectedContractId] = useState(null)
-
-    // Fetch contract detail dengan SWR
-    const { data: contractDetail, mutate: refreshDetail } = useContractDetail(selectedContractId)
+    const [selectedAsset, setSelectedAsset] = useState(null)
 
     const handleViewDetail = (asset) => {
-        setSelectedContractId(asset.id)
+        setSelectedAsset(asset)
         setShowDetailModal(true)
     }
     // State untuk upload PDF
@@ -46,11 +41,11 @@ function ManajemenAset() {
     const [uploadError, setUploadError] = useState('')
     const [uploadSuccess, setUploadSuccess] = useState('')
     const [selectedFile, setSelectedFile] = useState(null)
-    const [uploadContractId, setUploadContractId] = useState(null)
+    const [selectedContractId, setSelectedContractId] = useState(null)
 
     // Buka modal upload
     function openUploadModal(contractId) {
-        setUploadContractId(contractId)
+        setSelectedContractId(contractId)
         setUploadError('')
         setUploadSuccess('')
         setSelectedFile(null)
@@ -65,7 +60,7 @@ function ManajemenAset() {
         try {
             const formData = new FormData()
             formData.append('file', selectedFile)
-            formData.append('contract_id', uploadContractId)
+            formData.append('contract_id', selectedContractId)
             const res = await fetch('/functions/v1/upload_pdf_to_drive', {
                 method: 'POST',
                 body: formData
@@ -75,12 +70,10 @@ function ManajemenAset() {
             // Simpan ke Supabase table
             const { error } = await supabase
                 .from('contract_files')
-                .insert([{ contract_id: uploadContractId, file_url: data.webViewLink }])
+                .insert([{ contract_id: selectedContractId, file_url: data.webViewLink }])
             if (error) throw new Error(error.message)
             showAlert('success', 'Berhasil', 'Upload berhasil! Link: ' + data.webViewLink)
             setUploadSuccess('Upload berhasil! Link: ' + data.webViewLink)
-            // Refresh contract detail
-            refreshDetail()
         } catch (err) {
             setUploadError(err.message)
             showAlert('error', 'Gagal', 'Gagal upload: ' + err.message)
@@ -106,20 +99,53 @@ function ManajemenAset() {
         amendmentDescription: '' // New field
     });
 
-    // State untuk data aset (dari API dengan SWR)
-    const {
-        data: assets,
-        pagination,
-        isLoading,
-        error: dataError,
-        mutate: refreshContracts
-    } = useContracts({
-        page: currentPage,
-        search: searchTerm,
-        status: filterStatus,
-        sortBy: 'updated_at',
-        sortOrder: 'desc'
-    })
+    // State untuk data aset (dari Supabase)
+    const [assets, setAssets] = useState([])
+
+    // Fetch data contracts & history from Supabase
+    const fetchContracts = async () => {
+        try {
+            const { data, error } = await supabase
+                .from('contracts')
+                .select(`
+                    *,
+                    history:contract_history(*)
+                `)
+
+            if (error) throw error
+
+            console.log('Raw data from Supabase:', data) // Debug log
+
+            // Format data sesuai struktur UI
+            const formattedData = data.map(contract => ({
+                id: contract.id || '',
+                name: contract.name || '',
+                vendorName: contract.vendor_name || '', // Map snake_case -> camelCase
+                recipient: contract.recipient || '',
+                invoiceNumber: contract.invoice_number || '',
+                amount: contract.amount ? parseFloat(contract.amount) : 0,
+                budgetType: contract.budget_type || '',
+                contractType: contract.contract_type || '',
+                category: contract.category || '',
+                location: contract.location || '',
+                status: contract.status || 'Aktif',
+                startDate: contract.start_date || '',
+                endDate: contract.end_date || '',
+                updatedAt: contract.updated_at || contract.created_at || '',
+                progress: contract.progress || 0,
+                history: contract.history || []
+            }))
+            setAssets(formattedData)
+        } catch (err) {
+            console.error('Error fetching contracts:', err)
+            setAssets([])
+        }
+    }
+
+    // Load data on mount
+    useEffect(() => {
+        fetchContracts()
+    }, [])
 
     // Handle URL parameter untuk auto-expand kontrak yang dipilih
     useEffect(() => {
@@ -143,13 +169,16 @@ function ManajemenAset() {
         }
     }, [assets, searchParams])
 
-    // Debounce search untuk optimize performa
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            setCurrentPage(1) // Reset ke halaman 1 saat search
-        }, 300)
-        return () => clearTimeout(timer)
-    }, [searchTerm, filterStatus])
+    const getBadgeClass = (status) => {
+        if (!status) return ''
+        const normalized = status.toLowerCase()
+        if (normalized === 'aktif') return 'status-active' // Legacy mapping
+        if (normalized === 'perbaikan') return 'status-maintenance'
+        if (normalized === 'tidak aktif') return 'status-inactive'
+
+        // Slugify for new statuses
+        return `status-${normalized.replace(/\s+/g, '-')}`
+    }
 
     // State untuk mode edit
     const [isEditing, setIsEditing] = useState(false);
@@ -159,15 +188,15 @@ function ManajemenAset() {
     // Countdown timer for detail modal
     const [timeRemaining, setTimeRemaining] = useState('');
     useEffect(() => {
-        if (!showDetailModal || !contractDetail || !contractDetail.endDate) return;
+        if (!showDetailModal || !selectedAsset || !selectedAsset.endDate) return;
         function updateCountdown() {
             const now = new Date();
             let end;
             // Handle YYYY-MM-DD (Supabase) or DD/MM/YYYY (Legacy)
-            if (contractDetail.endDate.includes('/')) {
-                end = new Date(contractDetail.endDate.split('/').reverse().join('-'));
+            if (selectedAsset.endDate.includes('/')) {
+                end = new Date(selectedAsset.endDate.split('/').reverse().join('-'));
             } else {
-                end = new Date(contractDetail.endDate);
+                end = new Date(selectedAsset.endDate);
             }
 
             const diff = end.getTime() - now.getTime();
@@ -184,7 +213,7 @@ function ManajemenAset() {
         updateCountdown();
         const interval = setInterval(updateCountdown, 1000);
         return () => clearInterval(interval);
-    }, [showDetailModal, contractDetail]);
+    }, [showDetailModal, selectedAsset]);
 
     // Close dropdown when clicking outside
     useEffect(() => {
@@ -506,7 +535,7 @@ function ManajemenAset() {
             }
 
             showAlert('success', 'Berhasil', 'Progress tracker berhasil ditambahkan!')
-            refreshContracts()
+            fetchContracts()
             setShowProgressModal(false)
             setProgressFormData({
                 contractId: '',
@@ -713,7 +742,7 @@ function ManajemenAset() {
             }
 
             // Refresh data
-            refreshContracts()
+            fetchContracts()
             handleCloseModal()
 
         } catch (err) {
@@ -757,7 +786,7 @@ function ManajemenAset() {
                 if (error) throw error
 
                 showAlert('success', 'Berhasil', 'Kontrak berhasil dihapus')
-                refreshContracts() // Refresh data dengan SWR
+                fetchContracts() // Refresh data
             } catch (err) {
                 console.error('Error deleting contract:', err)
                 showAlert('error', 'Gagal', 'Gagal menghapus: ' + err.message)
@@ -776,24 +805,51 @@ function ManajemenAset() {
                 if (error) throw error
                 showAlert('success', 'Berhasil', 'Riwayat berhasil dihapus')
 
-                // Refresh contract detail dan list
-                refreshDetail()
-                refreshContracts()
+                // Refresh data - we need to refresh the selectedAsset as well
+                // But fetchContracts updates 'assets', so we need to re-find the asset
+                await fetchContracts()
+
+                // Re-select the asset to update the view
+                const updatedAssets = await supabase
+                    .from('contracts')
+                    .select(`*, history:contract_history(*)`)
+                    .eq('id', contractId)
+                    .single()
+
+                if (updatedAssets.data) {
+                    // Manually format to match our internal structure if needed, or better, just re-use the fetched list
+                    // Since fetchContracts() updates 'assets' state, we can just find it from there? 
+                    // Wait, fetchContracts is async and sets state. We can't immediately get the state.
+                    // Better to fetch specific contract and update selectedAsset
+                    const raw = updatedAssets.data
+                    const formatted = {
+                        id: raw.id || '',
+                        name: raw.name || '',
+                        vendorName: raw.vendor_name || '',
+                        recipient: raw.recipient || '',
+                        invoiceNumber: raw.invoice_number || '',
+                        amount: raw.amount ? parseFloat(raw.amount) : 0,
+                        budgetType: raw.budget_type || '',
+                        contractType: raw.contract_type || '',
+                        category: raw.category || '',
+                        location: raw.location || '',
+                        status: raw.status || 'Aktif',
+                        startDate: raw.start_date || '',
+                        endDate: raw.end_date || '',
+                        progress: raw.progress || 0,
+                        history: raw.history || []
+                    }
+                    setSelectedAsset(formatted)
+                }
+
             } catch (err) {
                 console.error('Error deleting history:', err)
-                showAlert('error', 'Gagal', 'Gagal menghapus: ' + err.message)
+                showAlert('success', 'Gagal', 'Gagal menghapus riwayat: ' + err.message)
             }
         })
     }
 
-    const getBadgeClass = (status: string) => {
-        if (!status) return ''
-        const normalized = status.toLowerCase()
-        if (normalized === 'aktif') return 'status-active'
-        if (normalized === 'perbaikan') return 'status-maintenance'
-        if (normalized === 'tidak aktif') return 'status-inactive'
-        return `status-${normalized.replace(/\s+/g, '-')}`
-    }
+
 
     try {
         return (
@@ -1505,7 +1561,7 @@ function ManajemenAset() {
 
                 {/* Modal Detail Kontrak */}
                 {
-                    showDetailModal && contractDetail && (
+                    showDetailModal && selectedAsset && (
                         <div className="modal-overlay" onClick={() => setShowDetailModal(false)}>
                             <div className="modal-content" onClick={(e) => e.stopPropagation()}>
                                 <div className="modal-header">
@@ -1521,35 +1577,35 @@ function ManajemenAset() {
                                         <div className="detail-grid">
                                             <div className="detail-item">
                                                 <label className="detail-label">Nomor Kontrak</label>
-                                                <div className="detail-value">{contractDetail.id}</div>
+                                                <div className="detail-value">{selectedAsset.id}</div>
                                             </div>
                                             <div className="detail-item">
                                                 <label className="detail-label">Status Saat Ini</label>
                                                 <div>
-                                                    <span className={`status-badge ${getBadgeClass(contractDetail.status)}`}>
-                                                        {contractDetail.status}
+                                                    <span className={`status-badge ${getBadgeClass(selectedAsset.status)}`}>
+                                                        {selectedAsset.status}
                                                     </span>
                                                 </div>
                                             </div>
                                             <div className="detail-item">
                                                 <label className="detail-label">ID Kontrak</label>
-                                                <div className="detail-value">{contractDetail.invoiceNumber}</div>
+                                                <div className="detail-value">{selectedAsset.invoiceNumber}</div>
                                             </div>
                                             <div className="detail-item">
                                                 <label className="detail-label">Nilai Kontrak</label>
-                                                <div className="detail-value">Rp {contractDetail.amount?.toLocaleString('id-ID')}</div>
+                                                <div className="detail-value">Rp {selectedAsset.amount?.toLocaleString('id-ID')}</div>
                                             </div>
                                             <div className="detail-item full-width">
                                                 <label className="detail-label">Nama Pekerjaan / Kontrak</label>
-                                                <div className="detail-value detail-value-lg">{contractDetail.name}</div>
+                                                <div className="detail-value detail-value-lg">{selectedAsset.name}</div>
                                             </div>
                                             <div className="detail-item full-width">
                                                 <label className="detail-label">Pelaksana (Vendor)</label>
-                                                <div className="detail-value">{contractDetail.vendorName}</div>
+                                                <div className="detail-value">{selectedAsset.vendorName}</div>
                                             </div>
                                             <div className="detail-item full-width">
                                                 <label className="detail-label">Ditujukan Kepada</label>
-                                                <div className="detail-value">{contractDetail.recipient}</div>
+                                                <div className="detail-value">{selectedAsset.recipient}</div>
                                             </div>
                                         </div>
 
@@ -1559,17 +1615,17 @@ function ManajemenAset() {
                                         <div className="time-range-container">
                                             <div className="time-box">
                                                 <div className="time-label">Tanggal Mulai</div>
-                                                <div className="time-value">{contractDetail.startDate}</div>
+                                                <div className="time-value">{selectedAsset.startDate}</div>
                                             </div>
                                             <div className="time-arrow">
                                                 <ArrowRight size={24} strokeWidth={1.5} />
                                             </div>
                                             <div className="time-box">
                                                 <div className="time-label">Tanggal Selesai</div>
-                                                <div className="time-value">{contractDetail.endDate}</div>
+                                                <div className="time-value">{selectedAsset.endDate}</div>
                                             </div>
                                         </div>
-                                        {contractDetail.status?.toLowerCase() !== 'selesai' && contractDetail.status?.toLowerCase() !== 'terbayar' && (
+                                        {selectedAsset.status?.toLowerCase() !== 'selesai' && selectedAsset.status?.toLowerCase() !== 'terbayar' && (
                                             <>
                                                 <div className="time-remaining-info" style={{ marginTop: 8, fontWeight: 500, color: timeRemaining.includes('melewati') ? 'red' : '#219150' }}>
                                                     Sisa waktu: {timeRemaining}
@@ -1587,25 +1643,25 @@ function ManajemenAset() {
                                                 <tbody>
                                                     <tr>
                                                         <td>Tipe Anggaran</td>
-                                                        <td><span className={`budget-badge budget-${contractDetail.budgetType.toLowerCase()}`}>{contractDetail.budgetType}</span></td>
+                                                        <td><span className={`budget-badge budget-${selectedAsset.budgetType.toLowerCase()}`}>{selectedAsset.budgetType}</span></td>
                                                     </tr>
                                                     <tr>
                                                         <td>Tipe Kontrak</td>
-                                                        <td><span className={`contract-badge contract-${contractDetail.contractType.toLowerCase()}`}>{contractDetail.contractType}</span></td>
+                                                        <td><span className={`contract-badge contract-${selectedAsset.contractType.toLowerCase()}`}>{selectedAsset.contractType}</span></td>
                                                     </tr>
                                                     <tr>
                                                         <td>Kategori Aset</td>
-                                                        <td>{contractDetail.category}</td>
+                                                        <td>{selectedAsset.category}</td>
                                                     </tr>
                                                     <tr>
                                                         <td>Lokasi Pekerjaan</td>
-                                                        <td>{contractDetail.location}</td>
+                                                        <td>{selectedAsset.location}</td>
                                                     </tr>
                                                     <tr>
                                                         <td>Terakhir Diupdate</td>
                                                         <td>
                                                             <span style={{ fontSize: '14px', color: '#1e293b', fontWeight: 500 }}>
-                                                                {contractDetail.updatedAt ? new Date(contractDetail.updatedAt).toLocaleString('id-ID', {
+                                                                {selectedAsset.updatedAt ? new Date(selectedAsset.updatedAt).toLocaleString('id-ID', {
                                                                     year: 'numeric',
                                                                     month: 'long',
                                                                     day: 'numeric',
@@ -1624,8 +1680,8 @@ function ManajemenAset() {
                                                 <Clock size={20} /> Riwayat Perubahan
                                             </h3>
                                             <div className="history-list">
-                                                {contractDetail.history && contractDetail.history.length > 0 ? (
-                                                    contractDetail.history.filter(h => h && h.action).slice().reverse().map((log, index) => (
+                                                {selectedAsset.history && selectedAsset.history.length > 0 ? (
+                                                    selectedAsset.history.filter(h => h && h.action).slice().reverse().map((log, index) => (
                                                         <div key={index} className="history-item" style={{ display: 'flex', gap: '16px', marginBottom: '16px', paddingLeft: '8px', borderLeft: '3px solid #e2e8f0' }}>
                                                             <div className="history-time" style={{ minWidth: '130px', color: '#64748b', fontSize: '13px', paddingTop: '2px' }}>
                                                                 {log.date}

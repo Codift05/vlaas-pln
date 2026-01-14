@@ -34,17 +34,17 @@ export const getDashboardVendorData = async () => {
     // 2. Get Recent 5 Vendors (Reduced columns)
     const { data: recent, error: listError } = await supabase
       .from('vendors')
-      .select('id, nama, email, kategori, status, created_at')
-      .order('created_at', { ascending: false })
+      .select('id, nama, email, kategori, status, tanggal_registrasi')
+      .order('tanggal_registrasi', { ascending: false })
       .limit(5);
 
     if (listError) throw listError;
 
-    // 3. Get All created_at for chart (Lightweight)
+    // 3. Get All tanggal_registrasi for chart (Lightweight)
     const { data: allVendors, error: chartError } = await supabase
       .from('vendors')
-      .select('created_at')
-      .order('created_at', { ascending: false });
+      .select('tanggal_registrasi')
+      .order('tanggal_registrasi', { ascending: false });
 
     if (chartError) throw chartError;
 
