@@ -92,7 +92,7 @@ function ManajemenAset() {
         contractType: '',
         category: '', // added missing field
         location: '',
-        status: 'Aktif',
+        status: 'Dalam Pekerjaan',
         startDate: '',
         endDate: '',
         amendmentDocNumber: '', // New field
@@ -128,7 +128,7 @@ function ManajemenAset() {
                 contractType: contract.contract_type || '',
                 category: contract.category || '',
                 location: contract.location || '',
-                status: contract.status || 'Aktif',
+                status: contract.status || 'Dalam Pekerjaan',
                 startDate: contract.start_date || '',
                 endDate: contract.end_date || '',
                 updatedAt: contract.updated_at || contract.created_at || '',
@@ -172,7 +172,7 @@ function ManajemenAset() {
     const getBadgeClass = (status) => {
         if (!status) return ''
         const normalized = status.toLowerCase()
-        if (normalized === 'aktif') return 'status-active' // Legacy mapping
+        if (normalized === 'aktif' || normalized === 'dalam pekerjaan' || normalized === 'dalam proses pekerjaan') return 'status-dalam-pekerjaan'
         if (normalized === 'perbaikan') return 'status-maintenance'
         if (normalized === 'tidak aktif') return 'status-inactive'
 
@@ -573,7 +573,11 @@ function ManajemenAset() {
 
     const getStatusClass = (status) => {
         switch (status) {
-            case 'Aktif': return 'status-active'
+            case 'Aktif': return 'status-dalam-pekerjaan' // Legacy mapping
+            case 'Dalam Pekerjaan': return 'status-dalam-pekerjaan'
+            case 'Dalam Proses Pekerjaan': return 'status-dalam-pekerjaan'
+            case 'Telah Diperiksa': return 'status-telah-diperiksa'
+            case 'Terbayar': return 'status-terbayar'
             case 'Perbaikan': return 'status-maintenance'
             case 'Tidak Aktif': return 'status-inactive'
             default: return ''
@@ -619,7 +623,7 @@ function ManajemenAset() {
             contractType: '',
             category: '',
             location: '',
-            status: 'Aktif',
+            status: 'Dalam Pekerjaan',
             startDate: '',
             endDate: '',
             amendmentDocNumber: '',
@@ -833,7 +837,7 @@ function ManajemenAset() {
                         contractType: raw.contract_type || '',
                         category: raw.category || '',
                         location: raw.location || '',
-                        status: raw.status || 'Aktif',
+                        status: raw.status || 'Dalam Pekerjaan',
                         startDate: raw.start_date || '',
                         endDate: raw.end_date || '',
                         progress: raw.progress || 0,
@@ -1931,8 +1935,7 @@ function ManajemenAset() {
                                                 onChange={handleInputChange}
                                                 required
                                             >
-                                                <option value="Selesai">Selesai</option>
-                                                <option value="Dalam Pemeriksaan">Dalam Pemeriksaan</option>
+                                                <option value="Dalam Pekerjaan">Dalam Pekerjaan</option>
                                                 <option value="Telah Diperiksa">Telah Diperiksa</option>
                                                 <option value="Terbayar">Terbayar</option>
                                             </select>
