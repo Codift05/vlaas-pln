@@ -54,6 +54,8 @@ function VendorProfile() {
         // Simulate API call
         setTimeout(() => {
             localStorage.setItem('vendorProfile', JSON.stringify(profileData))
+            // Trigger custom event to update header
+            window.dispatchEvent(new Event('profileUpdated'))
             setLoading(false)
             setIsEditing(false)
             alert('Profil perusahaan berhasil disimpan!')

@@ -1,22 +1,22 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
-import { Bell, User, LogOut, ChevronDown, Search } from 'lucide-react'
+import { Bell, User, LogOut, ChevronDown, ChevronUp } from 'lucide-react'
 import styled from 'styled-components'
 
 const VendorHeaderContainer = styled.header`
   height: 80px;
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(10px);
+  background: #ffffff;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 40px;
-  box-shadow: 0 1px 8px rgba(0, 0, 0, 0.03);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 0 32px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  border-bottom: 1px solid #e2e8f0;
   position: sticky;
   top: 0;
   z-index: 100;
+  transition: all 0.3s ease;
 
   .vendor-header-content {
     width: 100%;
@@ -35,7 +35,7 @@ const VendorHeaderContainer = styled.header`
   .page-title {
     font-size: 26px;
     font-weight: 700;
-    color: #2b3f50;
+    color: #1e293b;
     margin: 0;
     letter-spacing: -0.5px;
     font-family: 'Inter', sans-serif;
@@ -47,116 +47,65 @@ const VendorHeaderContainer = styled.header`
     gap: 25px;
   }
 
-  /* Search Box */
-  .search-box {
-    display: flex;
-    align-items: center;
-    background: rgba(248, 250, 252, 0.8);
-    padding: 11px 22px;
-    border-radius: 30px;
-    gap: 10px;
-    min-width: 320px;
-    border: 1px solid rgba(226, 232, 240, 0.4);
-    transition: all 0.25s;
-  }
-
-  .search-box:focus-within {
-    background: rgba(255, 255, 255, 0.9);
-    border-color: rgba(126, 185, 217, 0.3);
-    box-shadow: 0 2px 8px rgba(126, 185, 217, 0.1);
-  }
-
-  .search-icon {
-    color: #8b95a1;
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-  }
-
-  .search-input {
-    flex: 1;
-    border: none;
-    background: transparent;
-    outline: none;
-    font-size: 14px;
-    color: #2b3f50;
-    font-family: 'Inter', sans-serif;
-    font-weight: 500;
-  }
-
-  .search-input::placeholder {
-    color: #a5b0bc;
-    font-weight: 400;
-  }
-
   /* Notifications */
   .notification-container {
     position: relative;
   }
 
-  .notification-btn {
+  .notification-icon {
     position: relative;
-    width: 56px;
-    height: 56px;
-    border: none;
-    background: transparent;
-    border-radius: 16px;
-    color: #8b95a1;
     cursor: pointer;
+    transition: transform 0.2s;
+    color: #64748b;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.25s;
-    outline: none;
-    overflow: visible;
+    padding: 8px;
+    border-radius: 12px;
   }
 
-  .notification-btn:hover {
-    color: #5a9dc4;
+  .notification-icon:hover {
     transform: scale(1.05);
-  }
-
-  .notification-btn:focus {
-    outline: none;
-    border: none;
+    background: #f1f5f9;
+    color: #3b82f6;
   }
 
   .notification-badge {
     position: absolute;
-    top: -6px;
-    right: -6px;
-    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    top: -5px;
+    right: -5px;
+    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
     color: white;
-    font-size: 13px;
+    font-size: 11px;
     font-weight: 700;
-    padding: 5px 9px;
-    border-radius: 14px;
-    min-width: 24px;
+    padding: 3px 6px;
+    border-radius: 10px;
+    min-width: 18px;
     text-align: center;
-    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.5);
+    box-shadow: 0 2px 6px rgba(238, 90, 82, 0.3);
     font-family: 'Inter', sans-serif;
-    line-height: 1;
   }
 
   .notification-dropdown {
     position: absolute;
-    top: calc(100% + 12px);
-    right: 0;
-    background: white;
-    border: 1px solid rgba(226, 232, 240, 0.6);
+    top: calc(100% + 10px);
+    right: -80px;
+    background: #ffffff;
+    backdrop-filter: blur(10px);
     border-radius: 16px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-    width: 360px;
-    max-height: 480px;
-    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+    border: 1px solid #e2e8f0;
+    min-width: 380px;
+    max-width: 420px;
     z-index: 1000;
-    animation: dropdownSlide 0.25s ease;
+    animation: slideDown 0.3s ease;
+    overflow: hidden;
   }
 
-  @keyframes dropdownSlide {
+  @keyframes slideDown {
     from {
       opacity: 0;
-      transform: translateY(-8px);
+      transform: translateY(-10px);
     }
     to {
       opacity: 1;
@@ -165,38 +114,25 @@ const VendorHeaderContainer = styled.header`
   }
 
   .notification-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid #e2e8f0;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 18px 20px;
-    border-bottom: 1px solid rgba(226, 232, 240, 0.6);
-    background: rgba(248, 250, 252, 0.5);
   }
 
   .notification-header h3 {
-    font-size: 15px;
+    font-size: 16px;
     font-weight: 700;
-    color: #2b3f50;
+    color: #1e293b;
     margin: 0;
     font-family: 'Inter', sans-serif;
   }
 
-  .clear-all-btn {
-    background: none;
-    border: none;
-    color: #5a9dc4;
+  .notification-count {
     font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    padding: 6px 12px;
-    border-radius: 8px;
-    transition: all 0.2s;
+    color: #64748b;
     font-family: 'Inter', sans-serif;
-  }
-
-  .clear-all-btn:hover {
-    background: rgba(126, 185, 217, 0.1);
-    color: #7eb9d9;
   }
 
   .notification-list {
@@ -205,229 +141,222 @@ const VendorHeaderContainer = styled.header`
   }
 
   .notification-item {
-    padding: 16px 20px;
-    border-bottom: 1px solid rgba(226, 232, 240, 0.4);
-    transition: background 0.2s;
+    padding: 14px 20px;
+    border-bottom: 1px solid #f1f5f9;
+    transition: all 0.2s;
     cursor: pointer;
   }
 
   .notification-item:hover {
-    background: rgba(248, 250, 252, 0.6);
+    background: #f8fafc;
   }
 
   .notification-item.unread {
-    background: rgba(126, 185, 217, 0.05);
-    border-left: 3px solid #7eb9d9;
-  }
-
-  .notification-item h4 {
-    font-size: 14px;
-    font-weight: 600;
-    color: #2b3f50;
-    margin: 0 0 6px 0;
-    font-family: 'Inter', sans-serif;
+    background: rgba(59, 130, 246, 0.02);
+    border-left: 3px solid #3b82f6;
   }
 
   .notification-item p {
-    font-size: 13px;
-    color: #5a6d7f;
-    margin: 0 0 6px 0;
-    line-height: 1.4;
-    font-family: 'Inter', sans-serif;
-  }
-
-  .notification-item small {
-    font-size: 12px;
-    color: #8b95a1;
-    font-family: 'Inter', sans-serif;
-  }
-
-  .no-notifications {
-    padding: 40px 20px;
-    text-align: center;
-    color: #8b95a1;
-  }
-
-  .no-notifications svg {
-    color: #cbd5e0;
-    margin-bottom: 12px;
-  }
-
-  .no-notifications p {
     font-size: 14px;
-    font-weight: 500;
-    margin: 0;
+    color: #334155;
+    margin: 0 0 4px 0;
+    font-family: 'Inter', sans-serif;
+  }
+
+  .notification-time {
+    font-size: 12px;
+    color: #94a3b8;
     font-family: 'Inter', sans-serif;
   }
 
   /* Profile Dropdown */
-  .profile-container {
-    position: relative;
-  }
-
-  .profile-btn {
+  .user-profile {
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 8px 16px 8px 8px;
-    background: rgba(248, 250, 252, 0.8);
-    border: 1px solid rgba(226, 232, 240, 0.4);
+    padding: 8px 12px 8px 8px;
+    background: #f8fafc;
     border-radius: 50px;
     cursor: pointer;
     transition: all 0.25s;
+    position: relative;
   }
 
-  .profile-btn:hover {
-    background: rgba(255, 255, 255, 0.9);
-    border-color: rgba(126, 185, 217, 0.3);
-    box-shadow: 0 2px 8px rgba(126, 185, 217, 0.1);
+  .user-profile:hover {
+    background: #f1f5f9;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   }
 
-  .profile-avatar {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
+  .user-avatar {
+    width: 42px;
+    height: 42px;
     background: linear-gradient(135deg, #7eb9d9 0%, #5a9dc4 100%);
+    color: white;
+    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: white;
+    font-size: 17px;
     font-weight: 700;
-    font-size: 16px;
-    flex-shrink: 0;
     font-family: 'Inter', sans-serif;
+    box-shadow: 0 2px 8px rgba(126, 185, 217, 0.2);
+    flex-shrink: 0;
   }
 
-  .profile-info {
+  .user-info {
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
-    gap: 2px;
   }
 
-  .profile-name {
+  .user-name {
     font-size: 14px;
     font-weight: 600;
     color: #2b3f50;
     font-family: 'Inter', sans-serif;
-    line-height: 1;
   }
 
-  .profile-role {
+  .user-role {
     font-size: 12px;
     color: #8b95a1;
     font-family: 'Inter', sans-serif;
-    line-height: 1;
+    font-weight: 500;
   }
 
-  .profile-dropdown-icon {
+  .dropdown-arrow-svg {
     color: #8b95a1;
-    transition: transform 0.25s;
     flex-shrink: 0;
-  }
-
-  .profile-dropdown-icon.open {
-    transform: rotate(180deg);
   }
 
   .profile-dropdown {
     position: absolute;
-    top: calc(100% + 12px);
+    top: calc(100% + 10px);
     right: 0;
-    background: white;
-    border: 1px solid rgba(226, 232, 240, 0.6);
-    border-radius: 16px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-    min-width: 220px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+    min-width: 200px;
     overflow: hidden;
     z-index: 1000;
-    animation: dropdownSlide 0.25s ease;
+    animation: slideDown 0.3s ease;
   }
 
-  .profile-dropdown-item {
+  .dropdown-item {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 14px 18px;
-    color: #5a6d7f;
-    text-decoration: none;
-    transition: all 0.2s;
+    gap: 10px;
+    padding: 12px 16px;
+    color: #475569;
     cursor: pointer;
-    border: none;
-    background: none;
-    width: 100%;
-    text-align: left;
+    transition: all 0.2s;
     font-size: 14px;
     font-weight: 500;
     font-family: 'Inter', sans-serif;
-  }
-
-  .profile-dropdown-item:hover {
-    background: rgba(248, 250, 252, 0.8);
-    color: #2b3f50;
-  }
-
-  .profile-dropdown-item.logout {
-    color: #c0392b;
-    border-top: 1px solid rgba(226, 232, 240, 0.6);
-  }
-
-  .profile-dropdown-item.logout:hover {
-    background: rgba(231, 76, 60, 0.08);
-  }
-
-  .profile-menu-item {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 14px 18px;
-    color: #5a6d7f;
-    text-decoration: none;
-    transition: all 0.2s;
-    cursor: pointer;
     border: none;
-    background: none;
-    width: 100%;
-    text-align: left;
-    font-size: 14px;
-    font-weight: 500;
-    font-family: 'Inter', sans-serif;
+    background: transparent;
   }
 
-  .profile-menu-item:hover {
-    background: rgba(248, 250, 252, 0.8);
-    color: #2b3f50;
+  .dropdown-item:hover {
+    background: #f8fafc;
   }
 
-  .profile-menu-item.logout {
-    color: #c0392b;
-    border-top: 1px solid rgba(226, 232, 240, 0.6);
+  .dropdown-item.logout {
+    color: #ef4444;
+    border-top: 1px solid #f1f5f9;
   }
 
-  .profile-menu-item.logout:hover {
-    background: rgba(231, 76, 60, 0.08);
+  .dropdown-item.logout:hover {
+    background: #fef2f2;
+  }
+
+  .item-icon-svg {
+    flex-shrink: 0;
+  }
+
+  .dropdown-divider {
+    height: 1px;
+    background: #e2e8f0;
+    margin: 8px 0;
   }
 
   /* Responsive */
-  @media (max-width: 768px) {
+  @media (max-width: 968px) {
     padding: 0 20px;
-    height: 70px;
 
     .page-title {
       font-size: 20px;
     }
 
-    .search-box {
-      display: none;
-    }
-
-    .profile-info {
+    .user-info {
       display: none;
     }
 
     .notification-dropdown,
     .profile-dropdown {
-      right: -20px;
+      right: -10px;
+    }
+  }
+
+  @media (max-width: 600px) {
+    padding: 0 15px;
+
+    .page-title {
+      font-size: 18px;
+    }
+  }
+`;
+
+const LogoGroup = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-right: 16px;
+  padding-right: 24px;
+  border-right: 1px solid rgba(0, 0, 0, 0.08);
+  height: 50px;
+
+  @media (max-width: 1200px) {
+    display: none;
+  }
+
+  .logo-pln {
+    height: 42px;
+    width: auto;
+    object-fit: contain;
+    transition: transform 0.2s;
+  }
+
+  .logo-danantara {
+    height: 28px;
+    width: auto;
+    object-fit: contain;
+    transition: transform 0.2s;
+  }
+  
+  img:hover {
+    transform: scale(1.05);
+  }
+  
+  .logo-text {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    line-height: 1.2;
+    border-left: 1px solid rgba(0,0,0,0.1);
+    padding-left: 16px;
+    margin-left: 0px;
+    
+    strong {
+      font-size: 15px;
+      color: #334155;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+    span {
+      font-size: 12px;
+      color: #64748b;
+      font-weight: 500;
+      letter-spacing: 0.02em;
     }
   }
 `;
@@ -437,6 +366,57 @@ function VendorHeader() {
   const pathname = usePathname()
   const [showNotifications, setShowNotifications] = useState(false)
   const [showProfileMenu, setShowProfileMenu] = useState(false)
+  const [userName, setUserName] = useState('Vendor')
+  const [userInitial, setUserInitial] = useState('V')
+
+  useEffect(() => {
+    // Load vendor profile from localStorage
+    const savedProfile = localStorage.getItem('vendorProfile')
+    if (savedProfile) {
+      try {
+        const profile = JSON.parse(savedProfile)
+        if (profile.picName) {
+          setUserName(profile.picName)
+          setUserInitial(profile.picName.charAt(0).toUpperCase())
+        } else if (profile.companyName) {
+          setUserName(profile.companyName)
+          setUserInitial(profile.companyName.charAt(0).toUpperCase())
+        }
+      } catch (error) {
+        console.error('Error parsing profile:', error)
+      }
+    }
+  }, [])
+
+  // Listen for storage changes to update name in real-time
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const savedProfile = localStorage.getItem('vendorProfile')
+      if (savedProfile) {
+        try {
+          const profile = JSON.parse(savedProfile)
+          if (profile.picName) {
+            setUserName(profile.picName)
+            setUserInitial(profile.picName.charAt(0).toUpperCase())
+          } else if (profile.companyName) {
+            setUserName(profile.companyName)
+            setUserInitial(profile.companyName.charAt(0).toUpperCase())
+          }
+        } catch (error) {
+          console.error('Error parsing profile:', error)
+        }
+      }
+    }
+
+    window.addEventListener('storage', handleStorageChange)
+    // Custom event for same-window updates
+    window.addEventListener('profileUpdated', handleStorageChange)
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange)
+      window.removeEventListener('profileUpdated', handleStorageChange)
+    }
+  }, [])
 
   const getPageTitle = () => {
     switch (pathname) {
@@ -470,25 +450,40 @@ function VendorHeader() {
     router.push('/vendor-portal/profile')
   }
 
+  const toggleProfileMenu = () => {
+    setShowProfileMenu(!showProfileMenu)
+  }
+
+  const toggleNotifications = () => {
+    setShowNotifications(!showNotifications)
+  }
+
   return (
     <VendorHeaderContainer>
       <div className="vendor-header-content">
+
         <div className="vendor-header-left">
           <h1 className="page-title">{getPageTitle()}</h1>
         </div>
 
         <div className="vendor-header-right">
+          {/* PLN & Danantara Logo */}
+          <LogoGroup>
+            <img src="/images/Logo_PLN.png" alt="PLN Logo" className="logo-pln" />
+            <img src="/images/Logo_Danantara%20(2).png" alt="Danantara Logo" className="logo-danantara" />
+            <div className="logo-text">
+              <strong>PLN (Persero)</strong>
+              <span>UPT Manado</span>
+            </div>
+          </LogoGroup>
           {/* Notifications */}
           <div className="notification-container">
-            <button
-              className="notification-btn"
-              onClick={() => setShowNotifications(!showNotifications)}
-            >
+            <div className="notification-icon" onClick={toggleNotifications}>
               <Bell size={24} strokeWidth={2.5} />
               {unreadCount > 0 && (
                 <span className="notification-badge">{unreadCount}</span>
               )}
-            </button>
+            </div>
 
             {showNotifications && (
               <div className="notification-dropdown">
@@ -509,28 +504,27 @@ function VendorHeader() {
           </div>
 
           {/* Profile Menu */}
-          <div className="profile-container">
-            <button
-              className="profile-btn"
-              onClick={() => setShowProfileMenu(!showProfileMenu)}
-            >
-              <div className="profile-avatar">
-                <User size={18} />
-              </div>
-              <span className="profile-name">Vendor</span>
-              <ChevronDown size={16} />
-            </button>
-
+          <div className="user-profile" onClick={toggleProfileMenu}>
+            <div className="user-avatar">{userInitial}</div>
+            <div className="user-info">
+              <span className="user-name">{userName}</span>
+              <span className="user-role">Partner</span>
+            </div>
+            {showProfileMenu ? (
+              <ChevronUp className="dropdown-arrow-svg" size={16} strokeWidth={2.5} />
+            ) : (
+              <ChevronDown className="dropdown-arrow-svg" size={16} strokeWidth={2.5} />
+            )}
             {showProfileMenu && (
-              <div className="profile-dropdown">
-                <button className="profile-menu-item" onClick={handleProfileClick}>
-                  <User size={16} />
+              <div className="profile-dropdown" onClick={e => e.stopPropagation()}>
+                <div className="dropdown-item" onClick={handleProfileClick}>
+                  <User className="item-icon-svg" size={18} strokeWidth={2} />
                   <span>Profil Saya</span>
-                </button>
-                <button className="profile-menu-item logout" onClick={handleLogout}>
-                  <LogOut size={16} />
-                  <span>Keluar</span>
-                </button>
+                </div>
+                <div className="dropdown-item logout" onClick={handleLogout}>
+                  <LogOut className="item-icon-svg" size={18} strokeWidth={2} />
+                  <span>Logout</span>
+                </div>
               </div>
             )}
           </div>
