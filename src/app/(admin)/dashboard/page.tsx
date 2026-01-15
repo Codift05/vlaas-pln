@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { Briefcase, CheckCircle, Clock, Users, FileText, TrendingUp, Activity } from 'lucide-react'
+import { Briefcase, CheckCircle, Clock, Users, FileText, TrendingUp, Activity, AlertCircle, X } from 'lucide-react'
 import { supabase } from '../../../lib/supabaseClient'
 import * as vendorService from '../../../services/vendorService'
 import './Dashboard.css'
@@ -18,10 +18,15 @@ export default function DashboardPage() {
 
     const [stats, setStats] = useState({
         totalContracts: 0,
-        activeContracts: 0,
+        lateContracts: 0,
         pendingContracts: 0,
         totalVendors: 0
     })
+
+    const [showModal, setShowModal] = useState(false)
+    const [modalData, setModalData] = useState<any>(null)
+    const [allContracts, setAllContracts] = useState<any[]>([])
+    const [allVendorsComplete, setAllVendorsComplete] = useState<any[]>([])
 
     const [recentActivities, setRecentActivities] = useState<any[]>([])
     const [recentVendors, setRecentVendors] = useState<any[]>([])
@@ -111,6 +116,16 @@ export default function DashboardPage() {
                     setAllVendors(vendorsForChart)
                 }
             }
+
+            // Fetch semua vendor lengkap untuk modal
+            const { data: allVendorsData, error } = await supabase
+                .from('vendors')
+                .select('id, nama, email, kategori, status')
+                .order('tanggal_registrasi', { ascending: false })
+
+            if (!error && allVendorsData) {
+                setAllVendorsComplete(allVendorsData)
+            }
         } catch (error) {
             console.error('Error in fetchVendorData:', error)
         }
@@ -122,7 +137,7 @@ export default function DashboardPage() {
             const { data, error } = await supabase
                 .from('contracts')
                 // Optimized query: Only fetch columns needed for stats & charts
-                .select('id, name, status, start_date, created_at, vendor_name')
+                .select('id, name, status, start_date, end_date, created_at, vendor_name')
                 .order('created_at', { ascending: false })
 
             if (error) {
@@ -131,6 +146,7 @@ export default function DashboardPage() {
             }
 
             if (data) {
+                setAllContracts(data)
                 processStatsAndActivities(data)
             }
         } catch (error: any) {
@@ -172,16 +188,27 @@ export default function DashboardPage() {
     const processStatsAndActivities = (contracts: any[]) => {
         // 1. Calculate Stats
         const totalContracts = contracts.length
-        let activeContracts = 0
+        let lateContracts = 0
         let pendingContracts = 0
+        const today = new Date()
+        today.setHours(0, 0, 0, 0)
 
         // Status breakdown for Pie Chart
         let dist = { selesai: 0, telahdiperiksa: 0, terbayar: 0, total: totalContracts }
 
         contracts.forEach(c => {
             const status = (c.status || '').toLowerCase()
+
+            // Hitung kontrak terlambat: yang sudah lewat end_date dan belum selesai/terbayar
+            if (c.end_date) {
+                const endDate = new Date(c.end_date)
+                endDate.setHours(0, 0, 0, 0)
+                if (endDate < today && status !== 'selesai' && status !== 'terbayar') {
+                    lateContracts++
+                }
+            }
+
             if (status === 'selesai') {
-                activeContracts++
                 dist.selesai++
             } else if (status.includes('diperiksa')) {
                 dist.telahdiperiksa++
@@ -193,7 +220,7 @@ export default function DashboardPage() {
         setStats(prev => ({
             ...prev,
             totalContracts,
-            activeContracts,
+            lateContracts,
             pendingContracts
         }))
 
@@ -256,12 +283,54 @@ export default function DashboardPage() {
         router.push('/vendor')
     }, [router])
 
+    // Handler untuk menampilkan modal detail
+    const handleCardClick = useCallback((cardType: string) => {
+        const today = new Date()
+        today.setHours(0, 0, 0, 0)
+
+        let filteredData: any[] = []
+        let title = ''
+
+        switch (cardType) {
+            case 'totalContracts':
+                filteredData = allContracts
+                title = 'Semua Kontrak'
+                break
+            case 'lateContracts':
+                filteredData = allContracts.filter(c => {
+                    const status = (c.status || '').toLowerCase()
+                    if (c.end_date) {
+                        const endDate = new Date(c.end_date)
+                        endDate.setHours(0, 0, 0, 0)
+                        return endDate < today && status !== 'selesai' && status !== 'terbayar'
+                    }
+                    return false
+                })
+                title = 'Kontrak Terlambat'
+                break
+            case 'pendingContracts':
+                filteredData = allContracts.filter(c => {
+                    const status = (c.status || '').toLowerCase()
+                    return status.includes('review') || status.includes('proses')
+                })
+                title = 'Kontrak Dalam Proses/Review'
+                break
+            case 'totalVendors':
+                filteredData = allVendorsComplete
+                title = 'Semua Vendor'
+                break
+        }
+
+        setModalData({ type: cardType, data: filteredData, title })
+        setShowModal(true)
+    }, [allContracts, allVendorsComplete])
+
     // Memoize statCards to prevent recreation on each render
     const statCards = useMemo(() => [
-        { title: 'Total Kontrak', value: stats.totalContracts, icon: Briefcase, className: 'stat-blue' },
-        { title: 'Kontrak Aktif', value: stats.activeContracts, icon: CheckCircle, className: 'stat-green' },
-        { title: 'Proses / Review', value: stats.pendingContracts, icon: Clock, className: 'stat-orange' },
-        { title: 'Total Vendor', value: stats.totalVendors, icon: Users, className: 'stat-purple' },
+        { title: 'Total Kontrak', value: stats.totalContracts, icon: Briefcase, className: 'stat-blue', type: 'totalContracts' },
+        { title: 'Kontrak Terlambat', value: stats.lateContracts, icon: AlertCircle, className: 'stat-red', type: 'lateContracts' },
+        { title: 'Proses / Review', value: stats.pendingContracts, icon: Clock, className: 'stat-orange', type: 'pendingContracts' },
+        { title: 'Total Vendor', value: stats.totalVendors, icon: Users, className: 'stat-purple', type: 'totalVendors' },
     ], [stats])
 
     // Pie Chart Calculations
@@ -280,7 +349,20 @@ export default function DashboardPage() {
                 {statCards.map((stat, index) => {
                     const IconComponent = stat.icon
                     return (
-                        <div key={index} className="stat-card">
+                        <div
+                            key={index}
+                            className="stat-card"
+                            onClick={() => handleCardClick(stat.type)}
+                            style={{ cursor: 'pointer', transition: 'transform 0.2s, box-shadow 0.2s' }}
+                            onMouseEnter={(e) => {
+                                e.currentTarget.style.transform = 'translateY(-4px)'
+                                e.currentTarget.style.boxShadow = '0 8px 16px rgba(0,0,0,0.1)'
+                            }}
+                            onMouseLeave={(e) => {
+                                e.currentTarget.style.transform = 'translateY(0)'
+                                e.currentTarget.style.boxShadow = ''
+                            }}
+                        >
                             <div className={`stat-icon-wrapper ${stat.className}`}>
                                 <IconComponent className="stat-icon-svg" strokeWidth={2.5} size={28} />
                             </div>
@@ -292,6 +374,181 @@ export default function DashboardPage() {
                     )
                 })}
             </div>
+
+            {/* Modal Detail */}
+            {showModal && modalData && (
+                <div
+                    style={{
+                        position: 'fixed',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        zIndex: 1000,
+                        padding: '20px'
+                    }}
+                    onClick={() => setShowModal(false)}
+                >
+                    <div
+                        style={{
+                            backgroundColor: 'white',
+                            borderRadius: '12px',
+                            maxWidth: '800px',
+                            width: '100%',
+                            maxHeight: '80vh',
+                            overflow: 'hidden',
+                            display: 'flex',
+                            flexDirection: 'column'
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        {/* Modal Header */}
+                        <div style={{
+                            padding: '20px 24px',
+                            borderBottom: '1px solid #e2e8f0',
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center'
+                        }}>
+                            <h2 style={{ fontSize: '20px', fontWeight: '600', color: '#1e293b', margin: 0 }}>
+                                {modalData.title} ({modalData.data.length})
+                            </h2>
+                            <button
+                                onClick={() => setShowModal(false)}
+                                style={{
+                                    border: 'none',
+                                    background: 'none',
+                                    cursor: 'pointer',
+                                    padding: '4px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    borderRadius: '6px',
+                                    transition: 'background 0.2s'
+                                }}
+                                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f1f5f9'}
+                                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                            >
+                                <X size={24} color="#64748b" />
+                            </button>
+                        </div>
+
+                        {/* Modal Content */}
+                        <div style={{
+                            padding: '20px 24px',
+                            overflowY: 'auto',
+                            flex: 1
+                        }}>
+                            {modalData.data.length === 0 ? (
+                                <div style={{
+                                    textAlign: 'center',
+                                    padding: '40px 20px',
+                                    color: '#64748b'
+                                }}>
+                                    Tidak ada data
+                                </div>
+                            ) : modalData.type === 'totalVendors' ? (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                    {modalData.data.map((vendor: any, idx: number) => (
+                                        <div
+                                            key={idx}
+                                            style={{
+                                                padding: '16px',
+                                                border: '1px solid #e2e8f0',
+                                                borderRadius: '8px',
+                                                display: 'flex',
+                                                justifyContent: 'space-between',
+                                                alignItems: 'center',
+                                                transition: 'all 0.2s',
+                                                cursor: 'pointer'
+                                            }}
+                                            onMouseEnter={(e) => {
+                                                e.currentTarget.style.borderColor = '#cbd5e1'
+                                                e.currentTarget.style.backgroundColor = '#f8fafc'
+                                            }}
+                                            onMouseLeave={(e) => {
+                                                e.currentTarget.style.borderColor = '#e2e8f0'
+                                                e.currentTarget.style.backgroundColor = 'transparent'
+                                            }}
+                                            onClick={() => {
+                                                setShowModal(false)
+                                                router.push(`/vendor?id=${vendor.id}`)
+                                            }}
+                                        >
+                                            <div>
+                                                <div style={{ fontWeight: '600', color: '#1e293b', marginBottom: '4px' }}>
+                                                    {vendor.nama}
+                                                </div>
+                                                <div style={{ fontSize: '14px', color: '#64748b' }}>
+                                                    {vendor.kategori} • {vendor.email}
+                                                </div>
+                                            </div>
+                                            <span style={{
+                                                padding: '4px 12px',
+                                                borderRadius: '6px',
+                                                fontSize: '12px',
+                                                fontWeight: '500',
+                                                backgroundColor: vendor.status === 'Aktif' ? '#dcfce7' : '#fee2e2',
+                                                color: vendor.status === 'Aktif' ? '#16a34a' : '#dc2626'
+                                            }}>
+                                                {vendor.status}
+                                            </span>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                    {modalData.data.map((contract: any, idx: number) => (
+                                        <div
+                                            key={idx}
+                                            style={{
+                                                padding: '16px',
+                                                border: '1px solid #e2e8f0',
+                                                borderRadius: '8px',
+                                                transition: 'all 0.2s',
+                                                cursor: 'pointer'
+                                            }}
+                                            onMouseEnter={(e) => {
+                                                e.currentTarget.style.borderColor = '#cbd5e1'
+                                                e.currentTarget.style.backgroundColor = '#f8fafc'
+                                            }}
+                                            onMouseLeave={(e) => {
+                                                e.currentTarget.style.borderColor = '#e2e8f0'
+                                                e.currentTarget.style.backgroundColor = 'transparent'
+                                            }}
+                                            onClick={() => {
+                                                setShowModal(false)
+                                                router.push(`/aset?id=${contract.id}`)
+                                            }}
+                                        >
+                                            <div style={{ fontWeight: '600', color: '#1e293b', marginBottom: '8px' }}>
+                                                {contract.name || 'Tanpa Judul'}
+                                            </div>
+                                            <div style={{ display: 'flex', gap: '16px', fontSize: '14px', color: '#64748b' }}>
+                                                <div>
+                                                    <strong>Vendor:</strong> {contract.vendor_name || '-'}
+                                                </div>
+                                                <div>
+                                                    <strong>Status:</strong> {contract.status || '-'}
+                                                </div>
+                                                {contract.end_date && (
+                                                    <div>
+                                                        <strong>Berakhir:</strong> {new Date(contract.end_date).toLocaleDateString('id-ID')}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Charts Section */}
             <div className="charts-section">
@@ -322,9 +579,9 @@ export default function DashboardPage() {
                         </div>
                     </div>
                     <div className="chart-placeholder">
-                        <div className="line-chart-container" style={{ 
-                            position: 'relative', 
-                            height: '280px', 
+                        <div className="line-chart-container" style={{
+                            position: 'relative',
+                            height: '280px',
                             padding: '20px',
                             display: 'flex',
                             flexDirection: 'column'
@@ -338,7 +595,7 @@ export default function DashboardPage() {
                                             <span key={i} style={{ position: 'absolute', top: `${i * 50 - 6}px` }}>{val}</span>
                                         ))
                                     }
-                                    
+
                                     // Buat array nilai unik tanpa duplikasi
                                     const labels = []
                                     if (maxVal <= 4) {
@@ -355,14 +612,14 @@ export default function DashboardPage() {
                                         uniqueVals.add(Math.floor(maxVal - step * 2))
                                         uniqueVals.add(Math.floor(maxVal - step * 3))
                                         uniqueVals.add(0)
-                                        
+
                                         const sortedVals = Array.from(uniqueVals).sort((a, b) => b - a)
                                         labels.push(...sortedVals)
                                     }
-                                    
+
                                     const gridCount = labels.length
                                     const gridSpacing = 200 / (gridCount - 1)
-                                    
+
                                     return labels.map((val, i) => (
                                         <span key={i} style={{ position: 'absolute', top: `${i * gridSpacing - 6}px` }}>{val}</span>
                                     ))
@@ -370,9 +627,9 @@ export default function DashboardPage() {
                             </div>
 
                             {/* Chart area */}
-                            <svg 
-                                width="100%" 
-                                height="220" 
+                            <svg
+                                width="100%"
+                                height="220"
                                 style={{ marginLeft: '40px', marginTop: '10px' }}
                                 viewBox="0 0 880 200"
                                 preserveAspectRatio="xMidYMid meet"
@@ -382,7 +639,7 @@ export default function DashboardPage() {
                                     const maxVal = Math.max(...chartData.map(d => d.total), 0)
                                     const gridCount = maxVal === 0 ? 5 : (maxVal <= 4 ? maxVal + 1 : 5)
                                     const gridSpacing = 200 / (gridCount - 1)
-                                    
+
                                     return Array.from({ length: gridCount }).map((_, i) => (
                                         <line
                                             key={i}
@@ -399,11 +656,11 @@ export default function DashboardPage() {
                                 {/* Area fill */}
                                 <defs>
                                     <linearGradient id="areaGradient" x1="0" x2="0" y1="0" y2="1">
-                                        <stop offset="0%" stopColor="#2ecc71" stopOpacity="0.3"/>
-                                        <stop offset="100%" stopColor="#2ecc71" stopOpacity="0.05"/>
+                                        <stop offset="0%" stopColor="#2ecc71" stopOpacity="0.3" />
+                                        <stop offset="100%" stopColor="#2ecc71" stopOpacity="0.05" />
                                     </linearGradient>
                                 </defs>
-                                
+
                                 {chartData.length > 0 && (() => {
                                     const maxValue = Math.max(...chartData.map(d => d.total), 1);
                                     const paddingLeft = 13;
@@ -415,9 +672,9 @@ export default function DashboardPage() {
                                         const y = 200 - (data.total / maxValue) * 200;
                                         return `${x},${y}`;
                                     }).join(' ');
-                                    
+
                                     const areaPoints = `${paddingLeft},200 ${points} ${paddingLeft + chartWidth},200`;
-                                    
+
                                     return (
                                         <>
                                             <polyline
@@ -456,9 +713,9 @@ export default function DashboardPage() {
                             </svg>
 
                             {/* X-axis labels */}
-                            <div style={{ 
-                                display: 'flex', 
-                                justifyContent: 'space-between', 
+                            <div style={{
+                                display: 'flex',
+                                justifyContent: 'space-between',
                                 paddingLeft: '40px',
                                 fontSize: '12px',
                                 color: '#64748b',

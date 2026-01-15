@@ -136,6 +136,15 @@
   stroke: #9b59b6;
 }
 
+.stat-red {
+  background: rgba(231, 76, 60, 0.12);
+  color: #e74c3c;
+}
+
+.stat-red .stat-icon-svg {
+  stroke: #e74c3c;
+}
+
 .stat-info {
   flex: 1;
 }

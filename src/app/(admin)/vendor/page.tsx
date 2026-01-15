@@ -1,10 +1,12 @@
 "use client"
 import { useState, useRef, useEffect, useCallback } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { Users, CheckCircle, Search, Eye, Edit, Trash2, PauseCircle, ClipboardList, Plus, Save, X } from 'lucide-react'
 import { supabase } from '../../../lib/supabaseClient'
 import './DataVendor.css'
 
 function DataVendor() {
+    const searchParams = useSearchParams()
     const [vendors, setVendors] = useState([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
@@ -102,6 +104,17 @@ function DataVendor() {
     useEffect(() => {
         fetchVendors()
     }, [fetchVendors])
+
+    // Auto-open detail modal jika ada parameter ID di URL
+    useEffect(() => {
+        const vendorId = searchParams.get('id')
+        if (vendorId && vendors.length > 0) {
+            const vendor = vendors.find(v => v.id === vendorId)
+            if (vendor) {
+                handleShowDetail(vendor)
+            }
+        }
+    }, [searchParams, vendors])
 
     // Use fetched data instead of mock
     const vendorsData = vendors
