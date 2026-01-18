@@ -207,12 +207,8 @@ function VendorPengajuan() {
 
     return (
         <div className="vendor-pengajuan-page">
+            {/* Hero/header intentionally left empty as requested */}
             <div className="pengajuan-container">
-                <div className="pengajuan-header">
-                    <h1>Buat Pengajuan Surat Baru</h1>
-                    <p>Lengkapi formulir di bawah ini untuk mengajukan surat kontrak</p>
-                </div>
-
                 <form onSubmit={handleSubmit} className="pengajuan-form">
                     <div className="profile-sections">
                         {/* Basic Information */}

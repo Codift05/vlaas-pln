@@ -1,144 +1,173 @@
 'use client'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Home, FileText, User } from 'lucide-react'
+import { LayoutDashboard, FileText, User } from 'lucide-react'
 import styled from 'styled-components'
 
 const VendorSidebarWrapper = styled.aside`
   width: 280px;
   height: 100vh;
-  background: linear-gradient(180deg, #5a9dc4 0%, #7eb9d9 50%, #8ac4dd 100%);
+  background: #ffffff;
   display: flex;
   flex-direction: column;
   position: fixed;
   left: 0;
   top: 0;
-  box-shadow: 4px 0 16px rgba(0, 0, 0, 0.08);
+  box-shadow: none;
   z-index: 1000;
-  transition: transform 0.3s ease;
-  border-right: 1px solid rgba(255, 255, 255, 0.2);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-right: 1px solid #e2e8f0;
+  overflow: hidden;
 
   .vendor-sidebar-header {
     height: 80px;
-    padding: 0 24px;
+    padding: 0 20px;
     display: flex;
     align-items: center;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
-    background: rgba(255, 255, 255, 0.08);
+    justify-content: flex-start;
+    border-bottom: 1px solid #f1f5f9;
+    cursor: pointer;
   }
 
   .vendor-sidebar-logo {
     display: flex;
     align-items: center;
-    gap: 14px;
+    gap: 12px;
+    width: 100%;
+    justify-content: flex-start;
   }
 
   .vendor-sidebar-logo-img {
-    width: 48px;
-    height: 48px;
+    width: 40px;
+    height: 40px;
     object-fit: contain;
-    background: white;
-    border-radius: 12px;
-    padding: 6px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    background: transparent;
+    flex-shrink: 0;
   }
 
   .vendor-sidebar-logo-info {
     display: flex;
     flex-direction: column;
     gap: 2px;
+    white-space: nowrap;
+    overflow: hidden;
   }
 
   .vendor-sidebar-logo-text {
-    font-size: 20px;
-    font-weight: 800;
-    color: white;
-    letter-spacing: 0.5px;
-    font-family: 'Inter', sans-serif;
-    line-height: 1;
+    font-size: 18px;
+    font-weight: 700;
+    color: #1e293b;
+    font-family: var(--font-inter);
+    line-height: 1.2;
   }
 
   .vendor-sidebar-logo-desc {
     font-size: 11px;
     font-weight: 500;
-    color: rgba(255, 255, 255, 0.75);
-    font-family: 'Inter', sans-serif;
-    letter-spacing: 0.3px;
+    color: #64748b;
+    font-family: var(--font-inter);
   }
 
   .vendor-nav {
     flex: 1;
-    padding: 20px 0;
+    padding: 24px 12px;
     overflow-y: auto;
+    overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
   }
 
   .vendor-nav-item {
     display: flex;
     align-items: center;
     gap: 14px;
-    padding: 14px 24px;
-    margin: 4px 12px;
-    color: rgba(255, 255, 255, 0.85);
+    padding: 12px 16px;
+    color: #64748b;
     text-decoration: none;
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.2s;
     cursor: pointer;
     border-radius: 12px;
-    border-left: 3px solid transparent;
-    font-family: 'Inter', sans-serif;
-    font-size: 15px;
-    font-weight: 500;
-    letter-spacing: 0.2px;
+    font-family: var(--font-inter);
+    justify-content: flex-start;
+    height: 48px;
   }
 
   .vendor-nav-item:hover {
-    background: rgba(255, 255, 255, 0.12);
-    color: white;
-    transform: translateX(4px);
-    border-left-color: rgba(255, 255, 255, 0.5);
+    background: #f8fafc;
+    color: #3b82f6;
   }
 
   .vendor-nav-item.active {
-    background: rgba(255, 255, 255, 0.18);
-    color: white;
-    border-left-color: white;
+    background: #eff6ff;
+    color: #3b82f6;
     font-weight: 600;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   }
 
   .vendor-nav-icon {
-    color: currentColor;
     flex-shrink: 0;
+    transition: color 0.2s;
   }
 
   .vendor-nav-text {
-    flex: 1;
+    font-size: 15px;
+    font-weight: 500;
+    white-space: nowrap;
   }
 
   .vendor-sidebar-footer {
     padding: 20px;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    border-top: 1px solid #f1f5f9;
   }
 
-  .vendor-logout-btn {
+  .vendor-user-profile {
     display: flex;
     align-items: center;
-    gap: 15px;
-    width: 100%;
-    padding: 15px 25px;
-    background: rgba(255, 255, 255, 0.1);
-    color: white;
-    border: none;
-    border-radius: 8px;
+    gap: 12px;
+    padding: 12px;
+    background: #f8fafc;
+    border-radius: 12px;
     cursor: pointer;
-    transition: all 0.3s;
-    font-size: 16px;
-    font-family: 'Inter', sans-serif;
-    font-weight: 500;
+    transition: all 0.2s;
   }
 
-  .vendor-logout-btn:hover {
-    background: rgba(255, 255, 255, 0.2);
-    transform: translateY(-2px);
+  .vendor-user-profile:hover {
+    background: #f1f5f9;
+  }
+
+  .vendor-user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #1e293b;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: 600;
+    font-family: var(--font-inter);
+    flex-shrink: 0;
+  }
+
+  .vendor-user-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .vendor-user-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1e293b;
+    font-family: var(--font-inter);
+  }
+
+  .vendor-user-role {
+    font-size: 12px;
+    color: #64748b;
+    font-family: var(--font-inter);
   }
 
   /* Scrollbar Styling */
@@ -147,16 +176,16 @@ const VendorSidebarWrapper = styled.aside`
   }
 
   .vendor-nav::-webkit-scrollbar-track {
-    background: rgba(255, 255, 255, 0.05);
+    background: transparent;
   }
 
   .vendor-nav::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.2);
+    background: #e2e8f0;
     border-radius: 3px;
   }
 
   .vendor-nav::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.3);
+    background: #cbd5e1;
   }
 
   /* Responsive */
@@ -173,7 +202,7 @@ function VendorSidebar() {
   const pathname = usePathname()
 
   const menuItems = [
-    { path: '/vendor-portal', icon: Home, label: 'Dashboard' },
+    { path: '/vendor-portal', icon: LayoutDashboard, label: 'Dashboard' },
     { path: '/vendor-portal/pengajuan', icon: FileText, label: 'Buat Pengajuan' },
     { path: '/vendor-portal/profile', icon: User, label: 'Profil Perusahaan' },
   ]
@@ -203,7 +232,7 @@ function VendorSidebar() {
               href={item.path}
               className={`vendor-nav-item ${isActive ? 'active' : ''}`}
             >
-              <Icon size={20} className="vendor-nav-icon" />
+              <Icon size={22} strokeWidth={2} className="vendor-nav-icon" />
               <span className="vendor-nav-text">{item.label}</span>
             </Link>
           )
