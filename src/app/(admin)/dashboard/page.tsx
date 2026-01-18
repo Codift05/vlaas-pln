@@ -13,6 +13,8 @@ export default function DashboardPage() {
     const [allVendors, setAllVendors] = useState<any[]>([])
     const [chartData, setChartData] = useState(Array(12).fill(null).map((_, i) => ({
         month: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'][i],
+        dalamProses: 0,
+        terbayar: 0,
         total: 0
     })))
 
@@ -31,7 +33,7 @@ export default function DashboardPage() {
     const [recentActivities, setRecentActivities] = useState<any[]>([])
     const [recentVendors, setRecentVendors] = useState<any[]>([])
     const [contractStatusDist, setContractStatusDist] = useState({
-        selesai: 0,
+        dalamPekerjaan: 0,
         telahdiperiksa: 0,
         terbayar: 0,
         total: 0
@@ -69,12 +71,12 @@ export default function DashboardPage() {
         }
     }, [])
 
-    // Re-process vendor chart data saat allVendors atau year berubah
+    // Re-process contract chart data saat allContracts atau year berubah
     useEffect(() => {
-        if (allVendors.length > 0) {
-            processVendorChartData(allVendors, selectedYear)
+        if (allContracts.length > 0) {
+            processContractChartData(allContracts, selectedYear)
         }
-    }, [selectedYear, allVendors])
+    }, [selectedYear, allContracts])
 
     const fetchDashboardData = async () => {
         try {
@@ -100,19 +102,6 @@ export default function DashboardPage() {
                 setRecentVendors(recent || [])
 
                 if (vendorsForChart && vendorsForChart.length > 0) {
-                    // Cek tahun yang tersedia dari data
-                    const years = new Set<number>()
-                    vendorsForChart.forEach((v: any) => {
-                        if (v.tanggal_registrasi) years.add(new Date(v.tanggal_registrasi).getFullYear())
-                    })
-                    const yearArray = Array.from(years).sort((a, b) => b - a)
-
-                    // Jika tahun sekarang tidak ada datanya, gunakan tahun terbaru yang ada datanya
-                    if (yearArray.length > 0 && !yearArray.includes(selectedYear)) {
-                        setSelectedYear(yearArray[0])
-                    }
-
-                    // Set vendors LAST - useEffect will handle chart processing
                     setAllVendors(vendorsForChart)
                 }
             }
@@ -172,7 +161,7 @@ export default function DashboardPage() {
             if (contractYear === year && monthIndex >= 0 && monthIndex < 12) {
                 const status = (contract.status || '').toLowerCase()
 
-                if (status === 'dalam proses pekerjaan') {
+                if (status === 'dalam proses pekerjaan' || status === 'dalam pekerjaan') {
                     newChartData[monthIndex].dalamProses += 1
                 } else if (status === 'terbayar') {
                     newChartData[monthIndex].terbayar += 1
@@ -194,7 +183,7 @@ export default function DashboardPage() {
         today.setHours(0, 0, 0, 0)
 
         // Status breakdown for Pie Chart
-        let dist = { selesai: 0, telahdiperiksa: 0, terbayar: 0, total: totalContracts }
+        let dist = { dalamPekerjaan: 0, telahdiperiksa: 0, terbayar: 0, total: totalContracts }
 
         contracts.forEach(c => {
             const status = (c.status || '').toLowerCase()
@@ -208,8 +197,8 @@ export default function DashboardPage() {
                 }
             }
 
-            if (status === 'selesai') {
-                dist.selesai++
+            if (status === 'dalam pekerjaan' || status === 'dalam proses pekerjaan') {
+                dist.dalamPekerjaan++
             } else if (status.includes('diperiksa')) {
                 dist.telahdiperiksa++
             } else if (status === 'terbayar') {
@@ -238,42 +227,23 @@ export default function DashboardPage() {
         setRecentActivities(latest)
     }
 
-    const processVendorChartData = (vendors: any[], year: number) => {
-        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des']
-        const newChartData = months.map(m => ({ month: m, total: 0 }))
-
-        vendors.forEach(vendor => {
-            if (!vendor.tanggal_registrasi) return
-
-            const date = new Date(vendor.tanggal_registrasi)
-            const vendorYear = date.getFullYear()
-            const monthIndex = date.getMonth()
-
-            if (vendorYear === year && monthIndex >= 0 && monthIndex < 12) {
-                newChartData[monthIndex].total += 1
-            }
-        })
-
-        setChartData(newChartData)
-    }
-
     // Memoize handlers to prevent unnecessary re-renders
     const handleYearChange = useCallback((year: number) => {
         setSelectedYear(year)
     }, [])
 
-    // Memoize available years - only recalculate when allVendors changes
+    // Memoize available years - only recalculate when allContracts changes
     const availableYears = useMemo(() => {
         const years = new Set<number>()
-        allVendors.forEach(vendor => {
-            if (vendor.tanggal_registrasi) {
-                years.add(new Date(vendor.tanggal_registrasi).getFullYear())
+        allContracts.forEach(contract => {
+            if (contract.start_date) {
+                years.add(new Date(contract.start_date).getFullYear())
             }
         })
         const yearArray = Array.from(years).sort((a, b) => b - a)
         if (yearArray.length === 0) yearArray.push(currentYear)
         return yearArray
-    }, [allVendors, currentYear])
+    }, [allContracts, currentYear])
 
     const handleContractClick = useCallback((contractId: string) => {
         router.push(`/aset?id=${contractId}`)
@@ -338,9 +308,9 @@ export default function DashboardPage() {
 
     // Memoize pieGradient to prevent recalculation on each render
     const pieGradient = useMemo(() => `conic-gradient(
-        #f39c12 0% ${getPieRotation((contractStatusDist.selesai / contractStatusDist.total) * 100 || 0)}deg, 
-        #9333ea ${getPieRotation((contractStatusDist.selesai / contractStatusDist.total) * 100 || 0)}deg ${getPieRotation(((contractStatusDist.selesai + contractStatusDist.telahdiperiksa) / contractStatusDist.total) * 100 || 0)}deg,
-        #2ecc71 ${getPieRotation(((contractStatusDist.selesai + contractStatusDist.telahdiperiksa) / contractStatusDist.total) * 100 || 0)}deg 100%
+        #f39c12 0% ${getPieRotation((contractStatusDist.dalamPekerjaan / contractStatusDist.total) * 100 || 0)}deg, 
+        #9333ea ${getPieRotation((contractStatusDist.dalamPekerjaan / contractStatusDist.total) * 100 || 0)}deg ${getPieRotation(((contractStatusDist.dalamPekerjaan + contractStatusDist.telahdiperiksa) / contractStatusDist.total) * 100 || 0)}deg,
+        #2ecc71 ${getPieRotation(((contractStatusDist.dalamPekerjaan + contractStatusDist.telahdiperiksa) / contractStatusDist.total) * 100 || 0)}deg 100%
     )`, [contractStatusDist])
     return (
         <div>
@@ -554,7 +524,7 @@ export default function DashboardPage() {
             <div className="charts-section">
                 <div className="chart-card">
                     <div className="card-header">
-                        <h3 className="card-title">Tren Vendor Baru Bulanan</h3>
+                        <h3 className="card-title">Tren Kontrak Bulanan</h3>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                             <select
                                 value={selectedYear}
@@ -587,65 +557,85 @@ export default function DashboardPage() {
                             flexDirection: 'column'
                         }}>
                             {/* Y-axis labels */}
-                            <div style={{ position: 'absolute', left: '40px', top: '30px', height: '100 px', display: 'flex', flexDirection: 'column', fontSize: '12px', color: '#64748b', textAlign: 'right', paddingRight: '5px', width: '22px' }}>
+                            <div style={{ position: 'absolute', left: '40px', top: '30px', height: '200px', display: 'flex', flexDirection: 'column', fontSize: '13px', color: '#64748b', textAlign: 'right', paddingRight: '5px', width: '22px' }}>
                                 {(() => {
-                                    const maxVal = Math.max(...chartData.map(d => d.total), 0)
+                                    const maxVal = Math.max(...chartData.map(d => Math.max(d.dalamProses || 0, d.terbayar || 0)), 0);
                                     if (maxVal === 0) {
-                                        return [4, 3, 2, 1, 0].map((val, i) => (
-                                            <span key={i} style={{ position: 'absolute', top: `${i * 50 - 6}px` }}>{val}</span>
+                                        return [0].map((val, i) => (
+                                            <span key={i} style={{ position: 'absolute', top: '0px' }}>{val}</span>
                                         ))
                                     }
 
                                     // Buat array nilai unik tanpa duplikasi
-                                    const labels = []
-                                    if (maxVal <= 4) {
-                                        // Untuk nilai kecil, gunakan semua angka dari max ke 0
-                                        for (let i = maxVal; i >= 0; i--) {
-                                            labels.push(i)
-                                        }
+                                    const uniqueValues = new Set<number>()
+                                    uniqueValues.add(maxVal)
+                                    if (maxVal >= 4) {
+                                        uniqueValues.add(Math.floor(maxVal * 0.75))
+                                        uniqueValues.add(Math.floor(maxVal * 0.5))
+                                        uniqueValues.add(Math.floor(maxVal * 0.25))
                                     } else {
-                                        // Untuk nilai besar, bagi menjadi 5 step unik
-                                        const step = Math.ceil(maxVal / 4)
-                                        const uniqueVals = new Set()
-                                        uniqueVals.add(maxVal)
-                                        uniqueVals.add(Math.floor(maxVal - step))
-                                        uniqueVals.add(Math.floor(maxVal - step * 2))
-                                        uniqueVals.add(Math.floor(maxVal - step * 3))
-                                        uniqueVals.add(0)
-
-                                        const sortedVals = Array.from(uniqueVals).sort((a, b) => b - a)
-                                        labels.push(...sortedVals)
+                                        // Untuk nilai kecil, gunakan semua angka dari max ke 1
+                                        for (let i = maxVal - 1; i >= 1; i--) {
+                                            uniqueValues.add(i)
+                                        }
                                     }
+                                    uniqueValues.add(0)
 
-                                    const gridCount = labels.length
-                                    const gridSpacing = 200 / (gridCount - 1)
+                                    const labels = Array.from(uniqueValues).sort((a, b) => b - a)
+                                    const gridSpacing = 200 / (labels.length - 1)
 
                                     return labels.map((val, i) => (
-                                        <span key={i} style={{ position: 'absolute', top: `${i * gridSpacing - 6}px` }}>{val}</span>
+                                        <span key={i} style={{ position: 'absolute', top: `${i * gridSpacing - 3}px` }}>{val}</span>
                                     ))
                                 })()}
                             </div>
 
                             {/* Chart area */}
                             <svg
-                                width="100%"
+                                width="99%"
                                 height="220"
-                                style={{ marginLeft: '40px', marginTop: '10px' }}
-                                viewBox="0 0 880 200"
+                                style={{ marginLeft: '5px', marginTop: '10px' }}
+                                viewBox="0 0 1000 200"
                                 preserveAspectRatio="xMidYMid meet"
                             >
                                 {/* Grid lines - dinamis sesuai jumlah label Y */}
                                 {(() => {
-                                    const maxVal = Math.max(...chartData.map(d => d.total), 0)
-                                    const gridCount = maxVal === 0 ? 5 : (maxVal <= 4 ? maxVal + 1 : 5)
+                                    const maxVal = Math.max(...chartData.map(d => Math.max(d.dalamProses || 0, d.terbayar || 0)), 0)
+                                    if (maxVal === 0) {
+                                        return (
+                                            <line
+                                                x1="50"
+                                                y1="0"
+                                                x2="950"
+                                                y2="0"
+                                                stroke="#e2e8f0"
+                                                strokeWidth="1"
+                                            />
+                                        )
+                                    }
+
+                                    const uniqueValues = new Set<number>()
+                                    uniqueValues.add(maxVal)
+                                    if (maxVal >= 4) {
+                                        uniqueValues.add(Math.floor(maxVal * 0.75))
+                                        uniqueValues.add(Math.floor(maxVal * 0.5))
+                                        uniqueValues.add(Math.floor(maxVal * 0.25))
+                                    } else {
+                                        for (let i = maxVal - 1; i >= 1; i--) {
+                                            uniqueValues.add(i)
+                                        }
+                                    }
+                                    uniqueValues.add(0)
+
+                                    const gridCount = uniqueValues.size
                                     const gridSpacing = 200 / (gridCount - 1)
 
                                     return Array.from({ length: gridCount }).map((_, i) => (
                                         <line
                                             key={i}
-                                            x1="25"
+                                            x1="50"
                                             y1={i * gridSpacing}
-                                            x2="840"
+                                            x2="950"
                                             y2={i * gridSpacing}
                                             stroke="#e2e8f0"
                                             strokeWidth="1"
@@ -653,57 +643,109 @@ export default function DashboardPage() {
                                     ))
                                 })()}
 
-                                {/* Area fill */}
+                                {/* Area fills and lines */}
                                 <defs>
-                                    <linearGradient id="areaGradient" x1="0" x2="0" y1="0" y2="1">
-                                        <stop offset="0%" stopColor="#2ecc71" stopOpacity="0.3" />
-                                        <stop offset="100%" stopColor="#2ecc71" stopOpacity="0.05" />
+                                    <linearGradient id="areaGradientDalamProses" x1="0" x2="0" y1="0" y2="1">
+                                        <stop offset="0%" stopColor="#f59e0b" stopOpacity="0.2" />
+                                        <stop offset="100%" stopColor="#f59e0b" stopOpacity="0.02" />
+                                    </linearGradient>
+                                    <linearGradient id="areaGradientTerbayar" x1="0" x2="0" y1="0" y2="1">
+                                        <stop offset="0%" stopColor="#10b981" stopOpacity="0.2" />
+                                        <stop offset="100%" stopColor="#10b981" stopOpacity="0.02" />
                                     </linearGradient>
                                 </defs>
 
                                 {chartData.length > 0 && (() => {
-                                    const maxValue = Math.max(...chartData.map(d => d.total), 1);
-                                    const paddingLeft = 13;
-                                    const paddingRight = 40;
-                                    const chartWidth = 815;
+                                    const maxValue = Math.max(...chartData.map(d => Math.max(d.dalamProses || 0, d.terbayar || 0)), 1);
+                                    const paddingLeft = 50;
+                                    const paddingRight = 50;
+                                    const chartWidth = 900;
                                     const spacing = chartWidth / (chartData.length - 1);
-                                    const points = chartData.map((data, index) => {
+
+                                    // Dalam Proses line
+                                    const dalamProsesPoints = chartData.map((data, index) => {
                                         const x = paddingLeft + (index * spacing);
-                                        const y = 200 - (data.total / maxValue) * 200;
+                                        const y = 200 - ((data.dalamProses || 0) / maxValue) * 200;
                                         return `${x},${y}`;
                                     }).join(' ');
 
-                                    const areaPoints = `${paddingLeft},200 ${points} ${paddingLeft + chartWidth},200`;
+                                    const dalamProsesAreaPoints = `${paddingLeft},200 ${dalamProsesPoints} ${paddingLeft + chartWidth},200`;
+
+                                    // Terbayar line
+                                    const terbayarPoints = chartData.map((data, index) => {
+                                        const x = paddingLeft + (index * spacing);
+                                        const y = 200 - ((data.terbayar || 0) / maxValue) * 200;
+                                        return `${x},${y}`;
+                                    }).join(' ');
+
+                                    const terbayarAreaPoints = `${paddingLeft},200 ${terbayarPoints} ${paddingLeft + chartWidth},200`;
 
                                     return (
                                         <>
+                                            {/* Dalam Proses area and line */}
                                             <polyline
-                                                points={areaPoints}
-                                                fill="url(#areaGradient)"
+                                                points={dalamProsesAreaPoints}
+                                                fill="url(#areaGradientDalamProses)"
                                             />
                                             <polyline
-                                                points={points}
+                                                points={dalamProsesPoints}
                                                 fill="none"
-                                                stroke="#2ecc71"
+                                                stroke="#f59e0b"
                                                 strokeWidth="3"
                                                 strokeLinecap="round"
                                                 strokeLinejoin="round"
                                             />
+
+                                            {/* Terbayar area and line */}
+                                            <polyline
+                                                points={terbayarAreaPoints}
+                                                fill="url(#areaGradientTerbayar)"
+                                            />
+                                            <polyline
+                                                points={terbayarPoints}
+                                                fill="none"
+                                                stroke="#10b981"
+                                                strokeWidth="3"
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                            />
+
+                                            {/* Dalam Proses points */}
                                             {chartData.map((data, index) => {
                                                 const x = paddingLeft + (index * spacing);
-                                                const y = 200 - (data.total / maxValue) * 200;
+                                                const y = 200 - ((data.dalamProses || 0) / maxValue) * 200;
                                                 return (
-                                                    <g key={index}>
+                                                    <g key={`dp-${index}`}>
                                                         <circle
                                                             cx={x}
                                                             cy={y}
                                                             r="5"
                                                             fill="#fff"
-                                                            stroke="#2ecc71"
+                                                            stroke="#f59e0b"
                                                             strokeWidth="3"
                                                             style={{ cursor: 'pointer' }}
                                                         />
-                                                        <title>{`${data.month} ${selectedYear}: ${data.total} vendor`}</title>
+                                                        <title>{`${data.month}: Dalam Proses ${data.dalamProses || 0}`}</title>
+                                                    </g>
+                                                );
+                                            })}
+
+                                            {/* Terbayar points */}
+                                            {chartData.map((data, index) => {
+                                                const x = paddingLeft + (index * spacing);
+                                                const y = 200 - ((data.terbayar || 0) / maxValue) * 200;
+                                                return (
+                                                    <g key={`tb-${index}`}>
+                                                        <circle
+                                                            cx={x}
+                                                            cy={y}
+                                                            r="5"
+                                                            fill="#fff"
+                                                            stroke="#10b981"
+                                                            strokeWidth="3"
+                                                            style={{ cursor: 'pointer' }}
+                                                        />
+                                                        <title>{`${data.month}: Terbayar ${data.terbayar || 0}`}</title>
                                                     </g>
                                                 );
                                             })}
@@ -716,7 +758,8 @@ export default function DashboardPage() {
                             <div style={{
                                 display: 'flex',
                                 justifyContent: 'space-between',
-                                paddingLeft: '40px',
+                                paddingLeft: '50px',
+                                paddingRight: '50px',
                                 fontSize: '12px',
                                 color: '#64748b',
                                 fontWeight: 500
@@ -726,6 +769,10 @@ export default function DashboardPage() {
                                 ))}
                             </div>
                         </div>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'center', gap: 18, marginTop: 10 }}>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}><span style={{ width: 14, height: 8, background: '#f59e0b', borderRadius: 4, display: 'inline-block' }}></span> Dalam Proses</span>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}><span style={{ width: 14, height: 8, background: '#10b981', borderRadius: 4, display: 'inline-block' }}></span> Terbayar</span>
                     </div>
                 </div>
 
@@ -746,8 +793,8 @@ export default function DashboardPage() {
                     <div className="pie-legend">
                         <div className="legend-item">
                             <span className="legend-color" style={{ background: '#f39c12' }}></span>
-                            <span className="legend-text">Selesai</span>
-                            <span className="legend-value">{contractStatusDist.selesai}</span>
+                            <span className="legend-text">Dalam Pekerjaan</span>
+                            <span className="legend-value">{contractStatusDist.dalamPekerjaan}</span>
                         </div>
                         <div className="legend-item">
                             <span className="legend-color" style={{ background: '#9333ea' }}></span>
