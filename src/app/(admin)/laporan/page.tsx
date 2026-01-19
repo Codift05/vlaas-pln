@@ -84,6 +84,10 @@ function Laporan() {
     const [remainingContracts, setRemainingContracts] = useState<RemainingContract[]>([])
     const [showDeadlineModal, setShowDeadlineModal] = useState(false)
     const [deadlineContracts, setDeadlineContracts] = useState<RemainingContract[]>([])
+    const [showVendorDetailModal, setShowVendorDetailModal] = useState(false)
+    const [selectedMonthData, setSelectedMonthData] = useState<any>(null)
+    const [showVendorDetailModal, setShowVendorDetailModal] = useState(false)
+    const [selectedMonthData, setSelectedMonthData] = useState<any>(null)
     // (removed grouped bar chart logic, keep only stacked bar logic)
     const [monthlyData, setMonthlyData] = useState<MonthlyData[]>(
         Array(12).fill(null).map((_, i) => ({
@@ -974,23 +978,24 @@ function Laporan() {
                                                 `${data.month} ${selectedContractYear}`,
                                                 `Vendor Baru: ${data.total || 0}`,
                                                 `Vendor Aktif: ${data.activeVendors || 0}`,
-                                                ''
+                                                '',
+                                                'Klik untuk lihat detail lengkap'
                                             ];
 
                                             if (data.activeVendorDetails && data.activeVendorDetails.length > 0) {
-                                                const displayLimit = 5;
+                                                const displayLimit = 3;
                                                 data.activeVendorDetails.slice(0, displayLimit).forEach((v: any) => {
                                                     const endDate = new Date(v.endDates[v.endDates.length - 1]);
-                                                    tooltipLines.push(
+                                                    tooltipLines.splice(4, 0,
                                                         `• ${v.vendorName} (${v.contractCount} kontrak) - s/d ${endDate.toLocaleDateString('id-ID', { year: 'numeric', month: 'short', day: 'numeric' })}`
                                                     );
                                                 });
 
                                                 if (data.activeVendorDetails.length > displayLimit) {
-                                                    tooltipLines.push(`... dan ${data.activeVendorDetails.length - displayLimit} vendor lainnya`);
+                                                    tooltipLines.splice(4 + displayLimit, 0, `... dan ${data.activeVendorDetails.length - displayLimit} vendor lainnya`);
                                                 }
                                             } else {
-                                                tooltipLines.push('Tidak ada vendor aktif');
+                                                tooltipLines.splice(4, 0, 'Tidak ada vendor aktif');
                                             }
 
                                             return (
@@ -1003,6 +1008,10 @@ function Laporan() {
                                                         stroke="#3b82f6"
                                                         strokeWidth="3"
                                                         style={{ cursor: 'pointer' }}
+                                                        onClick={() => {
+                                                            setSelectedMonthData({ ...data, year: selectedContractYear, monthIndex: index });
+                                                            setShowVendorDetailModal(true);
+                                                        }}
                                                     />
                                                     <title>{tooltipLines.join('\\n')}</title>
                                                 </g>
@@ -1046,7 +1055,7 @@ function Laporan() {
                                 <span key={index}>{data.month}</span>
                             ))}
                         </div>
-                        
+
                         {/* Legend */}
                         <div style={{
                             display: 'flex',
@@ -1057,19 +1066,19 @@ function Laporan() {
                             color: '#64748b'
                         }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <div style={{ 
-                                    width: '32px', 
-                                    height: '3px', 
-                                    background: '#2ecc71', 
-                                    borderRadius: '2px' 
+                                <div style={{
+                                    width: '32px',
+                                    height: '3px',
+                                    background: '#2ecc71',
+                                    borderRadius: '2px'
                                 }}></div>
                                 <span>Vendor Baru Terdaftar</span>
                             </div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <div style={{ 
-                                    width: '32px', 
-                                    height: '3px', 
-                                    background: '#3b82f6', 
+                                <div style={{
+                                    width: '32px',
+                                    height: '3px',
+                                    background: '#3b82f6',
                                     borderRadius: '2px',
                                     backgroundImage: 'repeating-linear-gradient(90deg, #3b82f6, #3b82f6 6px, transparent 6px, transparent 10px)'
                                 }}></div>
@@ -1391,6 +1400,203 @@ function Laporan() {
                                     <p>Tidak ada kontrak yang mendekati deadline dalam 30 hari ke depan</p>
                                 </div>
                             )}
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Modal Detail Vendor Aktif */}
+            {showVendorDetailModal && selectedMonthData && (
+                <div className="modal-overlay" onClick={() => setShowVendorDetailModal(false)}>
+                    <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '900px' }}>
+                        <div className="modal-header">
+                            <h2 style={{ margin: 0 }}>
+                                Detail Vendor Aktif - {selectedMonthData.month} {selectedMonthData.year}
+                            </h2>
+                            <button className="modal-close" onClick={() => setShowVendorDetailModal(false)}>
+                                ×
+                            </button>
+                        </div>
+                        <div className="modal-body" style={{ padding: '24px 32px' }}>
+                            {/* Summary Cards */}
+                            <div style={{ 
+                                display: 'grid', 
+                                gridTemplateColumns: 'repeat(2, 1fr)', 
+                                gap: '16px', 
+                                marginBottom: '24px' 
+                            }}>
+                                <div style={{
+                                    background: 'linear-gradient(135deg, #2ecc71 0%, #27ae60 100%)',
+                                    padding: '20px',
+                                    borderRadius: '12px',
+                                    color: 'white'
+                                }}>
+                                    <div style={{ fontSize: '14px', opacity: 0.9, marginBottom: '8px' }}>Vendor Baru Terdaftar</div>
+                                    <div style={{ fontSize: '32px', fontWeight: '700' }}>{selectedMonthData.total || 0}</div>
+                                </div>
+                                <div style={{
+                                    background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+                                    padding: '20px',
+                                    borderRadius: '12px',
+                                    color: 'white'
+                                }}>
+                                    <div style={{ fontSize: '14px', opacity: 0.9, marginBottom: '8px' }}>Vendor Aktif Mengerjakan</div>
+                                    <div style={{ fontSize: '32px', fontWeight: '700' }}>{selectedMonthData.activeVendors || 0}</div>
+                                </div>
+                            </div>
+
+                            {/* Vendor List */}
+                            <div>
+                                <h3 style={{ fontSize: '18px', fontWeight: '600', marginBottom: '16px', color: '#1e293b' }}>
+                                    📋 Daftar Vendor & Kontrak Aktif
+                                </h3>
+                                
+                                {selectedMonthData.activeVendorDetails && selectedMonthData.activeVendorDetails.length > 0 ? (
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                        {selectedMonthData.activeVendorDetails.map((vendor: any, idx: number) => {
+                                            // Get contract details for this vendor
+                                            const vendorContracts = allContracts.filter(c => {
+                                                const activeStatuses = ['Terkontrak', 'Dalam Proses Pekerjaan', 'Dalam Pemeriksaan', 'Telah Diperiksa'];
+                                                if (!activeStatuses.includes(c.status)) return false;
+                                                if (c.vendor_name !== vendor.vendorName) return false;
+                                                
+                                                const startDate = new Date(c.start_date);
+                                                const endDate = new Date(c.end_date);
+                                                const checkDate = new Date(selectedMonthData.year, selectedMonthData.monthIndex, 15);
+                                                
+                                                return checkDate >= startDate && checkDate <= endDate;
+                                            });
+
+                                            return (
+                                                <div key={idx} style={{
+                                                    border: '1px solid #e2e8f0',
+                                                    borderRadius: '12px',
+                                                    padding: '16px',
+                                                    background: '#f8fafc'
+                                                }}>
+                                                    <div style={{ 
+                                                        display: 'flex', 
+                                                        justifyContent: 'space-between', 
+                                                        alignItems: 'start',
+                                                        marginBottom: '12px'
+                                                    }}>
+                                                        <div>
+                                                            <div style={{ 
+                                                                fontSize: '16px', 
+                                                                fontWeight: '600', 
+                                                                color: '#1e293b',
+                                                                marginBottom: '4px'
+                                                            }}>
+                                                                {idx + 1}. {vendor.vendorName}
+                                                            </div>
+                                                            <div style={{ fontSize: '13px', color: '#64748b' }}>
+                                                                {vendor.contractCount} kontrak aktif
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    {/* Contract Details */}
+                                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '12px' }}>
+                                                        {vendorContracts.map((contract: any, cIdx: number) => {
+                                                            const startDate = new Date(contract.start_date);
+                                                            const endDate = new Date(contract.end_date);
+                                                            
+                                                            return (
+                                                                <div key={cIdx} style={{
+                                                                    background: 'white',
+                                                                    padding: '12px',
+                                                                    borderRadius: '8px',
+                                                                    border: '1px solid #e2e8f0'
+                                                                }}>
+                                                                    <div style={{ 
+                                                                        display: 'flex', 
+                                                                        justifyContent: 'space-between',
+                                                                        alignItems: 'start',
+                                                                        gap: '12px'
+                                                                    }}>
+                                                                        <div style={{ flex: 1 }}>
+                                                                            <div style={{ 
+                                                                                fontSize: '14px', 
+                                                                                fontWeight: '600', 
+                                                                                color: '#334155',
+                                                                                marginBottom: '6px'
+                                                                            }}>
+                                                                                {contract.name || contract.contract_number || 'Nama kontrak tidak tersedia'}
+                                                                            </div>
+                                                                            <div style={{ 
+                                                                                fontSize: '12px', 
+                                                                                color: '#64748b',
+                                                                                display: 'flex',
+                                                                                alignItems: 'center',
+                                                                                gap: '4px',
+                                                                                marginBottom: '4px'
+                                                                            }}>
+                                                                                📅 {startDate.toLocaleDateString('id-ID', { 
+                                                                                    year: 'numeric', 
+                                                                                    month: 'short', 
+                                                                                    day: 'numeric' 
+                                                                                })} - {endDate.toLocaleDateString('id-ID', { 
+                                                                                    year: 'numeric', 
+                                                                                    month: 'short', 
+                                                                                    day: 'numeric' 
+                                                                                })}
+                                                                            </div>
+                                                                            <div style={{ 
+                                                                                fontSize: '12px', 
+                                                                                color: '#64748b',
+                                                                                display: 'flex',
+                                                                                alignItems: 'center',
+                                                                                gap: '4px'
+                                                                            }}>
+                                                                                💰 {new Intl.NumberFormat('id-ID', {
+                                                                                    style: 'currency',
+                                                                                    currency: 'IDR',
+                                                                                    minimumFractionDigits: 0
+                                                                                }).format(contract.amount || 0)}
+                                                                            </div>
+                                                                        </div>
+                                                                        <div>
+                                                                            <span style={{
+                                                                                fontSize: '11px',
+                                                                                padding: '4px 10px',
+                                                                                borderRadius: '6px',
+                                                                                fontWeight: '600',
+                                                                                background: 
+                                                                                    contract.status === 'Terkontrak' ? 'rgba(59, 130, 246, 0.12)' :
+                                                                                    contract.status === 'Dalam Proses Pekerjaan' ? 'rgba(245, 158, 11, 0.12)' :
+                                                                                    contract.status === 'Dalam Pemeriksaan' ? 'rgba(139, 92, 246, 0.12)' :
+                                                                                    'rgba(6, 182, 212, 0.12)',
+                                                                                color:
+                                                                                    contract.status === 'Terkontrak' ? '#2563eb' :
+                                                                                    contract.status === 'Dalam Proses Pekerjaan' ? '#d97706' :
+                                                                                    contract.status === 'Dalam Pemeriksaan' ? '#7c3aed' :
+                                                                                    '#0891b2',
+                                                                                whiteSpace: 'nowrap'
+                                                                            }}>
+                                                                                {contract.status}
+                                                                            </span>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                ) : (
+                                    <div style={{ 
+                                        textAlign: 'center', 
+                                        padding: '40px', 
+                                        color: '#64748b',
+                                        background: '#f8fafc',
+                                        borderRadius: '12px'
+                                    }}>
+                                        <p>Tidak ada vendor yang aktif mengerjakan kontrak di bulan ini</p>
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </div>
                 </div>
