@@ -1047,17 +1047,33 @@ function Laporan() {
 
                         {/* X-axis labels */}
                         <div style={{
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            marginLeft: '53px',
-                            marginRight: '25px',
+                            position: 'relative',
+                            height: '20px',
+                            marginLeft: '40px',
                             fontSize: '12px',
                             color: '#64748b',
                             fontWeight: 500
                         }}>
-                            {(monthlyData as any[]).map((data, index) => (
-                                <span key={index}>{data.month}</span>
-                            ))}
+                            {(monthlyData as any[]).map((data, index) => {
+                                const paddingLeft = 13;
+                                const chartWidth = 815;
+                                const spacing = chartWidth / (monthlyData.length - 1);
+                                const x = paddingLeft + (index * spacing);
+                                
+                                return (
+                                    <span 
+                                        key={index} 
+                                        style={{
+                                            position: 'absolute',
+                                            left: `${x}px`,
+                                            transform: 'translateX(-50%)',
+                                            whiteSpace: 'nowrap'
+                                        }}
+                                    >
+                                        {data.month}
+                                    </span>
+                                );
+                            })}
                         </div>
 
                         {/* Legend */}
