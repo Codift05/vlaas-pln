@@ -1,8 +1,15 @@
 'use client'
+import React, { FC } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, FileText, User } from 'lucide-react'
+import { LayoutDashboard, FileText, User, LucideIcon } from 'lucide-react'
 import styled from 'styled-components'
+
+interface MenuItem {
+    path: string
+    icon: LucideIcon
+    label: string
+}
 
 const VendorSidebarWrapper = styled.aside`
   width: 280px;
@@ -198,48 +205,48 @@ const VendorSidebarWrapper = styled.aside`
   }
 `;
 
-function VendorSidebar() {
-  const pathname = usePathname()
+const VendorSidebar: FC = () => {
+    const pathname = usePathname()
 
-  const menuItems = [
-    { path: '/vendor-portal', icon: LayoutDashboard, label: 'Dashboard' },
-    { path: '/vendor-portal/pengajuan', icon: FileText, label: 'Buat Pengajuan' },
-    { path: '/vendor-portal/profile', icon: User, label: 'Profil Perusahaan' },
-  ]
+    const menuItems: MenuItem[] = [
+        { path: '/vendor-portal', icon: LayoutDashboard, label: 'Dashboard' },
+        { path: '/vendor-portal/pengajuan', icon: FileText, label: 'Buat Pengajuan' },
+        { path: '/vendor-portal/profile', icon: User, label: 'Profil Perusahaan' },
+    ]
 
-  return (
-    <VendorSidebarWrapper className="vendor-sidebar">
-      <div className="vendor-sidebar-header">
-        <div className="vendor-sidebar-logo">
-          <img src="/images/Logo_vlaas.png" alt="VLAAS Logo" className="vendor-sidebar-logo-img" />
-          <div className="vendor-sidebar-logo-info">
-            <div className="vendor-sidebar-logo-text">PLN VLAAS</div>
-            <div className="vendor-sidebar-logo-desc">Vendor Management</div>
-          </div>
-        </div>
-      </div>
+    return (
+        <VendorSidebarWrapper className="vendor-sidebar">
+            <div className="vendor-sidebar-header">
+                <div className="vendor-sidebar-logo">
+                    <img src="/images/Logo_vlaas.png" alt="VLAAS Logo" className="vendor-sidebar-logo-img" />
+                    <div className="vendor-sidebar-logo-info">
+                        <div className="vendor-sidebar-logo-text">PLN VLAAS</div>
+                        <div className="vendor-sidebar-logo-desc">Vendor Management</div>
+                    </div>
+                </div>
+            </div>
 
-      <nav className="vendor-nav">
-        {menuItems.map((item) => {
-          const Icon = item.icon
-          const isActive = item.path === '/vendor-portal'
-            ? pathname === '/vendor-portal'
-            : pathname.startsWith(item.path)
+            <nav className="vendor-nav">
+                {menuItems.map((item) => {
+                    const Icon = item.icon
+                    const isActive = item.path === '/vendor-portal'
+                        ? pathname === '/vendor-portal'
+                        : pathname.startsWith(item.path)
 
-          return (
-            <Link
-              key={item.path}
-              href={item.path}
-              className={`vendor-nav-item ${isActive ? 'active' : ''}`}
-            >
-              <Icon size={22} strokeWidth={2} className="vendor-nav-icon" />
-              <span className="vendor-nav-text">{item.label}</span>
-            </Link>
-          )
-        })}
-      </nav>
-    </VendorSidebarWrapper>
-  )
+                    return (
+                        <Link
+                            key={item.path}
+                            href={item.path}
+                            className={`vendor-nav-item ${isActive ? 'active' : ''}`}
+                        >
+                            <Icon size={22} strokeWidth={2} className="vendor-nav-icon" />
+                            <span className="vendor-nav-text">{item.label}</span>
+                        </Link>
+                    )
+                })}
+            </nav>
+        </VendorSidebarWrapper>
+    )
 }
 
 export default VendorSidebar

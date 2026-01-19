@@ -27,9 +27,9 @@ const LayoutContainer = styled.div`
   }
 `;
 
-const MainContent = styled.div`
+const MainContent = styled.div<{ $isExpanded: boolean }>`
   flex: 1;
-  margin-left: ${props => props.$isExpanded ? '17.5rem' : '5.5rem'};
+  margin-left: ${props => props.$isExpanded ? '15rem' : '5rem'};
   transition: margin-left 0.3s ease;
   display: flex;
   flex-direction: column;
@@ -37,7 +37,16 @@ const MainContent = styled.div`
   z-index: 1;
   min-height: 100vh;
 
+  /* Zoom 110-125% detection - effective width reduces */
+  @media (max-width: 1536px) {
+    margin-left: ${props => props.$isExpanded ? '14rem' : '4.5rem'};
+  }
+
   @media (max-width: 1400px) {
+    margin-left: ${props => props.$isExpanded ? '13rem' : '4.5rem'};
+  }
+
+  @media (max-width: 1200px) {
     margin-left: 0 !important;
   }
 
@@ -63,7 +72,11 @@ const ContentArea = styled.div`
   }
 `;
 
-export default function AdminLayout({ children }) {
+interface AdminLayoutProps {
+  children: React.ReactNode
+}
+
+export default function AdminLayout({ children }: AdminLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false) // Mobile drawer
   const [isExpanded, setIsExpanded] = useState(false) // Desktop mini/full
   const [isHydrated, setIsHydrated] = useState(false)
@@ -94,7 +107,7 @@ export default function AdminLayout({ children }) {
           toggleSidebar={toggleSidebar}
         />
         <MainContent $isExpanded={isExpanded}>
-          <Header onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
+          <Header onMenuClick={() => setSidebarOpen(!sidebarOpen)} isExpanded={isExpanded} />
           <ContentArea>
             {children}
           </ContentArea>
