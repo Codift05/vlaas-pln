@@ -11,11 +11,11 @@ textarea:focus {
 /* Modal Upload PDF Custom Style */
 .modal-upload-content {
   background: var(--bg-card);
-  border-radius: 16px;
-  max-width: 420px;
+  border-radius: 1rem;
+  max-width: 26.25rem;
   width: 100%;
   margin: 0 auto;
-  padding: 32px 28px 24px 28px;
+  padding: 2rem 1.75rem 1.5rem;
   box-shadow: var(--shadow-lg);
   display: flex;
   flex-direction: column;
@@ -23,19 +23,19 @@ textarea:focus {
 }
 
 .modal-upload-title {
-  font-size: 22px;
+  font-size: clamp(1.25rem, 1.1rem + 0.5vw, 1.375rem);
   font-weight: 700;
   color: var(--text-primary);
-  margin-bottom: 18px;
+  margin-bottom: 1.125rem;
   text-align: left;
 }
 
 .modal-upload-input {
-  margin-bottom: 18px;
-  padding: 10px 14px;
+  margin-bottom: 1.125rem;
+  padding: 0.625rem 0.875rem;
   border: 1px solid var(--border-strong);
-  border-radius: 8px;
-  font-size: 15px;
+  border-radius: 0.5rem;
+  font-size: clamp(0.875rem, 0.8rem + 0.25vw, 0.938rem);
   background: var(--bg-input);
   color: var(--text-primary);
 }
@@ -44,13 +44,13 @@ textarea:focus {
   background: var(--primary-gradient);
   color: var(--text-inverse);
   border: none;
-  border-radius: 8px;
-  padding: 12px 0;
-  font-size: 15px;
+  border-radius: 0.5rem;
+  padding: 0.75rem 0;
+  font-size: clamp(0.875rem, 0.8rem + 0.25vw, 0.938rem);
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
-  margin-top: 4px;
+  margin-top: 0.25rem;
 }
 
 .modal-upload-btn:disabled {
@@ -89,26 +89,26 @@ textarea:focus {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 28px;
-  gap: 16px;
+  margin-bottom: 1.75rem;
+  gap: 1rem;
   flex-wrap: wrap;
 }
 
 .action-buttons-group {
   display: flex;
-  gap: 12px;
+  gap: 0.75rem;
   align-items: center;
 }
 
 .filter-section {
   display: flex;
-  gap: 14px;
+  gap: 0.875rem;
   flex: 1;
   align-items: center;
 }
 
 .search-result-count {
-  font-size: 13px;
+  font-size: clamp(0.75rem, 0.7rem + 0.2vw, 0.813rem);
   color: var(--text-muted);
   white-space: nowrap;
   font-weight: 500;
@@ -118,16 +118,16 @@ textarea:focus {
 /* Custom Dropdown */
 .custom-dropdown {
   position: relative;
-  min-width: 200px;
+  min-width: clamp(10rem, 12.5rem, 15rem);
 }
 
 .dropdown-button {
   width: 100%;
-  padding: 11px 20px;
-  padding-right: 40px;
+  padding: 0.688rem 1.25rem;
+  padding-right: 2.5rem;
   border: 1px solid var(--border-color);
-  border-radius: 16px;
-  font-size: 14px;
+  border-radius: 1rem;
+  font-size: clamp(0.813rem, 0.75rem + 0.25vw, 0.875rem);
   background: var(--bg-header);
   cursor: pointer;
   outline: none;
@@ -164,13 +164,13 @@ textarea:focus {
 
 .dropdown-menu {
   position: absolute;
-  top: calc(100% + 8px);
+  top: calc(100% + 0.5rem);
   left: 0;
   right: 0;
   background: var(--bg-card);
-  border-radius: 16px;
+  border-radius: 1rem;
   box-shadow: var(--shadow-lg);
-  padding: 8px;
+  padding: 0.5rem;
   z-index: 1000;
   animation: dropdownSlide 0.2s ease;
   border: 1px solid var(--border-color);
@@ -179,7 +179,7 @@ textarea:focus {
 @keyframes dropdownSlide {
   from {
     opacity: 0;
-    transform: translateY(-8px);
+    transform: translateY(-0.5rem);
   }
 
   to {
@@ -189,15 +189,15 @@ textarea:focus {
 }
 
 .dropdown-item {
-  padding: 12px 16px;
-  border-radius: 12px;
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
   cursor: pointer;
   transition: all 0.2s;
   font-family: var(--font-inter);
-  font-size: 14px;
+  font-size: clamp(0.813rem, 0.75rem + 0.25vw, 0.875rem);
   font-weight: 500;
   color: var(--text-primary);
-  margin: 4px 0;
+  margin: 0.25rem 0;
 }
 
 .dropdown-item:hover {
@@ -239,10 +239,10 @@ textarea:focus {
 
 .search-input-table {
   flex: 1;
-  padding: 11px 20px;
+  padding: 0.688rem 1.25rem;
   border: 1px solid var(--border-strong) !important;
-  border-radius: 12px;
-  font-size: 14px;
+  border-radius: 0.75rem;
+  font-size: clamp(0.813rem, 0.75rem + 0.25vw, 0.875rem);
   outline: none;
   transition: all 0.25s;
   background: var(--bg-input) !important;
@@ -269,35 +269,35 @@ textarea:focus {
 .btn-primary {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 11px 24px;
+  gap: 0.5rem;
+  padding: 0.688rem 1.5rem;
   background: var(--primary-gradient);
   color: var(--text-inverse);
   border: none;
-  border-radius: 12px;
-  font-size: 14px;
+  border-radius: 0.75rem;
+  font-size: clamp(0.813rem, 0.75rem + 0.25vw, 0.875rem);
   font-weight: 600;
   cursor: pointer;
   transition: all 0.25s;
-  box-shadow: 0 2px 8px rgba(126, 185, 217, 0.2);
+  box-shadow: 0 0.125rem 0.5rem rgba(126, 185, 217, 0.2);
   font-family: var(--font-inter);
 }
 
 .btn-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(126, 185, 217, 0.3);
+  transform: translateY(-0.125rem);
+  box-shadow: 0 0.25rem 0.75rem rgba(126, 185, 217, 0.3);
 }
 
 /* Secondary Button */
 .btn-secondary {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 11px 20px;
+  gap: 0.5rem;
+  padding: 0.688rem 1.25rem;
   background: var(--bg-card);
   color: var(--text-primary);
   border: 1px solid var(--border-color);
-  border-radius: 12px;
+  border-radius: 0.75rem;
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
@@ -408,11 +408,11 @@ textarea:focus {
 .table-container {
   background: var(--bg-header);
   backdrop-filter: blur(10px);
-  border-radius: 16px;
+  border-radius: 1rem;
   box-shadow: var(--shadow-md);
   border: 1px solid rgba(255, 255, 255, 0.1);
   overflow: hidden;
-  margin-bottom: 20px;
+  margin-bottom: 1.25rem;
 }
 
 .assets-table {
@@ -425,14 +425,14 @@ textarea:focus {
 }
 
 .assets-table th {
-  padding: 16px;
+  padding: 1rem;
   text-align: left;
-  font-size: 13px;
+  font-size: clamp(0.75rem, 0.7rem + 0.2vw, 0.813rem);
   font-weight: 700;
   color: var(--text-primary);
   border-bottom: 2px solid var(--border-color);
   font-family: var(--font-inter);
-  letter-spacing: 0.2px;
+  letter-spacing: 0.0125rem;
 }
 
 .assets-table tbody tr {
@@ -445,8 +445,8 @@ textarea:focus {
 }
 
 .assets-table td {
-  padding: 16px;
-  font-size: 14px;
+  padding: 1rem;
+  font-size: clamp(0.813rem, 0.75rem + 0.25vw, 0.875rem);
   color: var(--text-secondary);
   font-family: var(--font-inter);
 }
@@ -464,12 +464,12 @@ textarea:focus {
 /* Status Badges */
 .status-badge {
   display: inline-block;
-  padding: 6px 14px;
-  border-radius: 12px;
-  font-size: 12px;
+  padding: 0.375rem 0.875rem;
+  border-radius: 0.75rem;
+  font-size: clamp(0.688rem, 0.65rem + 0.15vw, 0.75rem);
   font-weight: 600;
   font-family: var(--font-inter);
-  letter-spacing: 0.2px;
+  letter-spacing: 0.0125rem;
 }
 
 .status-active,
@@ -532,12 +532,12 @@ textarea:focus {
 /* Budget Type Badges */
 .budget-badge {
   display: inline-block;
-  padding: 6px 14px;
-  border-radius: 12px;
-  font-size: 12px;
+  padding: 0.375rem 0.875rem;
+  border-radius: 0.75rem;
+  font-size: clamp(0.688rem, 0.65rem + 0.15vw, 0.75rem);
   font-weight: 700;
   font-family: var(--font-inter);
-  letter-spacing: 0.3px;
+  letter-spacing: 0.019rem;
 }
 
 .budget-ai {
@@ -555,12 +555,12 @@ textarea:focus {
 /* Contract Type Badges */
 .contract-badge {
   display: inline-block;
-  padding: 6px 14px;
-  border-radius: 12px;
-  font-size: 12px;
+  padding: 0.375rem 0.875rem;
+  border-radius: 0.75rem;
+  font-size: clamp(0.688rem, 0.65rem + 0.15vw, 0.75rem);
   font-weight: 700;
   font-family: var(--font-inter);
-  letter-spacing: 0.3px;
+  letter-spacing: 0.019rem;
 }
 
 .contract-pj {
@@ -587,15 +587,15 @@ textarea:focus {
 /* Action Buttons */
 .action-buttons {
   display: flex;
-  gap: 6px;
+  gap: 0.375rem;
   justify-content: center;
 }
 
 .btn-icon {
-  width: 32px;
-  height: 32px;
+  width: 2rem;
+  height: 2rem;
   border: none;
-  border-radius: 8px;
+  border-radius: 0.5rem;
   cursor: pointer;
   transition: all 0.2s;
   display: inline-flex;
@@ -644,11 +644,11 @@ textarea:focus {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px 0;
+  padding: 1.25rem 0;
 }
 
 .pagination-info {
-  font-size: 14px;
+  font-size: clamp(0.813rem, 0.75rem + 0.25vw, 0.875rem);
   color: var(--text-muted);
   font-family: var(--font-inter);
   font-weight: 500;
@@ -656,15 +656,15 @@ textarea:focus {
 
 .pagination-controls {
   display: flex;
-  gap: 6px;
+  gap: 0.375rem;
 }
 
 .pagination-btn {
-  padding: 8px 16px;
+  padding: 0.5rem 1rem;
   border: 1px solid var(--border-color);
   background: var(--bg-card);
-  border-radius: 8px;
-  font-size: 14px;
+  border-radius: 0.5rem;
+  font-size: clamp(0.813rem, 0.75rem + 0.25vw, 0.875rem);
   cursor: pointer;
   transition: all 0.2s;
   font-family: var(--font-inter);
@@ -738,12 +738,12 @@ textarea:focus {
 
 .modal-content {
   background: white;
-  border-radius: 16px;
+  border-radius: 1rem;
   width: 90%;
-  max-width: 850px;
+  max-width: clamp(40rem, 50vw, 53.125rem);
   max-height: 90vh;
   overflow-y: auto;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 0.625rem 2.5rem rgba(0, 0, 0, 0.2);
   animation: slideUp 0.3s;
 }
 
@@ -856,12 +856,12 @@ textarea:focus {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 30px 40px;
+  padding: 1.875rem 2.5rem;
   border-bottom: 1px solid #e9ecef;
 }
 
 .modal-header h2 {
-  font-size: 24px;
+  font-size: clamp(1.25rem, 1.1rem + 0.5vw, 1.5rem);
   font-weight: 700;
   color: #1a1a1a;
   margin: 0;
@@ -870,15 +870,15 @@ textarea:focus {
 .modal-close {
   background: none;
   border: none;
-  font-size: 28px;
+  font-size: clamp(1.5rem, 1.4rem + 0.3vw, 1.75rem);
   color: #999;
   cursor: pointer;
-  width: 36px;
-  height: 36px;
+  width: 2.25rem;
+  height: 2.25rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 8px;
+  border-radius: 0.5rem;
   transition: all 0.3s;
 }
 
@@ -888,11 +888,11 @@ textarea:focus {
 }
 
 .modal-body {
-  padding: 30px 40px;
+  padding: 1.875rem 2.5rem;
 }
 
 .modal-form {
-  padding: 30px 40px;
+  padding: 1.875rem 2.5rem;
 }
 
 .form-grid {
@@ -1012,40 +1012,66 @@ textarea:focus {
   box-shadow: 0 2px 8px rgba(126, 185, 217, 0.15);
 }
 
+/* Tablet Landscape & Small Desktop */
+@media (max-width: 1200px) {
+  .custom-dropdown {
+    min-width: 10rem;
+  }
+
+  .table-container {
+    overflow-x: auto;
+  }
+}
+
+/* Tablet Portrait */
 @media (max-width: 968px) {
   .main-content {
     margin-left: 0;
   }
 
   .content-area {
-    padding: 20px;
+    padding: 1.25rem;
   }
 
   .action-bar {
     flex-direction: column;
     align-items: stretch;
+    gap: 0.75rem;
   }
 
   .filter-section {
     flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .custom-dropdown {
+    min-width: 100%;
   }
 
   .table-container {
     overflow-x: auto;
+    border-radius: 0.75rem;
   }
 
   .assets-table {
-    min-width: 800px;
+    min-width: 50rem;
+  }
+
+  .assets-table th,
+  .assets-table td {
+    padding: 0.75rem 0.5rem;
   }
 
   .table-pagination {
     flex-direction: column;
-    gap: 15px;
+    gap: 1rem;
+    padding: 1rem 0;
   }
 
   .modal-content {
     width: 95%;
     max-height: 95vh;
+    margin: 1rem;
   }
 
   .form-grid {
@@ -1053,27 +1079,74 @@ textarea:focus {
   }
 
   .modal-header {
-    padding: 20px;
+    padding: 1.25rem;
   }
 
   .modal-form {
-    padding: 20px;
+    padding: 1.25rem;
+  }
+
+  .btn-primary,
+  .btn-secondary {
+    width: 100%;
+    justify-content: center;
   }
 }
 
+/* Mobile */
 @media (max-width: 600px) {
   .content-area {
-    padding: 15px;
+    padding: 0.938rem;
   }
 
-  .btn-add-new {
+  .action-bar {
+    margin-bottom: 1rem;
+  }
+
+  .btn-add-new,
+  .btn-primary,
+  .btn-secondary {
     width: 100%;
+    justify-content: center;
+  }
+
+  .assets-table {
+    min-width: 40rem;
   }
 
   .assets-table th,
   .assets-table td {
-    padding: 10px 8px;
-    font-size: 13px;
+    padding: 0.625rem 0.5rem;
+    font-size: clamp(0.75rem, 0.7rem + 0.2vw, 0.813rem);
+  }
+
+  .status-badge,
+  .budget-badge,
+  .contract-badge {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.625rem;
+  }
+
+  .btn-icon {
+    width: 1.75rem;
+    height: 1.75rem;
+  }
+
+  .pagination-btn {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.75rem;
+  }
+
+  .modal-content {
+    width: 98%;
+    margin: 0.5rem;
+    border-radius: 0.75rem;
+  }
+
+  .modal-header,
+  .modal-form,
+  .modal-body {
+    padding: 1rem;
   }
 }
 

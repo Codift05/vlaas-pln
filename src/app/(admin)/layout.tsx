@@ -43,11 +43,11 @@ const MainContent = styled.div`
 `;
 
 const ContentArea = styled.div`
-  padding: 32px 40px;
+  padding: clamp(1.25rem, 2vw, 2.5rem) clamp(1.5rem, 2.5vw, 2.5rem);
   flex: 1;
 
   @media (max-width: 968px) {
-    padding: 20px;
+    padding: 1.25rem;
   }
 
   @media (max-width: 600px) {
