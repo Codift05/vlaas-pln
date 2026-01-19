@@ -86,8 +86,6 @@ function Laporan() {
     const [deadlineContracts, setDeadlineContracts] = useState<RemainingContract[]>([])
     const [showVendorDetailModal, setShowVendorDetailModal] = useState(false)
     const [selectedMonthData, setSelectedMonthData] = useState<any>(null)
-    const [showVendorDetailModal, setShowVendorDetailModal] = useState(false)
-    const [selectedMonthData, setSelectedMonthData] = useState<any>(null)
     // (removed grouped bar chart logic, keep only stacked bar logic)
     const [monthlyData, setMonthlyData] = useState<MonthlyData[]>(
         Array(12).fill(null).map((_, i) => ({
@@ -1419,11 +1417,11 @@ function Laporan() {
                         </div>
                         <div className="modal-body" style={{ padding: '24px 32px' }}>
                             {/* Summary Cards */}
-                            <div style={{ 
-                                display: 'grid', 
-                                gridTemplateColumns: 'repeat(2, 1fr)', 
-                                gap: '16px', 
-                                marginBottom: '24px' 
+                            <div style={{
+                                display: 'grid',
+                                gridTemplateColumns: 'repeat(2, 1fr)',
+                                gap: '16px',
+                                marginBottom: '24px'
                             }}>
                                 <div style={{
                                     background: 'linear-gradient(135deg, #2ecc71 0%, #27ae60 100%)',
@@ -1450,7 +1448,7 @@ function Laporan() {
                                 <h3 style={{ fontSize: '18px', fontWeight: '600', marginBottom: '16px', color: '#1e293b' }}>
                                     📋 Daftar Vendor & Kontrak Aktif
                                 </h3>
-                                
+
                                 {selectedMonthData.activeVendorDetails && selectedMonthData.activeVendorDetails.length > 0 ? (
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                                         {selectedMonthData.activeVendorDetails.map((vendor: any, idx: number) => {
@@ -1459,11 +1457,11 @@ function Laporan() {
                                                 const activeStatuses = ['Terkontrak', 'Dalam Proses Pekerjaan', 'Dalam Pemeriksaan', 'Telah Diperiksa'];
                                                 if (!activeStatuses.includes(c.status)) return false;
                                                 if (c.vendor_name !== vendor.vendorName) return false;
-                                                
+
                                                 const startDate = new Date(c.start_date);
                                                 const endDate = new Date(c.end_date);
                                                 const checkDate = new Date(selectedMonthData.year, selectedMonthData.monthIndex, 15);
-                                                
+
                                                 return checkDate >= startDate && checkDate <= endDate;
                                             });
 
@@ -1474,16 +1472,16 @@ function Laporan() {
                                                     padding: '16px',
                                                     background: '#f8fafc'
                                                 }}>
-                                                    <div style={{ 
-                                                        display: 'flex', 
-                                                        justifyContent: 'space-between', 
+                                                    <div style={{
+                                                        display: 'flex',
+                                                        justifyContent: 'space-between',
                                                         alignItems: 'start',
                                                         marginBottom: '12px'
                                                     }}>
                                                         <div>
-                                                            <div style={{ 
-                                                                fontSize: '16px', 
-                                                                fontWeight: '600', 
+                                                            <div style={{
+                                                                fontSize: '16px',
+                                                                fontWeight: '600',
                                                                 color: '#1e293b',
                                                                 marginBottom: '4px'
                                                             }}>
@@ -1494,13 +1492,13 @@ function Laporan() {
                                                             </div>
                                                         </div>
                                                     </div>
-                                                    
+
                                                     {/* Contract Details */}
                                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '12px' }}>
                                                         {vendorContracts.map((contract: any, cIdx: number) => {
                                                             const startDate = new Date(contract.start_date);
                                                             const endDate = new Date(contract.end_date);
-                                                            
+
                                                             return (
                                                                 <div key={cIdx} style={{
                                                                     background: 'white',
@@ -1508,41 +1506,41 @@ function Laporan() {
                                                                     borderRadius: '8px',
                                                                     border: '1px solid #e2e8f0'
                                                                 }}>
-                                                                    <div style={{ 
-                                                                        display: 'flex', 
+                                                                    <div style={{
+                                                                        display: 'flex',
                                                                         justifyContent: 'space-between',
                                                                         alignItems: 'start',
                                                                         gap: '12px'
                                                                     }}>
                                                                         <div style={{ flex: 1 }}>
-                                                                            <div style={{ 
-                                                                                fontSize: '14px', 
-                                                                                fontWeight: '600', 
+                                                                            <div style={{
+                                                                                fontSize: '14px',
+                                                                                fontWeight: '600',
                                                                                 color: '#334155',
                                                                                 marginBottom: '6px'
                                                                             }}>
                                                                                 {contract.name || contract.contract_number || 'Nama kontrak tidak tersedia'}
                                                                             </div>
-                                                                            <div style={{ 
-                                                                                fontSize: '12px', 
+                                                                            <div style={{
+                                                                                fontSize: '12px',
                                                                                 color: '#64748b',
                                                                                 display: 'flex',
                                                                                 alignItems: 'center',
                                                                                 gap: '4px',
                                                                                 marginBottom: '4px'
                                                                             }}>
-                                                                                📅 {startDate.toLocaleDateString('id-ID', { 
-                                                                                    year: 'numeric', 
-                                                                                    month: 'short', 
-                                                                                    day: 'numeric' 
-                                                                                })} - {endDate.toLocaleDateString('id-ID', { 
-                                                                                    year: 'numeric', 
-                                                                                    month: 'short', 
-                                                                                    day: 'numeric' 
+                                                                                📅 {startDate.toLocaleDateString('id-ID', {
+                                                                                    year: 'numeric',
+                                                                                    month: 'short',
+                                                                                    day: 'numeric'
+                                                                                })} - {endDate.toLocaleDateString('id-ID', {
+                                                                                    year: 'numeric',
+                                                                                    month: 'short',
+                                                                                    day: 'numeric'
                                                                                 })}
                                                                             </div>
-                                                                            <div style={{ 
-                                                                                fontSize: '12px', 
+                                                                            <div style={{
+                                                                                fontSize: '12px',
                                                                                 color: '#64748b',
                                                                                 display: 'flex',
                                                                                 alignItems: 'center',
@@ -1561,16 +1559,16 @@ function Laporan() {
                                                                                 padding: '4px 10px',
                                                                                 borderRadius: '6px',
                                                                                 fontWeight: '600',
-                                                                                background: 
+                                                                                background:
                                                                                     contract.status === 'Terkontrak' ? 'rgba(59, 130, 246, 0.12)' :
-                                                                                    contract.status === 'Dalam Proses Pekerjaan' ? 'rgba(245, 158, 11, 0.12)' :
-                                                                                    contract.status === 'Dalam Pemeriksaan' ? 'rgba(139, 92, 246, 0.12)' :
-                                                                                    'rgba(6, 182, 212, 0.12)',
+                                                                                        contract.status === 'Dalam Proses Pekerjaan' ? 'rgba(245, 158, 11, 0.12)' :
+                                                                                            contract.status === 'Dalam Pemeriksaan' ? 'rgba(139, 92, 246, 0.12)' :
+                                                                                                'rgba(6, 182, 212, 0.12)',
                                                                                 color:
                                                                                     contract.status === 'Terkontrak' ? '#2563eb' :
-                                                                                    contract.status === 'Dalam Proses Pekerjaan' ? '#d97706' :
-                                                                                    contract.status === 'Dalam Pemeriksaan' ? '#7c3aed' :
-                                                                                    '#0891b2',
+                                                                                        contract.status === 'Dalam Proses Pekerjaan' ? '#d97706' :
+                                                                                            contract.status === 'Dalam Pemeriksaan' ? '#7c3aed' :
+                                                                                                '#0891b2',
                                                                                 whiteSpace: 'nowrap'
                                                                             }}>
                                                                                 {contract.status}
@@ -1586,9 +1584,9 @@ function Laporan() {
                                         })}
                                     </div>
                                 ) : (
-                                    <div style={{ 
-                                        textAlign: 'center', 
-                                        padding: '40px', 
+                                    <div style={{
+                                        textAlign: 'center',
+                                        padding: '40px',
                                         color: '#64748b',
                                         background: '#f8fafc',
                                         borderRadius: '12px'
