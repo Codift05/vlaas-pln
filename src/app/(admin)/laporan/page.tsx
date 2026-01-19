@@ -1533,9 +1533,9 @@ function Laporan() {
                         </div>
                     </div>
                 )}
-            </>
-        )
-    }
+        </>
+    )
+}
 
-    export default Laporan
+export default Laporan
 
