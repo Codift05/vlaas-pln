@@ -1180,58 +1180,45 @@ function Laporan() {
                                             </>
                                         );
                                     })()}
+                                </g>
+                                );
+                        })()}
                             </svg>
-
-                            {/* X-axis labels */}
-                            <div style={{
-                                display: 'flex',
-                                justifyContent: 'space-between',
-                                paddingLeft: '50px',
-                                paddingRight: '50px',
-                                fontSize: '12px',
-                                color: '#64748b',
-                                fontWeight: 500
-                            }}>
-                                {(monthlyData as any[]).map((data, index) => (
-                                    <span key={index}>{data.month}</span>
-                                ))}
-                            </div>
 
                             {/* Legend */}
                             <div style={{
                                 display: 'flex',
                                 justifyContent: 'center',
-                                gap: '24px',
-                                marginTop: '16px',
+                                gap: '32px',
+                                marginTop: '20px',
                                 fontSize: '13px',
-                                color: '#64748b'
+                                color: '#475569'
                             }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                     <div style={{
-                                        width: '32px',
+                                        width: '24px',
                                         height: '3px',
-                                        background: '#2ecc71',
+                                        background: '#f59e0b',
                                         borderRadius: '2px'
                                     }}></div>
-                                    <span>Vendor Baru Terdaftar</span>
+                                    <span style={{ fontWeight: '500' }}>Vendor Baru Terdaftar</span>
                                 </div>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                     <div style={{
-                                        width: '32px',
+                                        width: '24px',
                                         height: '3px',
                                         background: '#3b82f6',
-                                        borderRadius: '2px',
-                                        backgroundImage: 'repeating-linear-gradient(90deg, #3b82f6, #3b82f6 6px, transparent 6px, transparent 10px)'
+                                        borderRadius: '2px'
                                     }}></div>
-                                    <span>Vendor Aktif Mengerjakan Kontrak</span>
+                                    <span style={{ fontWeight: '500' }}>Vendor Aktif Mengerjakan Kontrak</span>
                                 </div>
                             </div>
                         </div>
 
-                    </div >
+                    </div>
 
                     {/* Pie Chart - Komposisi Keputusan */}
-                    < div className="chart-card" >
+                    <div className="chart-card">
                         <div className="chart-header">
                             <h3><Target size={20} style={{ display: 'inline', marginRight: '8px' }} /> Komposisi Keputusan</h3>
                             <span className="chart-subtitle">Distribusi status dokumen</span>
