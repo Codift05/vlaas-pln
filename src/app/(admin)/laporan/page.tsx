@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import Select from 'react-select'
-import { FileDown, FileText, Clock, CheckCircle, BarChart2, ClipboardList, Hourglass, Target, Activity } from 'lucide-react'
+import { FileDown, FileText, Clock, CheckCircle, BarChart2, ClipboardList, Hourglass, Target, Activity, Calendar, DollarSign } from 'lucide-react'
 import { contractService } from '@/services/contractService'
 import * as vendorService from '@/services/vendorService'
 import './Laporan.css'
@@ -1445,8 +1445,8 @@ function Laporan() {
 
                             {/* Vendor List */}
                             <div>
-                                <h3 style={{ fontSize: '18px', fontWeight: '600', marginBottom: '16px', color: '#1e293b' }}>
-                                    📋 Daftar Vendor & Kontrak Aktif
+                                <h3 style={{ fontSize: '18px', fontWeight: '600', marginBottom: '16px', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <ClipboardList size={20} style={{ color: '#3b82f6' }} /> Daftar Vendor & Kontrak Aktif
                                 </h3>
 
                                 {selectedMonthData.activeVendorDetails && selectedMonthData.activeVendorDetails.length > 0 ? (
@@ -1526,10 +1526,10 @@ function Laporan() {
                                                                                 color: '#64748b',
                                                                                 display: 'flex',
                                                                                 alignItems: 'center',
-                                                                                gap: '4px',
+                                                                                gap: '6px',
                                                                                 marginBottom: '4px'
                                                                             }}>
-                                                                                📅 {startDate.toLocaleDateString('id-ID', {
+                                                                                <Calendar size={14} style={{ flexShrink: 0 }} /> {startDate.toLocaleDateString('id-ID', {
                                                                                     year: 'numeric',
                                                                                     month: 'short',
                                                                                     day: 'numeric'
@@ -1544,9 +1544,9 @@ function Laporan() {
                                                                                 color: '#64748b',
                                                                                 display: 'flex',
                                                                                 alignItems: 'center',
-                                                                                gap: '4px'
+                                                                                gap: '6px'
                                                                             }}>
-                                                                                💰 {new Intl.NumberFormat('id-ID', {
+                                                                                <DollarSign size={14} style={{ flexShrink: 0 }} /> {new Intl.NumberFormat('id-ID', {
                                                                                     style: 'currency',
                                                                                     currency: 'IDR',
                                                                                     minimumFractionDigits: 0

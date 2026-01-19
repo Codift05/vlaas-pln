@@ -3,6 +3,7 @@ import { useState, useRef, useEffect, Fragment } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { Eye, Edit, Trash2, Search, ChevronDown, ChevronUp, Plus, Save, Upload, Calendar, Clock, ArrowRight, FileText, AlertCircle, AlertTriangle, FileCheck, History, Activity, X, CheckCircle, Info, AlertOctagon } from 'lucide-react'
 import { supabase } from '../../../lib/supabaseClient'
+import { autoSyncVendor } from '../../../services/vendorService'
 import './ManajemenAset.css'
 
 function ManajemenAset() {
@@ -657,7 +658,17 @@ function ManajemenAset() {
 
         try {
             if (isEditing) {
-                // 1. Update Contracts Table
+                // 1. Auto-sync vendor jika vendor berubah
+                const oldData = assets.find(a => a.id === editId)
+                if (formData.vendorName && formData.vendorName.trim() !== '' && 
+                    oldData && oldData.vendorName !== formData.vendorName) {
+                    const syncResult = await autoSyncVendor(formData.vendorName);
+                    if (syncResult.success) {
+                        console.log('Vendor sync on update:', syncResult.message);
+                    }
+                }
+
+                // 2. Update Contracts Table
                 const { error: updateError } = await supabase
                     .from('contracts')
                     .update({
@@ -728,7 +739,17 @@ function ManajemenAset() {
 
                 showAlert('success', 'Berhasil', 'Kontrak berhasil diperbarui!')
             } else {
-                // 1. Insert New Contract
+                // 1. Auto-sync vendor (create jika belum ada)
+                if (formData.vendorName && formData.vendorName.trim() !== '') {
+                    const syncResult = await autoSyncVendor(formData.vendorName);
+                    if (syncResult.success) {
+                        console.log('Vendor sync:', syncResult.message);
+                    } else {
+                        console.warn('Vendor sync warning:', syncResult.message);
+                    }
+                }
+
+                // 2. Insert New Contract
                 const payload = {
                     id: formData.id,
                     name: formData.name,
