@@ -152,9 +152,9 @@ export default function DashboardPage() {
         const newChartData = months.map(m => ({ month: m, dalamProses: 0, terbayar: 0, total: 0 }))
 
         contracts.forEach(contract => {
-            if (!contract.start_date) return
+            if (!contract.created_at) return
 
-            const date = new Date(contract.start_date)
+            const date = new Date(contract.created_at)
             const contractYear = date.getFullYear()
             const monthIndex = date.getMonth()
 

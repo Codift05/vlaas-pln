@@ -366,11 +366,11 @@ function Laporan() {
 
     const processVendorChartData = (vendors: any[], year: number) => {
         const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des']
-        const newChartData = months.map(m => ({ 
-            month: m, 
+        const newChartData = months.map(m => ({
+            month: m,
             total: 0, // Total kontrak dibuat di bulan ini
             activeVendors: 0, // Vendor aktif yang punya kontrak berjalan
-            activeVendorDetails: [] as any[] 
+            activeVendorDetails: [] as any[]
         }))
 
         // Hitung kontrak yang dibuat per bulan (dari created_at)
