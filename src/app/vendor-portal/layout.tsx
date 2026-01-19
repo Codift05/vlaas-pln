@@ -4,7 +4,11 @@ import VendorSidebar from '../../components/VendorSidebar'
 import VendorProtectedRoute from '../../components/VendorProtectedRoute'
 import './VendorLayout.css'
 
-export default function VendorPortalLayout({ children }) {
+interface VendorPortalLayoutProps {
+    children: React.ReactNode
+}
+
+export default function VendorPortalLayout({ children }: VendorPortalLayoutProps) {
     return (
         <VendorProtectedRoute>
             <div className="vendor-layout">

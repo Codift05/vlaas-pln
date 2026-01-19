@@ -54,48 +54,27 @@ function ManajemenAset() {
 
     // Handle upload PDF
     async function handleUpload() {
-        if (!selectedFile) {
-            showAlert('error', 'Gagal', 'Pilih file terlebih dahulu')
-            return
-        }
-
         setUploading(true)
         setUploadError('')
         setUploadSuccess('')
         try {
-            // Upload ke Google Drive via API route
             const formData = new FormData()
             formData.append('file', selectedFile)
-
-            const res = await fetch('/api/upload', {
+            formData.append('contract_id', selectedContractId)
+            const res = await fetch('/functions/v1/upload_pdf_to_drive', {
                 method: 'POST',
                 body: formData
             })
-
             const data = await res.json()
-
-            if (!data.success) {
-                throw new Error(data.error || 'Upload gagal')
-            }
-
-            // Simpan ke Supabase table dengan link Google Drive
+            if (!res.ok) throw new Error(data.error || 'Upload gagal')
+            // Simpan ke Supabase table
             const { error } = await supabase
                 .from('contract_files')
-                .insert([{
-                    contract_id: selectedContractId,
-                    file_url: data.file.webViewLink
-                }])
-
+                .insert([{ contract_id: selectedContractId, file_url: data.webViewLink }])
             if (error) throw new Error(error.message)
-
-            showAlert('success', 'Berhasil', 'File berhasil diupload ke Google Drive!')
-            setUploadSuccess(`File berhasil diupload! ${data.file.name}`)
-            setShowUploadModal(false)
-
-            // Refresh data
-            fetchContracts()
+            showAlert('success', 'Berhasil', 'Upload berhasil! Link: ' + data.webViewLink)
+            setUploadSuccess('Upload berhasil! Link: ' + data.webViewLink)
         } catch (err) {
-            console.error('Upload error:', err)
             setUploadError(err.message)
             showAlert('error', 'Gagal', 'Gagal upload: ' + err.message)
         } finally {
@@ -130,8 +109,8 @@ function ManajemenAset() {
                 .from('contracts')
                 .select(`
                     *,
-                    history: contract_history(*)
-                    `)
+                    history:contract_history(*)
+                `)
 
             if (error) throw error
 
@@ -181,7 +160,7 @@ function ManajemenAset() {
 
                 // Scroll ke kontrak setelah render
                 setTimeout(() => {
-                    const element = document.querySelector(`tr[data - contract - id= "${contractId}"]`)
+                    const element = document.querySelector(`tr[data-contract-id="${contractId}"]`)
                     if (element) {
                         element.scrollIntoView({ behavior: 'smooth', block: 'center' })
                     }
@@ -198,7 +177,7 @@ function ManajemenAset() {
         if (normalized === 'tidak aktif') return 'status-inactive'
 
         // Slugify for new statuses
-        return `status - ${normalized.replace(/\s+/g, '-')}`
+        return `status-${normalized.replace(/\s+/g, '-')}`
     }
 
     // State untuk mode edit
@@ -493,7 +472,7 @@ function ManajemenAset() {
             amount: asset.amount ? String(asset.amount) : '',
             category: asset.category || '',
             vendorName: asset.vendorName || '',
-            amendmentDocNumber: `AMD - ${asset.id} - ${String(nextAmendmentNum).padStart(3, '0')}`, // Auto-generate suggestion
+            amendmentDocNumber: `AMD-${asset.id}-${String(nextAmendmentNum).padStart(3, '0')}`, // Auto-generate suggestion
             amendmentDescription: ''
         })
         setEditId(asset.id)
@@ -545,9 +524,9 @@ function ManajemenAset() {
                 .from('contract_history')
                 .insert([{
                     contract_id: progressFormData.contractId,
-                    action: `Progress Tracker: ${progressFormData.title}(${percentage} %)`,
+                    action: `Progress Tracker: ${progressFormData.title} (${percentage}%)`,
                     user_name: 'Admin',
-                    details: `Progress: ${percentage} %.Status: ${progressFormData.status}.${progressFormData.description || 'Tidak ada keterangan tambahan.'} ${progressDateTime ? `Tanggal: ${progressDateTime}` : ''}`
+                    details: `Progress: ${percentage}%. Status: ${progressFormData.status}. ${progressFormData.description || 'Tidak ada keterangan tambahan.'} ${progressDateTime ? `Tanggal: ${progressDateTime}` : ''}`
                 }])
 
             if (historyError) {
@@ -690,26 +669,26 @@ function ManajemenAset() {
                     const oldAmount = Number(oldData.amount || 0)
                     const newAmount = Number(formData.amount || 0)
                     if (oldAmount !== newAmount) {
-                        changeDetails.push(`Nilai: ${oldAmount.toLocaleString('id-ID')} ➝ ${newAmount.toLocaleString('id-ID')} `)
+                        changeDetails.push(`Nilai: ${oldAmount.toLocaleString('id-ID')} ➝ ${newAmount.toLocaleString('id-ID')}`)
                     }
 
                     if (oldData.status !== formData.status) changeDetails.push(`Status: "${oldData.status}" ➝ "${formData.status}"`)
-                    if (oldData.startDate !== formData.startDate) changeDetails.push(`Tgl Mulai: ${oldData.startDate} ➝ ${formData.startDate} `)
-                    if (oldData.endDate !== formData.endDate) changeDetails.push(`Tgl Selesai: ${oldData.endDate} ➝ ${formData.endDate} `)
+                    if (oldData.startDate !== formData.startDate) changeDetails.push(`Tgl Mulai: ${oldData.startDate} ➝ ${formData.startDate}`)
+                    if (oldData.endDate !== formData.endDate) changeDetails.push(`Tgl Selesai: ${oldData.endDate} ➝ ${formData.endDate}`)
                     if (oldData.location !== formData.location) changeDetails.push(`Lokasi: "${oldData.location}" ➝ "${formData.location}"`)
                 }
 
                 const actionTitle = isAmendment
-                    ? `Amandemen Kontrak ${formData.amendmentDocNumber ? `(No. ${formData.amendmentDocNumber})` : ''} `
+                    ? `Amandemen Kontrak ${formData.amendmentDocNumber ? `(No. ${formData.amendmentDocNumber})` : ''}`
                     : (changeDetails.length > 0 ? 'Update Data' : 'Update Data (Tanpa Perubahan)')
 
                 let actionDetails = ''
                 if (isAmendment) {
-                    const changes = changeDetails.length > 0 ? ` Perubahan: ${changeDetails.join(', ')} ` : ''
-                    actionDetails = `${formData.amendmentDescription ? `Ket: ${formData.amendmentDescription}.` : ''}${changes} ` || 'Amandemen tercatat.'
+                    const changes = changeDetails.length > 0 ? ` Perubahan: ${changeDetails.join(', ')}` : ''
+                    actionDetails = `${formData.amendmentDescription ? `Ket: ${formData.amendmentDescription}.` : ''}${changes}` || 'Amandemen tercatat.'
                 } else {
                     actionDetails = changeDetails.length > 0
-                        ? `Perubahan: ${changeDetails.join(', ')} `
+                        ? `Perubahan: ${changeDetails.join(', ')}`
                         : `Update data kontrak ${editId} tanpa perubahan signifikan`
                 }
 
@@ -837,7 +816,7 @@ function ManajemenAset() {
                 // Re-select the asset to update the view
                 const updatedAssets = await supabase
                     .from('contracts')
-                    .select(`*, history: contract_history(*)`)
+                    .select(`*, history:contract_history(*)`)
                     .eq('id', contractId)
                     .single()
 
@@ -880,65 +859,29 @@ function ManajemenAset() {
         return (
             <>
                 {/* Deadline Alert Cards */}
-                <div style={{ display: 'flex', gap: '16px', marginBottom: '20px' }}>
-                    <div style={{
-                        flex: 1,
-                        background: '#fff',
-                        borderRadius: '16px',
-                        padding: '20px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '16px',
-                        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)'
-                    }}>
-                        <div style={{
-                            background: '#fee2e2',
-                            borderRadius: '50%',
-                            width: '56px',
-                            height: '56px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            flexShrink: 0
-                        }}>
+                <div className="deadline-stats-container">
+                    <div className="deadline-stat-card">
+                        <div className="deadline-stat-icon" style={{ background: '#fee2e2' }}>
                             <AlertOctagon size={28} style={{ color: '#dc2626' }} />
                         </div>
-                        <div style={{ flex: 1 }}>
-                            <div style={{ fontSize: '28px', fontWeight: 700, color: '#1e293b', lineHeight: 1 }}>
+                        <div className="deadline-stat-content">
+                            <div className="deadline-stat-number">
                                 {deadlineStats.overdue}
                             </div>
-                            <div style={{ fontSize: '13px', color: '#64748b', marginTop: '4px' }}>
+                            <div className="deadline-stat-label">
                                 Kontrak Terlambat
                             </div>
                         </div>
                     </div>
-                    <div style={{
-                        flex: 1,
-                        background: '#fff',
-                        borderRadius: '16px',
-                        padding: '20px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '16px',
-                        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)'
-                    }}>
-                        <div style={{
-                            background: '#fef3c7',
-                            borderRadius: '50%',
-                            width: '56px',
-                            height: '56px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            flexShrink: 0
-                        }}>
+                    <div className="deadline-stat-card">
+                        <div className="deadline-stat-icon" style={{ background: '#fef3c7' }}>
                             <Clock size={28} style={{ color: '#d97706' }} />
                         </div>
-                        <div style={{ flex: 1 }}>
-                            <div style={{ fontSize: '28px', fontWeight: 700, color: '#1e293b', lineHeight: 1 }}>
+                        <div className="deadline-stat-content">
+                            <div className="deadline-stat-number">
                                 {deadlineStats.warning}
                             </div>
-                            <div style={{ fontSize: '13px', color: '#64748b', marginTop: '4px' }}>
+                            <div className="deadline-stat-label">
                                 Mendekati Deadline
                             </div>
                         </div>
@@ -1141,7 +1084,7 @@ function ManajemenAset() {
                                                                     fontSize: '10px',
                                                                     fontWeight: 600,
                                                                     borderRadius: '6px',
-                                                                    borderLeft: `3px solid ${deadlineStatus === 'overdue' ? '#dc2626' : '#f59e0b'} `,
+                                                                    borderLeft: `3px solid ${deadlineStatus === 'overdue' ? '#dc2626' : '#f59e0b'}`,
                                                                     display: 'inline-flex',
                                                                     alignItems: 'center',
                                                                     gap: '4px',
@@ -1170,14 +1113,14 @@ function ManajemenAset() {
                                                 {columnVisibility.amount && <td>{asset.amount?.toLocaleString('id-ID', { style: 'currency', currency: 'IDR' })}</td>}
                                                 {columnVisibility.budgetType && (
                                                     <td>
-                                                        <span className={`budget - badge budget - ${asset.budgetType.toLowerCase()} `}>
+                                                        <span className={`budget-badge budget-${asset.budgetType.toLowerCase()}`}>
                                                             {asset.budgetType}
                                                         </span>
                                                     </td>
                                                 )}
                                                 {columnVisibility.contractType && (
                                                     <td>
-                                                        <span className={`contract - badge contract - ${asset.contractType.toLowerCase()} `}>
+                                                        <span className={`contract-badge contract-${asset.contractType.toLowerCase()}`}>
                                                             {asset.contractType === 'NON-PO' ? 'NON-PO' : asset.contractType}
                                                         </span>
                                                     </td>
@@ -1185,7 +1128,7 @@ function ManajemenAset() {
                                                 {columnVisibility.location && <td>{asset.location}</td>}
                                                 {columnVisibility.status && (
                                                     <td>
-                                                        <span className={`status - badge ${getBadgeClass(asset.status)} `}>
+                                                        <span className={`status-badge ${getBadgeClass(asset.status)}`}>
                                                             {asset.status}
                                                         </span>
                                                     </td>
@@ -1225,8 +1168,8 @@ function ManajemenAset() {
                                                                         </div>
                                                                         <div className="progress-bar-container" style={{ height: '10px', background: '#e2e8f0' }}>
                                                                             <div
-                                                                                className={`progress - bar - fill ${asset.progress < 30 ? 'low' : asset.progress < 70 ? 'medium' : 'high'} `}
-                                                                                style={{ width: `${asset.progress}% ` }}
+                                                                                className={`progress-bar-fill ${asset.progress < 30 ? 'low' : asset.progress < 70 ? 'medium' : 'high'}`}
+                                                                                style={{ width: `${asset.progress}%` }}
                                                                             ></div>
                                                                         </div>
                                                                     </div>
@@ -1332,7 +1275,7 @@ function ManajemenAset() {
                                                                                         <td>{new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(stage.value || 0)}</td>
                                                                                         <td>{stage.due_date ? new Date(stage.due_date).toLocaleDateString('id-ID') : '-'}</td>
                                                                                         <td>
-                                                                                            <span className={`status - badge ${stage.status === 'Paid' ? 'status-terbayar' : 'status-inactive'} `}>
+                                                                                            <span className={`status-badge ${stage.status === 'Paid' ? 'status-terbayar' : 'status-inactive'}`}>
                                                                                                 {stage.status === 'Paid' ? 'Lunas' : 'Belum Dibayar'}
                                                                                             </span>
                                                                                             {stage.paid_at && <div style={{ fontSize: '11px', marginTop: '4px', color: '#64748b' }}>{new Date(stage.paid_at).toLocaleDateString('id-ID')}</div>}
@@ -1557,7 +1500,7 @@ function ManajemenAset() {
                             </span>
                             <div className="pagination-controls">
                                 <button
-                                    className={`pagination - btn${filteredAssets.length <= 10 ? ' disabled-btn' : ''} `}
+                                    className={`pagination-btn${filteredAssets.length <= 10 ? ' disabled-btn' : ''}`}
                                     disabled={filteredAssets.length <= 10}
                                     style={{ cursor: filteredAssets.length <= 10 ? 'not-allowed' : 'pointer', opacity: filteredAssets.length <= 10 ? 0.5 : 1, position: 'relative', textAlign: 'center', justifyContent: 'center', alignItems: 'center', display: 'flex' }}
                                 >
@@ -1573,7 +1516,7 @@ function ManajemenAset() {
                                     <button className="pagination-btn active">1</button>
                                 )}
                                 <button
-                                    className={`pagination - btn${filteredAssets.length <= 10 ? ' disabled-btn' : ''} `}
+                                    className={`pagination-btn${filteredAssets.length <= 10 ? ' disabled-btn' : ''}`}
                                     disabled={filteredAssets.length <= 10}
                                     style={{ cursor: filteredAssets.length <= 10 ? 'not-allowed' : 'pointer', opacity: filteredAssets.length <= 10 ? 0.5 : 1, position: 'relative', textAlign: 'center', justifyContent: 'center', alignItems: 'center', display: 'flex' }}
                                 >
@@ -1607,7 +1550,7 @@ function ManajemenAset() {
                                             <div className="detail-item">
                                                 <label className="detail-label">Status Saat Ini</label>
                                                 <div>
-                                                    <span className={`status - badge ${getBadgeClass(selectedAsset.status)} `}>
+                                                    <span className={`status-badge ${getBadgeClass(selectedAsset.status)}`}>
                                                         {selectedAsset.status}
                                                     </span>
                                                 </div>
@@ -1668,11 +1611,11 @@ function ManajemenAset() {
                                                 <tbody>
                                                     <tr>
                                                         <td>Tipe Anggaran</td>
-                                                        <td><span className={`budget - badge budget - ${selectedAsset.budgetType.toLowerCase()} `}>{selectedAsset.budgetType}</span></td>
+                                                        <td><span className={`budget-badge budget-${selectedAsset.budgetType.toLowerCase()}`}>{selectedAsset.budgetType}</span></td>
                                                     </tr>
                                                     <tr>
                                                         <td>Tipe Kontrak</td>
-                                                        <td><span className={`contract - badge contract - ${selectedAsset.contractType.toLowerCase()} `}>{selectedAsset.contractType}</span></td>
+                                                        <td><span className={`contract-badge contract-${selectedAsset.contractType.toLowerCase()}`}>{selectedAsset.contractType}</span></td>
                                                     </tr>
                                                     <tr>
                                                         <td>Kategori Aset</td>
