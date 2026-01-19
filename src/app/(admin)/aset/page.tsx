@@ -182,7 +182,7 @@ function ManajemenAset() {
 
                 // Scroll ke kontrak setelah render
                 setTimeout(() => {
-                    const element = document.querySelector(`tr[data - contract - id= "${contractId}"]`)
+                    const element = document.querySelector(`tr[data-contract-id="${contractId}"]`)
                     if (element) {
                         element.scrollIntoView({ behavior: 'smooth', block: 'center' })
                     }
@@ -658,9 +658,11 @@ function ManajemenAset() {
 
         try {
             if (isEditing) {
-                // 1. Auto-sync vendor jika vendor berubah
+                // Get old data once for both vendor sync and history log
                 const oldData = assets.find(a => a.id === editId)
-                if (formData.vendorName && formData.vendorName.trim() !== '' && 
+
+                // 1. Auto-sync vendor jika vendor berubah
+                if (formData.vendorName && formData.vendorName.trim() !== '' &&
                     oldData && oldData.vendorName !== formData.vendorName) {
                     const syncResult = await autoSyncVendor(formData.vendorName);
                     if (syncResult.success) {
@@ -690,8 +692,7 @@ function ManajemenAset() {
 
                 if (updateError) throw updateError
 
-                // 2. Insert History Log (Detailed Amandemen)
-                const oldData = assets.find(a => a.id === editId)
+                // 3. Insert History Log (Detailed Amandemen)
                 let changeDetails = []
 
                 if (oldData) {

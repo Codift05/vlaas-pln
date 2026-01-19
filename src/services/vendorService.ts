@@ -178,10 +178,10 @@ export const autoSyncVendor = async (vendorName) => {
 
     // 2. Jika vendor sudah ada, return success
     if (existingVendors && existingVendors.length > 0) {
-      return handleSupabaseSuccess({ 
-        exists: true, 
+      return handleSupabaseSuccess({
+        exists: true,
         vendor: existingVendors[0],
-        message: `Vendor "${vendorName}" sudah ada di database` 
+        message: `Vendor "${vendorName}" sudah ada di database`
       });
     }
 
@@ -189,14 +189,12 @@ export const autoSyncVendor = async (vendorName) => {
     const newVendorData = {
       id: `AUTO-${Date.now()}`, // Generate ID otomatis
       nama: vendorName.trim(),
-      kategori: 'Vendor Baru', // Kategori default
-      status: 'Aktif', // Status default Aktif
-      email: '', // Email kosong, bisa diisi nanti
-      telepon: '', // Telepon kosong
       alamat: '', // Alamat kosong
+      telepon: '', // Telepon kosong
+      email: '', // Email kosong, bisa diisi nanti
       kontak_person: '', // Kontak person kosong
-      tanggal_registrasi: new Date().toISOString().split('T')[0], // Tanggal hari ini
-      catatan: 'Vendor otomatis ditambahkan dari Manajemen Kontrak'
+      status: 'Aktif', // Status default Aktif
+      tanggal_registrasi: new Date().toISOString().split('T')[0] // Tanggal hari ini
     };
 
     const { data: newVendor, error: createError } = await supabase
@@ -210,10 +208,10 @@ export const autoSyncVendor = async (vendorName) => {
       return handleSupabaseError(createError);
     }
 
-    return handleSupabaseSuccess({ 
-      exists: false, 
+    return handleSupabaseSuccess({
+      exists: false,
       vendor: newVendor,
-      message: `Vendor "${vendorName}" berhasil ditambahkan otomatis` 
+      message: `Vendor "${vendorName}" berhasil ditambahkan otomatis`
     });
 
   } catch (error) {

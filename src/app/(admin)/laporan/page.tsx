@@ -366,17 +366,22 @@ function Laporan() {
 
     const processVendorChartData = (vendors: any[], year: number) => {
         const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des']
-        const newChartData = months.map(m => ({ month: m, total: 0, activeVendors: 0, activeVendorDetails: [] as any[] }))
+        const newChartData = months.map(m => ({ 
+            month: m, 
+            total: 0, // Total kontrak dibuat di bulan ini
+            activeVendors: 0, // Vendor aktif yang punya kontrak berjalan
+            activeVendorDetails: [] as any[] 
+        }))
 
-        // Hitung vendor baru per bulan
-        vendors.forEach(vendor => {
-            if (!vendor.tanggal_registrasi) return
+        // Hitung kontrak yang dibuat per bulan (dari created_at)
+        allContracts.forEach(contract => {
+            if (!contract.created_at) return
 
-            const date = new Date(vendor.tanggal_registrasi)
-            const vendorYear = date.getFullYear()
+            const date = new Date(contract.created_at)
+            const contractYear = date.getFullYear()
             const monthIndex = date.getMonth()
 
-            if (vendorYear === year && monthIndex >= 0 && monthIndex < 12) {
+            if (contractYear === year && monthIndex >= 0 && monthIndex < 12) {
                 newChartData[monthIndex].total += 1
             }
         })
@@ -783,12 +788,12 @@ function Laporan() {
 
             {/* Charts Section */}
             <div className="charts-container">
-                {/* Line Chart - Tren Vendor Baru Bulanan */}
+                {/* Line Chart - Tren Kontrak Bulanan */}
                 <div className="chart-card large">
                     <div className="chart-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                         <div>
-                            <h3><BarChart2 size={20} style={{ display: 'inline', marginRight: '8px' }} /> Tren Vendor Baru Bulanan</h3>
-                            <span className="chart-subtitle">Vendor baru terdaftar & vendor aktif mengerjakan kontrak</span>
+                            <h3><BarChart2 size={20} style={{ display: 'inline', marginRight: '8px' }} /> Tren Kontrak Bulanan</h3>
+                            <span className="chart-subtitle">Kontrak dibuat per bulan & vendor aktif mengerjakan kontrak</span>
                         </div>
                         <select
                             value={selectedContractYear}
@@ -897,7 +902,7 @@ function Laporan() {
                                 ))
                             })()}
 
-                            {/* Area fill untuk vendor baru */}
+                            {/* Area fill untuk kontrak baru */}
                             <defs>
                                 <linearGradient id="areaGradientVendor" x1="0" x2="0" y1="0" y2="1">
                                     <stop offset="0%" stopColor="#2ecc71" stopOpacity="0.3" />
@@ -974,7 +979,7 @@ function Laporan() {
 
                                             const tooltipLines = [
                                                 `${data.month} ${selectedContractYear}`,
-                                                `Vendor Baru: ${data.total || 0}`,
+                                                `Kontrak Dibuat: ${data.total || 0}`,
                                                 `Vendor Aktif: ${data.activeVendors || 0}`,
                                                 '',
                                                 'Klik untuk lihat detail lengkap'
