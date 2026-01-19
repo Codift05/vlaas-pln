@@ -37,6 +37,10 @@ const MainContent = styled.div`
   z-index: 1;
   min-height: 100vh;
 
+  @media (max-width: 1400px) {
+    margin-left: 0 !important;
+  }
+
   @media (max-width: 968px) {
     margin-left: 0;
   }
@@ -46,12 +50,16 @@ const ContentArea = styled.div`
   padding: clamp(1.25rem, 2vw, 2.5rem) clamp(1.5rem, 2.5vw, 2.5rem);
   flex: 1;
 
+  @media (max-width: 1400px) {
+    padding: clamp(1rem, 1.5vw, 2rem);
+  }
+
   @media (max-width: 968px) {
     padding: 1.25rem;
   }
 
   @media (max-width: 600px) {
-    padding: 15px;
+    padding: 0.938rem;
   }
 `;
 
@@ -85,7 +93,11 @@ export default function AdminLayout({ children }) {
           isExpanded={isExpanded}
           toggleSidebar={toggleSidebar}
         />
-        <MainContent style={{ marginLeft: isHydrated ? (isExpanded ? '280px' : '88px') : '88px' }}>
+        <MainContent style={{
+          marginLeft: isHydrated
+            ? (window.innerWidth > 1400 ? (isExpanded ? 'clamp(15rem, 17.5rem, 20rem)' : 'clamp(4.5rem, 5.5rem, 6rem)') : '0')
+            : '5.5rem'
+        }}>
           <Header onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
           <ContentArea>
             {children}

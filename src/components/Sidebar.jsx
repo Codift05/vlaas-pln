@@ -30,7 +30,7 @@ const Overlay = styled.div`
 `;
 
 const SidebarWrapper = styled.div`
-  width: ${props => props.$isExpanded ? '280px' : '88px'};
+  width: ${props => props.$isExpanded ? 'clamp(15rem, 17.5rem, 20rem)' : 'clamp(4.5rem, 5.5rem, 6rem)'};
   height: 100vh;
   background: #ffffff;
   display: flex;
@@ -38,15 +38,15 @@ const SidebarWrapper = styled.div`
   position: fixed;
   left: 0;
   top: 0;
-  box-shadow: none; /* Removed to prevent shadow on Header */
+  box-shadow: none;
   z-index: 1000;
   transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   border-right: 1px solid #e2e8f0;
   overflow: hidden;
 
   .sidebar-header {
-    height: 80px;
-    padding: 0 20px;
+    height: clamp(4rem, 5rem, 6rem);
+    padding: 0 clamp(0.75rem, 1.25rem, 1.5rem);
     display: flex;
     align-items: center;
     justify-content: ${props => props.$isExpanded ? 'flex-start' : 'center'};
@@ -57,14 +57,14 @@ const SidebarWrapper = styled.div`
   .sidebar-logo {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 0.75rem;
     width: 100%;
     justify-content: ${props => props.$isExpanded ? 'flex-start' : 'center'};
   }
 
   .sidebar-logo-img {
-    width: 40px;
-    height: 40px;
+    width: clamp(2rem, 2.5rem, 3rem);
+    height: clamp(2rem, 2.5rem, 3rem);
     object-fit: contain;
     background: transparent;
     flex-shrink: 0;
@@ -73,7 +73,7 @@ const SidebarWrapper = styled.div`
   .sidebar-logo-info {
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: 0.125rem;
     opacity: ${props => props.$isExpanded ? 1 : 0};
     visibility: ${props => props.$isExpanded ? 'visible' : 'hidden'};
     transition: opacity 0.2s, visibility 0.2s;
@@ -82,7 +82,7 @@ const SidebarWrapper = styled.div`
   }
 
   .sidebar-logo-text {
-    font-size: 18px;
+    font-size: clamp(1rem, 1.125rem, 1.25rem);
     font-weight: 700;
     color: #1e293b;
     font-family: var(--font-inter);
@@ -90,7 +90,7 @@ const SidebarWrapper = styled.div`
   }
 
   .sidebar-logo-desc {
-    font-size: 11px;
+    font-size: clamp(0.625rem, 0.688rem, 0.75rem);
     font-weight: 500;
     color: #64748b;
     font-family: var(--font-inter);
@@ -98,27 +98,27 @@ const SidebarWrapper = styled.div`
 
   .sidebar-nav {
     flex: 1;
-    padding: 24px 12px;
+    padding: 1.5rem 0.75rem;
     overflow-y: auto;
     overflow-x: hidden;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 0.5rem;
   }
 
   .nav-item {
     display: flex;
     align-items: center;
-    gap: 14px;
-    padding: 12px 16px;
+    gap: 0.875rem;
+    padding: 0.75rem 1rem;
     color: #64748b;
     text-decoration: none;
     transition: all 0.2s;
     cursor: pointer;
-    border-radius: 12px;
+    border-radius: 0.75rem;
     font-family: var(--font-inter);
     justify-content: ${props => props.$isExpanded ? 'flex-start' : 'center'};
-    height: 48px;
+    height: clamp(2.5rem, 3rem, 3.5rem);
   }
 
   .nav-item:hover {
@@ -138,7 +138,7 @@ const SidebarWrapper = styled.div`
   }
 
   .nav-text {
-    font-size: 15px;
+    font-size: clamp(0.813rem, 0.875rem, 0.938rem);
     font-weight: 500;
     white-space: nowrap;
     opacity: ${props => props.$isExpanded ? 1 : 0};
@@ -147,8 +147,12 @@ const SidebarWrapper = styled.div`
     width: ${props => props.$isExpanded ? 'auto' : 0};
   }
 
+  @media (max-width: 1400px) {
+    width: ${props => props.$isExpanded ? '15rem' : '5rem'};
+  }
+
   @media (max-width: 968px) {
-    width: 280px;
+    width: 17.5rem;
     transform: translateX(-100%);
     &.open {
       transform: translateX(0);
