@@ -1049,7 +1049,6 @@ function Laporan() {
                         <div style={{
                             position: 'relative',
                             height: '20px',
-                            marginLeft: '40px',
                             fontSize: '12px',
                             color: '#64748b',
                             fontWeight: 500
@@ -1058,11 +1057,7 @@ function Laporan() {
                                 const paddingLeft = 13;
                                 const chartWidth = 815;
                                 const spacing = chartWidth / (monthlyData.length - 1);
-                                const x = paddingLeft + (index * spacing);
-                                
-                                return (
-                                    <span 
-                                        key={index} 
+                                const x = 40 + paddingLeft + (index * spacing); // 40 = left offset untuk align dengan SVG
                                         style={{
                                             position: 'absolute',
                                             left: `${x}px`,
