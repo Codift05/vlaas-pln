@@ -29,7 +29,7 @@ const LayoutContainer = styled.div`
 
 const MainContent = styled.div`
   flex: 1;
-  /* margin-left handled by inline style for dynamic width */
+  margin-left: ${props => props.$isExpanded ? '17.5rem' : '5.5rem'};
   transition: margin-left 0.3s ease;
   display: flex;
   flex-direction: column;
@@ -42,7 +42,7 @@ const MainContent = styled.div`
   }
 
   @media (max-width: 968px) {
-    margin-left: 0;
+    margin-left: 0 !important;
   }
 `;
 
@@ -93,11 +93,7 @@ export default function AdminLayout({ children }) {
           isExpanded={isExpanded}
           toggleSidebar={toggleSidebar}
         />
-        <MainContent style={{
-          marginLeft: isHydrated
-            ? (window.innerWidth > 1400 ? (isExpanded ? 'clamp(15rem, 17.5rem, 20rem)' : 'clamp(4.5rem, 5.5rem, 6rem)') : '0')
-            : '5.5rem'
-        }}>
+        <MainContent $isExpanded={isExpanded}>
           <Header onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
           <ContentArea>
             {children}
