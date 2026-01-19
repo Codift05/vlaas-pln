@@ -38,6 +38,12 @@ interface RemainingContract {
 interface MonthlyData {
     month: string
     total: number
+    activeVendors?: number
+    activeVendorDetails?: Array<{
+        vendorName: string
+        contractCount: number
+        endDates: string[]
+    }>
 }
 
 function Laporan() {
@@ -82,7 +88,9 @@ function Laporan() {
     const [monthlyData, setMonthlyData] = useState<MonthlyData[]>(
         Array(12).fill(null).map((_, i) => ({
             month: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'][i],
-            total: 0
+            total: 0,
+            activeVendors: 0,
+            activeVendorDetails: []
         }))
     )
     const [allContracts, setAllContracts] = useState<Contract[]>([])
@@ -356,8 +364,9 @@ function Laporan() {
 
     const processVendorChartData = (vendors: any[], year: number) => {
         const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des']
-        const newChartData = months.map(m => ({ month: m, total: 0 }))
+        const newChartData = months.map(m => ({ month: m, total: 0, activeVendors: 0, activeVendorDetails: [] as any[] }))
 
+        // Hitung vendor baru per bulan
         vendors.forEach(vendor => {
             if (!vendor.tanggal_registrasi) return
 
@@ -368,6 +377,43 @@ function Laporan() {
             if (vendorYear === year && monthIndex >= 0 && monthIndex < 12) {
                 newChartData[monthIndex].total += 1
             }
+        })
+
+        // Hitung vendor yang AKTIF mengerjakan kontrak per bulan
+        // Status aktif: Terkontrak, Dalam Proses Pekerjaan, Dalam Pemeriksaan
+        const activeStatuses = ['Terkontrak', 'Dalam Proses Pekerjaan', 'Dalam Pemeriksaan', 'Telah Diperiksa']
+
+        newChartData.forEach((monthData, monthIndex) => {
+            const vendorContractMap = new Map<string, { contracts: number, endDates: string[] }>()
+
+            allContracts.forEach(contract => {
+                if (!contract.start_date || !contract.end_date) return
+                if (!activeStatuses.includes(contract.status)) return
+
+                const startDate = new Date(contract.start_date)
+                const endDate = new Date(contract.end_date)
+                const checkDate = new Date(year, monthIndex, 15) // Tengah bulan
+
+                // Cek apakah kontrak aktif di bulan ini
+                if (checkDate >= startDate && checkDate <= endDate) {
+                    const vendorName = contract.vendor_name || 'Unknown'
+
+                    if (!vendorContractMap.has(vendorName)) {
+                        vendorContractMap.set(vendorName, { contracts: 0, endDates: [] })
+                    }
+
+                    const vendorData = vendorContractMap.get(vendorName)!
+                    vendorData.contracts += 1
+                    vendorData.endDates.push(contract.end_date)
+                }
+            })
+
+            monthData.activeVendors = vendorContractMap.size
+            monthData.activeVendorDetails = Array.from(vendorContractMap.entries()).map(([name, data]) => ({
+                vendorName: name,
+                contractCount: data.contracts,
+                endDates: data.endDates.sort()
+            }))
         })
 
         setMonthlyData(newChartData)
@@ -740,7 +786,7 @@ function Laporan() {
                     <div className="chart-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                         <div>
                             <h3><BarChart2 size={20} style={{ display: 'inline', marginRight: '8px' }} /> Tren Vendor Baru Bulanan</h3>
-                            <span className="chart-subtitle">Jumlah vendor baru yang terdaftar per bulan</span>
+                            <span className="chart-subtitle">Vendor baru terdaftar & vendor aktif mengerjakan kontrak</span>
                         </div>
                         <select
                             value={selectedContractYear}
@@ -779,7 +825,10 @@ function Laporan() {
                         {/* Y-axis labels */}
                         <div style={{ position: 'absolute', left: '40px', top: '30px', height: '200px', display: 'flex', flexDirection: 'column', fontSize: '12px', color: '#64748b', textAlign: 'right', paddingRight: '5px', width: '22px' }}>
                             {(() => {
-                                const maxVal = Math.max(...(monthlyData as any[]).map(d => d.total || 0), 0)
+                                const maxVal = Math.max(
+                                    ...(monthlyData as any[]).map(d => Math.max(d.total || 0, d.activeVendors || 0)),
+                                    0
+                                )
                                 if (maxVal === 0) {
                                     return [4, 3, 2, 1, 0].map((val, i) => (
                                         <span key={i} style={{ position: 'absolute', top: `${i * 50 - 6}px` }}>{val}</span>
@@ -826,7 +875,10 @@ function Laporan() {
                         >
                             {/* Grid lines - dinamis sesuai jumlah label Y */}
                             {(() => {
-                                const maxVal = Math.max(...(monthlyData as any[]).map(d => d.total || 0), 0)
+                                const maxVal = Math.max(
+                                    ...(monthlyData as any[]).map(d => Math.max(d.total || 0, d.activeVendors || 0)),
+                                    0
+                                )
                                 const gridCount = maxVal === 0 ? 5 : (maxVal <= 4 ? maxVal + 1 : 5)
                                 const gridSpacing = 200 / (gridCount - 1)
 
@@ -843,47 +895,126 @@ function Laporan() {
                                 ))
                             })()}
 
-                            {/* Area fill */}
+                            {/* Area fill untuk vendor baru */}
                             <defs>
                                 <linearGradient id="areaGradientVendor" x1="0" x2="0" y1="0" y2="1">
                                     <stop offset="0%" stopColor="#2ecc71" stopOpacity="0.3" />
                                     <stop offset="100%" stopColor="#2ecc71" stopOpacity="0.05" />
                                 </linearGradient>
+                                <linearGradient id="areaGradientActive" x1="0" x2="0" y1="0" y2="1">
+                                    <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.2" />
+                                    <stop offset="100%" stopColor="#3b82f6" stopOpacity="0.02" />
+                                </linearGradient>
                             </defs>
 
                             {monthlyData.length > 0 && (() => {
-                                const maxValue = Math.max(...(monthlyData as any[]).map(d => d.total || 0), 1);
+                                const maxValue = Math.max(
+                                    ...(monthlyData as any[]).map(d => Math.max(d.total || 0, d.activeVendors || 0)),
+                                    1
+                                );
                                 const paddingLeft = 13;
                                 const paddingRight = 40;
                                 const chartWidth = 815;
                                 const spacing = chartWidth / (monthlyData.length - 1);
-                                const points = (monthlyData as any[]).map((data, index) => {
+
+                                // Line untuk vendor baru
+                                const pointsNew = (monthlyData as any[]).map((data, index) => {
                                     const x = paddingLeft + (index * spacing);
                                     const y = 200 - ((data.total || 0) / maxValue) * 200;
                                     return `${x},${y}`;
                                 }).join(' ');
 
-                                const areaPoints = `${paddingLeft},200 ${points} ${paddingLeft + chartWidth},200`;
+                                // Line untuk vendor aktif
+                                const pointsActive = (monthlyData as any[]).map((data, index) => {
+                                    const x = paddingLeft + (index * spacing);
+                                    const y = 200 - ((data.activeVendors || 0) / maxValue) * 200;
+                                    return `${x},${y}`;
+                                }).join(' ');
+
+                                const areaPointsNew = `${paddingLeft},200 ${pointsNew} ${paddingLeft + chartWidth},200`;
+                                const areaPointsActive = `${paddingLeft},200 ${pointsActive} ${paddingLeft + chartWidth},200`;
 
                                 return (
                                     <>
+                                        {/* Area & Line untuk vendor aktif (background) */}
                                         <polyline
-                                            points={areaPoints}
+                                            points={areaPointsActive}
+                                            fill="url(#areaGradientActive)"
+                                        />
+                                        <polyline
+                                            points={pointsActive}
+                                            fill="none"
+                                            stroke="#3b82f6"
+                                            strokeWidth="3"
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeDasharray="6 4"
+                                        />
+
+                                        {/* Area & Line untuk vendor baru (foreground) */}
+                                        <polyline
+                                            points={areaPointsNew}
                                             fill="url(#areaGradientVendor)"
                                         />
                                         <polyline
-                                            points={points}
+                                            points={pointsNew}
                                             fill="none"
                                             stroke="#2ecc71"
                                             strokeWidth="3"
                                             strokeLinecap="round"
                                             strokeLinejoin="round"
                                         />
+
+                                        {/* Circles untuk vendor aktif */}
+                                        {(monthlyData as any[]).map((data, index) => {
+                                            const x = paddingLeft + (index * spacing);
+                                            const yActive = 200 - ((data.activeVendors || 0) / maxValue) * 200;
+
+                                            const tooltipLines = [
+                                                `${data.month} ${selectedContractYear}`,
+                                                `Vendor Baru: ${data.total || 0}`,
+                                                `Vendor Aktif: ${data.activeVendors || 0}`,
+                                                ''
+                                            ];
+
+                                            if (data.activeVendorDetails && data.activeVendorDetails.length > 0) {
+                                                const displayLimit = 5;
+                                                data.activeVendorDetails.slice(0, displayLimit).forEach((v: any) => {
+                                                    const endDate = new Date(v.endDates[v.endDates.length - 1]);
+                                                    tooltipLines.push(
+                                                        `• ${v.vendorName} (${v.contractCount} kontrak) - s/d ${endDate.toLocaleDateString('id-ID', { year: 'numeric', month: 'short', day: 'numeric' })}`
+                                                    );
+                                                });
+
+                                                if (data.activeVendorDetails.length > displayLimit) {
+                                                    tooltipLines.push(`... dan ${data.activeVendorDetails.length - displayLimit} vendor lainnya`);
+                                                }
+                                            } else {
+                                                tooltipLines.push('Tidak ada vendor aktif');
+                                            }
+
+                                            return (
+                                                <g key={`active-${index}`}>
+                                                    <circle
+                                                        cx={x}
+                                                        cy={yActive}
+                                                        r="5"
+                                                        fill="#fff"
+                                                        stroke="#3b82f6"
+                                                        strokeWidth="3"
+                                                        style={{ cursor: 'pointer' }}
+                                                    />
+                                                    <title>{tooltipLines.join('\\n')}</title>
+                                                </g>
+                                            );
+                                        })}
+
+                                        {/* Circles untuk vendor baru */}
                                         {(monthlyData as any[]).map((data, index) => {
                                             const x = paddingLeft + (index * spacing);
                                             const y = 200 - ((data.total || 0) / maxValue) * 200;
                                             return (
-                                                <g key={index}>
+                                                <g key={`new-${index}`}>
                                                     <circle
                                                         cx={x}
                                                         cy={y}
@@ -893,7 +1024,7 @@ function Laporan() {
                                                         strokeWidth="3"
                                                         style={{ cursor: 'pointer' }}
                                                     />
-                                                    <title>{`${data.month} ${selectedContractYear}: ${data.total || 0} vendor`}</title>
+                                                    <title>{`${data.month} ${selectedContractYear}: ${data.total || 0} vendor baru`}</title>
                                                 </g>
                                             );
                                         })}
@@ -914,6 +1045,36 @@ function Laporan() {
                             {(monthlyData as any[]).map((data, index) => (
                                 <span key={index}>{data.month}</span>
                             ))}
+                        </div>
+                        
+                        {/* Legend */}
+                        <div style={{
+                            display: 'flex',
+                            justifyContent: 'center',
+                            gap: '24px',
+                            marginTop: '16px',
+                            fontSize: '13px',
+                            color: '#64748b'
+                        }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <div style={{ 
+                                    width: '32px', 
+                                    height: '3px', 
+                                    background: '#2ecc71', 
+                                    borderRadius: '2px' 
+                                }}></div>
+                                <span>Vendor Baru Terdaftar</span>
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <div style={{ 
+                                    width: '32px', 
+                                    height: '3px', 
+                                    background: '#3b82f6', 
+                                    borderRadius: '2px',
+                                    backgroundImage: 'repeating-linear-gradient(90deg, #3b82f6, #3b82f6 6px, transparent 6px, transparent 10px)'
+                                }}></div>
+                                <span>Vendor Aktif Mengerjakan Kontrak</span>
+                            </div>
                         </div>
                     </div>
 
