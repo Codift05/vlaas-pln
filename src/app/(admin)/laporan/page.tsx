@@ -1049,7 +1049,8 @@ function Laporan() {
                         <div style={{
                             display: 'flex',
                             justifyContent: 'space-between',
-                            paddingLeft: '40px',
+                            marginLeft: '53px',
+                            marginRight: '25px',
                             fontSize: '12px',
                             color: '#64748b',
                             fontWeight: 500
