@@ -939,18 +939,16 @@ function Laporan() {
                                                                     stroke="#3b82f6"
                                                                     strokeWidth="3"
                                                                     style={{
-                                                                        cursor: hasActiveVendors ? 'pointer' : 'default',
+                                                                        cursor: 'pointer',
                                                                         pointerEvents: 'all'
                                                                     }}
                                                                     onClick={() => {
                                                                         console.log('Circle clicked!', data.month, 'Active vendors:', data.activeVendors);
-                                                                        if (hasActiveVendors) {
-                                                                            setSelectedMonthData({ ...data, year: selectedContractYear, monthIndex: index });
-                                                                            setShowVendorDetailModal(true);
-                                                                        }
+                                                                        setSelectedMonthData({ ...data, year: selectedContractYear, monthIndex: index });
+                                                                        setShowVendorDetailModal(true);
                                                                     }}
                                                                 >
-                                                                    <title>{hasActiveVendors ? `${data.month}: ${data.activeVendors} vendor aktif - Klik untuk detail` : 'Tidak ada vendor aktif'}</title>
+                                                                    <title>{hasActiveVendors ? `${data.month}: ${data.activeVendors} vendor aktif - Klik untuk detail` : `${data.month}: Tidak ada vendor aktif - Klik untuk info`}</title>
                                                                 </circle>
                                                             </g>
                                                         );
@@ -992,18 +990,16 @@ function Laporan() {
                                                                     stroke="#f59e0b"
                                                                     strokeWidth="3"
                                                                     style={{
-                                                                        cursor: hasActiveVendors ? 'pointer' : 'default',
+                                                                        cursor: 'pointer',
                                                                         pointerEvents: 'all'
                                                                     }}
                                                                     onClick={() => {
                                                                         console.log('Circle clicked!', data.month, 'Active vendors:', data.activeVendors);
-                                                                        if (hasActiveVendors) {
-                                                                            setSelectedMonthData({ ...data, year: selectedContractYear, monthIndex: index });
-                                                                            setShowVendorDetailModal(true);
-                                                                        }
+                                                                        setSelectedMonthData({ ...data, year: selectedContractYear, monthIndex: index });
+                                                                        setShowVendorDetailModal(true);
                                                                     }}
                                                                 >
-                                                                    <title>{`${data.month}: ${data.total || 0} vendor baru${hasActiveVendors ? ` | ${data.activeVendors} vendor aktif - Klik untuk detail` : ''}`}</title>
+                                                                    <title>{`${data.month}: ${data.total || 0} vendor baru${hasActiveVendors ? ` | ${data.activeVendors} vendor aktif - Klik untuk detail` : ' - Klik untuk info'}`}</title>
                                                                 </circle>
                                                             </g>
                                                         );
