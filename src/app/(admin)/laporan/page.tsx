@@ -928,15 +928,25 @@ function Laporan() {
                                                         const x = paddingLeft + (index * spacing);
                                                         const y = paddingTop + chartHeight - ((data.activeVendors || 0) / maxVal) * chartHeight;
                                                         return (
-                                                            <circle
-                                                                key={`active-${index}`}
-                                                                cx={x}
-                                                                cy={y}
-                                                                r="4"
-                                                                fill="#fff"
-                                                                stroke="#3b82f6"
-                                                                strokeWidth="2"
-                                                            />
+                                                            <g key={`active-${index}`}>
+                                                                <circle
+                                                                    cx={x}
+                                                                    cy={y}
+                                                                    r="6"
+                                                                    fill="#fff"
+                                                                    stroke="#3b82f6"
+                                                                    strokeWidth="2.5"
+                                                                    style={{ cursor: data.activeVendors > 0 ? 'pointer' : 'default' }}
+                                                                    onClick={() => {
+                                                                        if (data.activeVendors > 0) {
+                                                                            setSelectedMonthData({ ...data, year: selectedContractYear, monthIndex: index });
+                                                                            setShowVendorDetailModal(true);
+                                                                        }
+                                                                    }}
+                                                                >
+                                                                    <title>{data.activeVendors > 0 ? `${data.month}: ${data.activeVendors} vendor aktif - Klik untuk detail` : 'Tidak ada vendor aktif'}</title>
+                                                                </circle>
+                                                            </g>
                                                         );
                                                     })}
                                                 </>
@@ -965,15 +975,25 @@ function Laporan() {
                                                         const x = paddingLeft + (index * spacing);
                                                         const y = paddingTop + chartHeight - ((data.total || 0) / maxVal) * chartHeight;
                                                         return (
-                                                            <circle
-                                                                key={`new-${index}`}
-                                                                cx={x}
-                                                                cy={y}
-                                                                r="4"
-                                                                fill="#fff"
-                                                                stroke="#f59e0b"
-                                                                strokeWidth="2"
-                                                            />
+                                                            <g key={`new-${index}`}>
+                                                                <circle
+                                                                    cx={x}
+                                                                    cy={y}
+                                                                    r="6"
+                                                                    fill="#fff"
+                                                                    stroke="#f59e0b"
+                                                                    strokeWidth="2.5"
+                                                                    style={{ cursor: data.activeVendors > 0 ? 'pointer' : 'default' }}
+                                                                    onClick={() => {
+                                                                        if (data.activeVendors > 0) {
+                                                                            setSelectedMonthData({ ...data, year: selectedContractYear, monthIndex: index });
+                                                                            setShowVendorDetailModal(true);
+                                                                        }
+                                                                    }}
+                                                                >
+                                                                    <title>{`${data.month}: ${data.total || 0} vendor baru${data.activeVendors > 0 ? ` | ${data.activeVendors} vendor aktif - Klik untuk detail` : ''}`}</title>
+                                                                </circle>
+                                                            </g>
                                                         );
                                                     })}
                                                 </>
@@ -1011,6 +1031,34 @@ function Laporan() {
                                 }}></div>
                                 <span style={{ fontWeight: '500' }}>Vendor Aktif Mengerjakan Kontrak</span>
                             </div>
+                        </div>
+
+                        {/* Info hint */}
+                        <div style={{
+                            textAlign: 'center',
+                            marginTop: '12px',
+                            padding: '12px',
+                            background: '#eff6ff',
+                            borderRadius: '8px',
+                            border: '1px solid #bfdbfe'
+                        }}>
+                            <p style={{
+                                margin: 0,
+                                fontSize: '13px',
+                                color: '#1e40af',
+                                fontWeight: '500',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '8px'
+                            }}>
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                    <circle cx="12" cy="12" r="10" />
+                                    <line x1="12" y1="16" x2="12" y2="12" />
+                                    <line x1="12" y1="8" x2="12.01" y2="8" />
+                                </svg>
+                                Klik titik data pada grafik untuk melihat detail vendor aktif dan kontrak yang dikerjakan
+                            </p>
                         </div>
                     </div>
 
