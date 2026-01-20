@@ -54,29 +54,126 @@ function ManajemenAset() {
 
     // Handle upload PDF
     async function handleUpload() {
+        if (!selectedFile) {
+            setUploadError('Pilih file PDF terlebih dahulu')
+            return
+        }
+
         setUploading(true)
         setUploadError('')
         setUploadSuccess('')
+
         try {
+            // Cari data kontrak berdasarkan ID
+            const contract = assets.find(a => a.id === selectedContractId)
+            if (!contract) {
+                throw new Error('Data kontrak tidak ditemukan')
+            }
+
+            console.log('Contract data:', contract)
+
+            // Validasi tipe anggaran
+            if (!contract.budgetType || (contract.budgetType !== 'AI' && contract.budgetType !== 'AO')) {
+                throw new Error(`Tipe anggaran harus AI atau AO. Saat ini: "${contract.budgetType}". Harap update data kontrak terlebih dahulu.`)
+            }
+
+            // Validasi nama kontrak
+            if (!contract.name) {
+                throw new Error('Nama kontrak tidak boleh kosong')
+            }
+
+            // Buat FormData
             const formData = new FormData()
             formData.append('file', selectedFile)
-            formData.append('contract_id', selectedContractId)
-            const res = await fetch('/functions/v1/upload_pdf_to_drive', {
+            formData.append('tipeAnggaran', contract.budgetType)
+            formData.append('namaKontrak', contract.name)
+            formData.append('nomorKontrak', contract.invoiceNumber || contract.id)
+            formData.append('contractId', selectedContractId)
+
+            console.log('Uploading with data:', {
+                fileName: selectedFile.name,
+                fileSize: selectedFile.size,
+                fileType: selectedFile.type,
+                tipeAnggaran: contract.budgetType,
+                namaKontrak: contract.name,
+                nomorKontrak: contract.invoiceNumber || contract.id,
+                contractId: selectedContractId
+            })
+
+            // Kirim ke API upload-contract
+            const res = await fetch('/api/upload-contract', {
                 method: 'POST',
                 body: formData
             })
-            const data = await res.json()
-            if (!res.ok) throw new Error(data.error || 'Upload gagal')
-            // Simpan ke Supabase table
-            const { error } = await supabase
-                .from('contract_files')
-                .insert([{ contract_id: selectedContractId, file_url: data.webViewLink }])
-            if (error) throw new Error(error.message)
-            showAlert('success', 'Berhasil', 'Upload berhasil! Link: ' + data.webViewLink)
-            setUploadSuccess('Upload berhasil! Link: ' + data.webViewLink)
+
+            console.log('Response status:', res.status, res.statusText)
+
+            let data
+            try {
+                data = await res.json()
+            } catch (jsonError) {
+                console.error('Failed to parse JSON response:', jsonError)
+                const text = await res.text()
+                console.error('Response text:', text)
+                throw new Error('Server response tidak valid. Cek console untuk detail.')
+            }
+
+            console.log('Response data:', data)
+
+            if (!res.ok) {
+                // Log detail error untuk debugging
+                console.error('Upload failed:', {
+                    status: res.status,
+                    statusText: res.statusText,
+                    error: data.error,
+                    details: data.details,
+                    fullResponse: data
+                })
+
+                // Show detailed error
+                const detailMsg = data.details ? `\n\nDetail: ${JSON.stringify(data.details, null, 2)}` : ''
+                const errorMsg = `${data.error || 'Upload gagal'}\n\nStatus: ${res.status} ${res.statusText}${detailMsg}`
+
+                throw new Error(errorMsg)
+            }
+
+            console.log('Upload successful:', data)
+
+            // Simpan link file ke Supabase (hanya jika upload ke Drive sukses)
+            if (data.success && data.data) {
+                const { error } = await supabase
+                    .from('contract_files')
+                    .insert([{
+                        contract_id: selectedContractId,
+                        file_url: data.data.webViewLink,
+                        file_name: data.data.fileName,
+                        folder_path: data.data.folderPath,
+                        file_id: data.data.fileId
+                    }])
+
+                if (error) {
+                    console.warn('Supabase insert warning:', error.message)
+                    // Tidak throw error, karena upload ke Drive sudah berhasil
+                }
+            }
+
+            const successMessage = `File berhasil diupload ke: ${data.data.folderPath}`
+            setUploadSuccess(successMessage)
+            showAlert('success', 'Berhasil', successMessage)
+
+            // Reset dan tutup modal setelah 2 detik
+            setTimeout(() => {
+                setShowUploadModal(false)
+                setSelectedFile(null)
+                setUploadError('')
+                setUploadSuccess('')
+            }, 2000)
+
         } catch (err) {
-            setUploadError(err.message)
-            showAlert('error', 'Gagal', 'Gagal upload: ' + err.message)
+            const errorMessage = err.message || 'Terjadi kesalahan saat upload'
+            setUploadError(errorMessage)
+            showAlert('error', 'Gagal Upload', errorMessage)
+            console.error('Upload error:', err)
         } finally {
             setUploading(false)
         }

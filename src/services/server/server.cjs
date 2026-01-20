@@ -53,7 +53,7 @@ app.post('/upload', upload.single('file'), async (req, res) => {
     const drive = getDriveService();
     const fileMetadata = {
       name: req.file.originalname,
-      // parents: ['ID_FOLDER_GDRIVE'], // opsional, jika ingin ke folder tertentu
+      parents: ['15qEM_lIuA09Mm63h9kGKG9VzfWyLVcSI'], // Folder Google Drive
     };
     const media = {
       mimeType: req.file.mimetype,
@@ -69,7 +69,7 @@ app.post('/upload', upload.single('file'), async (req, res) => {
   } catch (err) {
     console.error('UPLOAD ERROR:', err);
     if (req.file && req.file.path && fs.existsSync(req.file.path)) {
-      try { fs.unlinkSync(req.file.path); } catch (e) {}
+      try { fs.unlinkSync(req.file.path); } catch (e) { }
     }
     if (!res.headersSent) {
       res.status(500).json({ success: false, error: err.message });

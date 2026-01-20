@@ -29,21 +29,15 @@ yarn-error.log*
 # Vercel
 .vercel
 
-# Secrets (Make sure .env is NOT here if you want to push it, but usually it SHOULD be here. 
-# However, for this task, I am NOT adding .env here because I edited it and want to keep it local or whatever the user intends. 
-# Wait, user wants to push "change". 
-# Standard practice: ignore .env. 
-# User just fixed .env locally. 
-# I should probably ignore .env to be safe, unless user explicitly said "push my env".
-# I'll stick to ignoring .env.local but allowing .env? 
-# The previous state had .env ignored. I unignored it to edit.
-# I should re-ignore it? 
-# Validating user request: "oke skrng push ke branch ku" (push now to my branch).
-# Pushing secrets to git is BAD.
-# I will ADD .env to gitignore.
+# Environment variables
 .env
+.env.local
+.env*.local
 
-# Google Credentials & Tokens
+# Google OAuth2 & Service Account
+src/services/server/credentials.json
+src/services/server/token.json
+src/services/server/*-service-account.json
+src/services/server/*.apps.googleusercontent.com.json
 credentials.json
 token.json
-*.apps.googleusercontent.com.json
