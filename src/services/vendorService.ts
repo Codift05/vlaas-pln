@@ -155,3 +155,67 @@ export const filterVendorsByStatus = async (status) => {
     return handleSupabaseError(error);
   }
 };
+
+// Auto-sync vendor: Cek apakah vendor sudah ada, jika belum otomatis create
+export const autoSyncVendor = async (vendorName) => {
+  try {
+    // Skip jika nama vendor kosong
+    if (!vendorName || vendorName.trim() === '') {
+      return { success: true, message: 'Vendor name is empty, skipping sync' };
+    }
+
+    // 1. Cek apakah vendor sudah ada berdasarkan nama (case-insensitive)
+    const { data: existingVendors, error: searchError } = await supabase
+      .from('vendors')
+      .select('id, nama, status')
+      .ilike('nama', vendorName.trim())
+      .limit(1);
+
+    if (searchError) {
+      console.error('Error checking vendor:', searchError);
+      return handleSupabaseError(searchError);
+    }
+
+    // 2. Jika vendor sudah ada, return success
+    if (existingVendors && existingVendors.length > 0) {
+      return handleSupabaseSuccess({
+        exists: true,
+        vendor: existingVendors[0],
+        message: `Vendor "${vendorName}" sudah ada di database`
+      });
+    }
+
+    // 3. Jika vendor belum ada, otomatis create dengan data minimal
+    const newVendorData = {
+      id: `AUTO-${Date.now()}`, // Generate ID otomatis
+      nama: vendorName.trim(),
+      alamat: '', // Alamat kosong
+      telepon: '', // Telepon kosong
+      email: '', // Email kosong, bisa diisi nanti
+      kontak_person: '', // Kontak person kosong
+      status: 'Aktif', // Status default Aktif
+      tanggal_registrasi: new Date().toISOString().split('T')[0] // Tanggal hari ini
+    };
+
+    const { data: newVendor, error: createError } = await supabase
+      .from('vendors')
+      .insert([newVendorData])
+      .select()
+      .single();
+
+    if (createError) {
+      console.error('Error creating vendor:', createError);
+      return handleSupabaseError(createError);
+    }
+
+    return handleSupabaseSuccess({
+      exists: false,
+      vendor: newVendor,
+      message: `Vendor "${vendorName}" berhasil ditambahkan otomatis`
+    });
+
+  } catch (error) {
+    console.error('Error in autoSyncVendor:', error);
+    return handleSupabaseError(error);
+  }
+};
