@@ -927,24 +927,30 @@ function Laporan() {
                                                     {(monthlyData as any[]).map((data, index) => {
                                                         const x = paddingLeft + (index * spacing);
                                                         const y = paddingTop + chartHeight - ((data.activeVendors || 0) / maxVal) * chartHeight;
+                                                        const hasActiveVendors = data.activeVendors > 0;
+
                                                         return (
-                                                            <g key={`active-${index}`}>
+                                                            <g key={`active-${index}`} style={{ pointerEvents: 'all' }}>
                                                                 <circle
                                                                     cx={x}
                                                                     cy={y}
-                                                                    r="6"
+                                                                    r="8"
                                                                     fill="#fff"
                                                                     stroke="#3b82f6"
-                                                                    strokeWidth="2.5"
-                                                                    style={{ cursor: data.activeVendors > 0 ? 'pointer' : 'default' }}
+                                                                    strokeWidth="3"
+                                                                    style={{
+                                                                        cursor: hasActiveVendors ? 'pointer' : 'default',
+                                                                        pointerEvents: 'all'
+                                                                    }}
                                                                     onClick={() => {
-                                                                        if (data.activeVendors > 0) {
+                                                                        console.log('Circle clicked!', data.month, 'Active vendors:', data.activeVendors);
+                                                                        if (hasActiveVendors) {
                                                                             setSelectedMonthData({ ...data, year: selectedContractYear, monthIndex: index });
                                                                             setShowVendorDetailModal(true);
                                                                         }
                                                                     }}
                                                                 >
-                                                                    <title>{data.activeVendors > 0 ? `${data.month}: ${data.activeVendors} vendor aktif - Klik untuk detail` : 'Tidak ada vendor aktif'}</title>
+                                                                    <title>{hasActiveVendors ? `${data.month}: ${data.activeVendors} vendor aktif - Klik untuk detail` : 'Tidak ada vendor aktif'}</title>
                                                                 </circle>
                                                             </g>
                                                         );
@@ -974,24 +980,30 @@ function Laporan() {
                                                     {(monthlyData as any[]).map((data, index) => {
                                                         const x = paddingLeft + (index * spacing);
                                                         const y = paddingTop + chartHeight - ((data.total || 0) / maxVal) * chartHeight;
+                                                        const hasActiveVendors = data.activeVendors > 0;
+
                                                         return (
-                                                            <g key={`new-${index}`}>
+                                                            <g key={`new-${index}`} style={{ pointerEvents: 'all' }}>
                                                                 <circle
                                                                     cx={x}
                                                                     cy={y}
-                                                                    r="6"
+                                                                    r="8"
                                                                     fill="#fff"
                                                                     stroke="#f59e0b"
-                                                                    strokeWidth="2.5"
-                                                                    style={{ cursor: data.activeVendors > 0 ? 'pointer' : 'default' }}
+                                                                    strokeWidth="3"
+                                                                    style={{
+                                                                        cursor: hasActiveVendors ? 'pointer' : 'default',
+                                                                        pointerEvents: 'all'
+                                                                    }}
                                                                     onClick={() => {
-                                                                        if (data.activeVendors > 0) {
+                                                                        console.log('Circle clicked!', data.month, 'Active vendors:', data.activeVendors);
+                                                                        if (hasActiveVendors) {
                                                                             setSelectedMonthData({ ...data, year: selectedContractYear, monthIndex: index });
                                                                             setShowVendorDetailModal(true);
                                                                         }
                                                                     }}
                                                                 >
-                                                                    <title>{`${data.month}: ${data.total || 0} vendor baru${data.activeVendors > 0 ? ` | ${data.activeVendors} vendor aktif - Klik untuk detail` : ''}`}</title>
+                                                                    <title>{`${data.month}: ${data.total || 0} vendor baru${hasActiveVendors ? ` | ${data.activeVendors} vendor aktif - Klik untuk detail` : ''}`}</title>
                                                                 </circle>
                                                             </g>
                                                         );
