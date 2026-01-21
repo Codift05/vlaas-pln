@@ -6,9 +6,9 @@ import { LayoutDashboard, FileText, User, LucideIcon } from 'lucide-react'
 import styled from 'styled-components'
 
 interface MenuItem {
-    path: string
-    icon: LucideIcon
-    label: string
+  path: string
+  icon: LucideIcon
+  label: string
 }
 
 const VendorSidebarWrapper = styled.aside`
@@ -41,38 +41,19 @@ const VendorSidebarWrapper = styled.aside`
     align-items: center;
     gap: 12px;
     width: 100%;
-    justify-content: flex-start;
+    justify-content: center;
   }
 
   .vendor-sidebar-logo-img {
-    width: 40px;
-    height: 40px;
+    width: 120px;
+    height: auto;
     object-fit: contain;
     background: transparent;
     flex-shrink: 0;
   }
 
   .vendor-sidebar-logo-info {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    white-space: nowrap;
-    overflow: hidden;
-  }
-
-  .vendor-sidebar-logo-text {
-    font-size: 18px;
-    font-weight: 700;
-    color: #1e293b;
-    font-family: var(--font-inter);
-    line-height: 1.2;
-  }
-
-  .vendor-sidebar-logo-desc {
-    font-size: 11px;
-    font-weight: 500;
-    color: #64748b;
-    font-family: var(--font-inter);
+    display: none;
   }
 
   .vendor-nav {
@@ -206,47 +187,47 @@ const VendorSidebarWrapper = styled.aside`
 `;
 
 const VendorSidebar: FC = () => {
-    const pathname = usePathname()
+  const pathname = usePathname()
 
-    const menuItems: MenuItem[] = [
-        { path: '/vendor-portal', icon: LayoutDashboard, label: 'Dashboard' },
-        { path: '/vendor-portal/pengajuan', icon: FileText, label: 'Buat Pengajuan' },
-        { path: '/vendor-portal/profile', icon: User, label: 'Profil Perusahaan' },
-    ]
+  const menuItems: MenuItem[] = [
+    { path: '/vendor-portal', icon: LayoutDashboard, label: 'Dashboard' },
+    { path: '/vendor-portal/pengajuan', icon: FileText, label: 'Buat Pengajuan' },
+    { path: '/vendor-portal/profile', icon: User, label: 'Profil Perusahaan' },
+  ]
 
-    return (
-        <VendorSidebarWrapper className="vendor-sidebar">
-            <div className="vendor-sidebar-header">
-                <div className="vendor-sidebar-logo">
-                    <img src="/images/Logo_vlaas.png" alt="VLAAS Logo" className="vendor-sidebar-logo-img" />
-                    <div className="vendor-sidebar-logo-info">
-                        <div className="vendor-sidebar-logo-text">PLN VLAAS</div>
-                        <div className="vendor-sidebar-logo-desc">Vendor Management</div>
-                    </div>
-                </div>
-            </div>
+  return (
+    <VendorSidebarWrapper className="vendor-sidebar">
+      <div className="vendor-sidebar-header">
+        <div className="vendor-sidebar-logo">
+          <img src="/images/Logo SAKTI 2.png" alt="SAKTI Logo" className="vendor-sidebar-logo-img" />
+          <div className="vendor-sidebar-logo-info">
+            <div className="vendor-sidebar-logo-text">PLN SAKTI</div>
+            <div className="vendor-sidebar-logo-desc">Sistem Arsip & Kontrak</div>
+          </div>
+        </div>
+      </div>
 
-            <nav className="vendor-nav">
-                {menuItems.map((item) => {
-                    const Icon = item.icon
-                    const isActive = item.path === '/vendor-portal'
-                        ? pathname === '/vendor-portal'
-                        : pathname.startsWith(item.path)
+      <nav className="vendor-nav">
+        {menuItems.map((item) => {
+          const Icon = item.icon
+          const isActive = item.path === '/vendor-portal'
+            ? pathname === '/vendor-portal'
+            : pathname.startsWith(item.path)
 
-                    return (
-                        <Link
-                            key={item.path}
-                            href={item.path}
-                            className={`vendor-nav-item ${isActive ? 'active' : ''}`}
-                        >
-                            <Icon size={22} strokeWidth={2} className="vendor-nav-icon" />
-                            <span className="vendor-nav-text">{item.label}</span>
-                        </Link>
-                    )
-                })}
-            </nav>
-        </VendorSidebarWrapper>
-    )
+          return (
+            <Link
+              key={item.path}
+              href={item.path}
+              className={`vendor-nav-item ${isActive ? 'active' : ''}`}
+            >
+              <Icon size={22} strokeWidth={2} className="vendor-nav-icon" />
+              <span className="vendor-nav-text">{item.label}</span>
+            </Link>
+          )
+        })}
+      </nav>
+    </VendorSidebarWrapper>
+  )
 }
 
 export default VendorSidebar

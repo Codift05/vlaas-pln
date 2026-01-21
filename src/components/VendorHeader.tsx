@@ -5,10 +5,10 @@ import { Bell, User, LogOut, ChevronDown, ChevronUp } from 'lucide-react'
 import styled from 'styled-components'
 
 interface Notification {
-    id: number
-    message: string
-    time: string
-    unread: boolean
+  id: number
+  message: string
+  time: string
+  unread: boolean
 }
 
 const VendorHeaderContainer = styled.header`
@@ -453,170 +453,170 @@ const LogoGroup = styled.div`
 `;
 
 const VendorHeader: FC = () => {
-    const router = useRouter()
-    const pathname = usePathname()
-    const [showNotifications, setShowNotifications] = useState<boolean>(false)
-    const [showProfileMenu, setShowProfileMenu] = useState<boolean>(false)
-    const [userName, setUserName] = useState<string>('Vendor')
-    const [userInitial, setUserInitial] = useState<string>('V')
+  const router = useRouter()
+  const pathname = usePathname()
+  const [showNotifications, setShowNotifications] = useState<boolean>(false)
+  const [showProfileMenu, setShowProfileMenu] = useState<boolean>(false)
+  const [userName, setUserName] = useState<string>('Vendor')
+  const [userInitial, setUserInitial] = useState<string>('V')
 
-    useEffect(() => {
-        const savedProfile = localStorage.getItem('vendorProfile')
-        if (savedProfile) {
-            try {
-                const profile = JSON.parse(savedProfile)
-                if (profile.picName) {
-                    setUserName(profile.picName)
-                    setUserInitial(profile.picName.charAt(0).toUpperCase())
-                } else if (profile.companyName) {
-                    setUserName(profile.companyName)
-                    setUserInitial(profile.companyName.charAt(0).toUpperCase())
-                }
-            } catch (error) {
-                console.error('Error parsing profile:', error)
-            }
+  useEffect(() => {
+    const savedProfile = localStorage.getItem('vendorProfile')
+    if (savedProfile) {
+      try {
+        const profile = JSON.parse(savedProfile)
+        if (profile.picName) {
+          setUserName(profile.picName)
+          setUserInitial(profile.picName.charAt(0).toUpperCase())
+        } else if (profile.companyName) {
+          setUserName(profile.companyName)
+          setUserInitial(profile.companyName.charAt(0).toUpperCase())
         }
-    }, [])
+      } catch (error) {
+        console.error('Error parsing profile:', error)
+      }
+    }
+  }, [])
 
-    useEffect(() => {
-        const handleStorageChange = (): void => {
-            const savedProfile = localStorage.getItem('vendorProfile')
-            if (savedProfile) {
-                try {
-                    const profile = JSON.parse(savedProfile)
-                    if (profile.picName) {
-                        setUserName(profile.picName)
-                        setUserInitial(profile.picName.charAt(0).toUpperCase())
-                    } else if (profile.companyName) {
-                        setUserName(profile.companyName)
-                        setUserInitial(profile.companyName.charAt(0).toUpperCase())
-                    }
-                } catch (error) {
-                    console.error('Error parsing profile:', error)
-                }
-            }
+  useEffect(() => {
+    const handleStorageChange = (): void => {
+      const savedProfile = localStorage.getItem('vendorProfile')
+      if (savedProfile) {
+        try {
+          const profile = JSON.parse(savedProfile)
+          if (profile.picName) {
+            setUserName(profile.picName)
+            setUserInitial(profile.picName.charAt(0).toUpperCase())
+          } else if (profile.companyName) {
+            setUserName(profile.companyName)
+            setUserInitial(profile.companyName.charAt(0).toUpperCase())
+          }
+        } catch (error) {
+          console.error('Error parsing profile:', error)
         }
-
-        window.addEventListener('storage', handleStorageChange)
-        window.addEventListener('profileUpdated', handleStorageChange)
-
-        return () => {
-            window.removeEventListener('storage', handleStorageChange)
-            window.removeEventListener('profileUpdated', handleStorageChange)
-        }
-    }, [])
-
-    const getPageTitle = (): string => {
-        switch (pathname) {
-            case '/vendor-portal':
-                return 'Dashboard'
-            case '/vendor-portal/pengajuan':
-                return 'Buat Pengajuan'
-            case '/vendor-portal/profile':
-                return 'Profil Perusahaan'
-            default:
-                return 'Portal Vendor'
-        }
+      }
     }
 
-    const notifications: Notification[] = [
-        { id: 1, message: 'Surat SRT/VND/2025/001 telah disetujui', time: '2 jam lalu', unread: true },
-        { id: 2, message: 'Surat SRT/VND/2025/003 ditolak. Cek alasan penolakan.', time: '1 hari lalu', unread: true },
-        { id: 3, message: 'Pengajuan SRT/VND/2025/002 sedang diproses', time: '2 hari lalu', unread: false },
-    ]
+    window.addEventListener('storage', handleStorageChange)
+    window.addEventListener('profileUpdated', handleStorageChange)
 
-    const unreadCount = notifications.filter(n => n.unread).length
-
-    const handleLogout = (): void => {
-        localStorage.removeItem('vendorLoggedIn')
-        localStorage.removeItem('vendorEmail')
-        router.push('/vendor-login')
+    return () => {
+      window.removeEventListener('storage', handleStorageChange)
+      window.removeEventListener('profileUpdated', handleStorageChange)
     }
+  }, [])
 
-    const handleProfileClick = (): void => {
-        setShowProfileMenu(false)
-        router.push('/vendor-portal/profile')
+  const getPageTitle = (): string => {
+    switch (pathname) {
+      case '/vendor-portal':
+        return 'Dashboard'
+      case '/vendor-portal/pengajuan':
+        return 'Buat Pengajuan'
+      case '/vendor-portal/profile':
+        return 'Profil Perusahaan'
+      default:
+        return 'Portal Vendor'
     }
+  }
 
-    const toggleProfileMenu = (): void => {
-        setShowProfileMenu(!showProfileMenu)
-    }
+  const notifications: Notification[] = [
+    { id: 1, message: 'Surat SRT/VND/2025/001 telah disetujui', time: '2 jam lalu', unread: true },
+    { id: 2, message: 'Surat SRT/VND/2025/003 ditolak. Cek alasan penolakan.', time: '1 hari lalu', unread: true },
+    { id: 3, message: 'Pengajuan SRT/VND/2025/002 sedang diproses', time: '2 hari lalu', unread: false },
+  ]
 
-    const toggleNotifications = (): void => {
-        setShowNotifications(!showNotifications)
-    }
+  const unreadCount = notifications.filter(n => n.unread).length
 
-    return (
-        <VendorHeaderContainer>
-            <div className="vendor-header-content">
-                <div className="vendor-header-left">
-                    <h1 className="page-title">{getPageTitle()}</h1>
-                </div>
+  const handleLogout = (): void => {
+    localStorage.removeItem('vendorLoggedIn')
+    localStorage.removeItem('vendorEmail')
+    router.push('/vendor-login')
+  }
 
-                <div className="vendor-header-right">
-                    <LogoGroup>
-                        <img src="/images/Logo_PLN.png" alt="PLN Logo" className="logo-pln" />
-                        <img src="/images/Logo_Danantara%20(2).png" alt="Danantara Logo" className="logo-danantara" />
-                        <div className="logo-text">
-                            <strong>PLN (Persero)</strong>
-                            <span>UPT Manado</span>
-                        </div>
-                    </LogoGroup>
+  const handleProfileClick = (): void => {
+    setShowProfileMenu(false)
+    router.push('/vendor-portal/profile')
+  }
 
-                    <div className="notification-container">
-                        <div className="notification-icon" onClick={toggleNotifications}>
-                            <Bell size={24} strokeWidth={2.5} />
-                            {unreadCount > 0 && (
-                                <span className="notification-badge">{unreadCount}</span>
-                            )}
-                        </div>
+  const toggleProfileMenu = (): void => {
+    setShowProfileMenu(!showProfileMenu)
+  }
 
-                        {showNotifications && (
-                            <div className="notification-dropdown">
-                                <div className="notification-header">
-                                    <h3>Notifikasi</h3>
-                                    <span className="notification-count">{unreadCount} baru</span>
-                                </div>
-                                <div className="notification-list">
-                                    {notifications.map(notif => (
-                                        <div key={notif.id} className={`notification-item ${notif.unread ? 'unread' : ''}`}>
-                                            <p>{notif.message}</p>
-                                            <span className="notification-time">{notif.time}</span>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-                    </div>
+  const toggleNotifications = (): void => {
+    setShowNotifications(!showNotifications)
+  }
 
-                    <div className="user-profile" onClick={toggleProfileMenu}>
-                        <div className="user-avatar">{userInitial}</div>
-                        <div className="user-info">
-                            <span className="user-name">{userName}</span>
-                            <span className="user-role">Partner</span>
-                        </div>
-                        {showProfileMenu ? (
-                            <ChevronUp className="dropdown-arrow-svg" size={16} strokeWidth={2.5} />
-                        ) : (
-                            <ChevronDown className="dropdown-arrow-svg" size={16} strokeWidth={2.5} />
-                        )}
-                        {showProfileMenu && (
-                            <div className="profile-dropdown" onClick={(e: MouseEvent) => e.stopPropagation()}>
-                                <div className="dropdown-item" onClick={handleProfileClick}>
-                                    <User className="item-icon-svg" size={18} strokeWidth={2} />
-                                    <span>Profil Saya</span>
-                                </div>
-                                <div className="dropdown-item logout" onClick={handleLogout}>
-                                    <LogOut className="item-icon-svg" size={18} strokeWidth={2} />
-                                    <span>Logout</span>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                </div>
+  return (
+    <VendorHeaderContainer>
+      <div className="vendor-header-content">
+        <div className="vendor-header-left">
+          <h1 className="page-title">{getPageTitle()}</h1>
+        </div>
+
+        <div className="vendor-header-right">
+          <LogoGroup>
+            <img src="/images/Logo_PLN.png" alt="PLN Logo" className="logo-pln" />
+            <img src="/images/Logo_Danantara (2).png" alt="Danantara Logo" className="logo-danantara" />
+            <div className="logo-text">
+              <strong>PLN (Persero)</strong>
+              <span>UPT Manado</span>
             </div>
-        </VendorHeaderContainer>
-    )
+          </LogoGroup>
+
+          <div className="notification-container">
+            <div className="notification-icon" onClick={toggleNotifications}>
+              <Bell size={24} strokeWidth={2.5} />
+              {unreadCount > 0 && (
+                <span className="notification-badge">{unreadCount}</span>
+              )}
+            </div>
+
+            {showNotifications && (
+              <div className="notification-dropdown">
+                <div className="notification-header">
+                  <h3>Notifikasi</h3>
+                  <span className="notification-count">{unreadCount} baru</span>
+                </div>
+                <div className="notification-list">
+                  {notifications.map(notif => (
+                    <div key={notif.id} className={`notification-item ${notif.unread ? 'unread' : ''}`}>
+                      <p>{notif.message}</p>
+                      <span className="notification-time">{notif.time}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="user-profile" onClick={toggleProfileMenu}>
+            <div className="user-avatar">{userInitial}</div>
+            <div className="user-info">
+              <span className="user-name">{userName}</span>
+              <span className="user-role">Partner</span>
+            </div>
+            {showProfileMenu ? (
+              <ChevronUp className="dropdown-arrow-svg" size={16} strokeWidth={2.5} />
+            ) : (
+              <ChevronDown className="dropdown-arrow-svg" size={16} strokeWidth={2.5} />
+            )}
+            {showProfileMenu && (
+              <div className="profile-dropdown" onClick={(e: MouseEvent) => e.stopPropagation()}>
+                <div className="dropdown-item" onClick={handleProfileClick}>
+                  <User className="item-icon-svg" size={18} strokeWidth={2} />
+                  <span>Profil Saya</span>
+                </div>
+                <div className="dropdown-item logout" onClick={handleLogout}>
+                  <LogOut className="item-icon-svg" size={18} strokeWidth={2} />
+                  <span>Logout</span>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </VendorHeaderContainer>
+  )
 }
 
 export default VendorHeader

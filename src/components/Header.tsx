@@ -6,17 +6,17 @@ import styled from 'styled-components'
 import { supabase } from '../lib/supabaseClient'
 
 interface HeaderProps {
-    onMenuClick?: () => void
-    isExpanded?: boolean
+  onMenuClick?: () => void
+  isExpanded?: boolean
 }
 
 interface Notification {
-    id: string
-    type: 'contract' | 'vendor' | 'amendment'
-    title: string
-    description: string
-    time: string
-    icon: LucideIcon
+  id: string
+  type: 'contract' | 'vendor' | 'amendment'
+  title: string
+  description: string
+  time: string
+  icon: LucideIcon
 }
 
 const HeaderContainer = styled.header`
@@ -692,237 +692,237 @@ const LogoGroup = styled.div`
 `;
 
 const Header: FC<HeaderProps> = ({ onMenuClick, isExpanded = false }) => {
-    const [showProfileMenu, setShowProfileMenu] = useState<boolean>(false)
-    const [showNotifications, setShowNotifications] = useState<boolean>(false)
-    const [notifications, setNotifications] = useState<Notification[]>([])
-    const [notificationCount, setNotificationCount] = useState<number>(0)
+  const [showProfileMenu, setShowProfileMenu] = useState<boolean>(false)
+  const [showNotifications, setShowNotifications] = useState<boolean>(false)
+  const [notifications, setNotifications] = useState<Notification[]>([])
+  const [notificationCount, setNotificationCount] = useState<number>(0)
 
-    const router = useRouter()
-    const pathname = usePathname()
+  const router = useRouter()
+  const pathname = usePathname()
 
-    // Ambil daftar notifikasi yang sudah dibaca dari localStorage
-    const getReadNotifIds = (): string[] => {
-        if (typeof window === 'undefined') return []
-        try {
-            return JSON.parse(localStorage.getItem('readNotifIds') || '[]')
-        } catch {
-            return []
-        }
+  // Ambil daftar notifikasi yang sudah dibaca dari localStorage
+  const getReadNotifIds = (): string[] => {
+    if (typeof window === 'undefined') return []
+    try {
+      return JSON.parse(localStorage.getItem('readNotifIds') || '[]')
+    } catch {
+      return []
     }
+  }
 
-    // Simpan daftar notifikasi yang sudah dibaca ke localStorage
-    const setReadNotifIds = (ids: string[]): void => {
-        if (typeof window === 'undefined') return
-        localStorage.setItem('readNotifIds', JSON.stringify(ids))
+  // Simpan daftar notifikasi yang sudah dibaca ke localStorage
+  const setReadNotifIds = (ids: string[]): void => {
+    if (typeof window === 'undefined') return
+    localStorage.setItem('readNotifIds', JSON.stringify(ids))
+  }
+
+  // Fetch notifications
+  useEffect(() => {
+    fetchNotifications()
+  }, [])
+
+  const fetchNotifications = async (): Promise<void> => {
+    try {
+      // Fetch contract history for recent amendments
+      const { data: contractHistory } = await supabase
+        .from('contract_history')
+        .select('*, contracts(name)')
+        .order('created_at', { ascending: false })
+        .limit(5)
+
+      // Fetch recent vendors
+      const { data: vendors } = await supabase
+        .from('vendors')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(3)
+
+      const notifs: Notification[] = []
+
+      // Add contract history notifications
+      if (contractHistory) {
+        contractHistory.forEach((history: any) => {
+          notifs.push({
+            id: `contract-${history.id}`,
+            type: history.action.includes('Amandemen') ? 'amendment' : 'contract',
+            title: history.action,
+            description: `${history.contracts?.name || 'Kontrak'} - ${history.details?.substring(0, 50)}...`,
+            time: getRelativeTime(history.created_at),
+            icon: FileText
+          })
+        })
+      }
+
+      // Add vendor notifications
+      if (vendors) {
+        vendors.forEach((vendor: any) => {
+          notifs.push({
+            id: `vendor-${vendor.id}`,
+            type: 'vendor',
+            title: 'Vendor Baru Ditambahkan',
+            description: `${vendor.nama || vendor.name} telah terdaftar di sistem`,
+            time: getRelativeTime(vendor.created_at),
+            icon: UserPlus
+          })
+        })
+      }
+
+      // Filter notifikasi yang sudah dibaca
+      const readIds = getReadNotifIds()
+      const filteredNotifs = notifs.filter(n => !readIds.includes(n.id))
+
+      // Sort by time and limit
+      filteredNotifs.sort((a, b) => b.id.localeCompare(a.id))
+      setNotifications(filteredNotifs.slice(0, 8))
+      setNotificationCount(filteredNotifs.length)
+    } catch (err) {
+      console.error('Error fetching notifications:', err)
     }
+  }
 
-    // Fetch notifications
-    useEffect(() => {
-        fetchNotifications()
-    }, [])
+  const getRelativeTime = (dateString: string): string => {
+    if (!dateString) return 'Baru saja'
+    const date = new Date(dateString)
+    const now = new Date()
+    const diffMs = now.getTime() - date.getTime()
+    const diffMins = Math.floor(diffMs / 60000)
+    const diffHours = Math.floor(diffMs / 3600000)
+    const diffDays = Math.floor(diffMs / 86400000)
 
-    const fetchNotifications = async (): Promise<void> => {
-        try {
-            // Fetch contract history for recent amendments
-            const { data: contractHistory } = await supabase
-                .from('contract_history')
-                .select('*, contracts(name)')
-                .order('created_at', { ascending: false })
-                .limit(5)
+    if (diffMins < 1) return 'Baru saja'
+    if (diffMins < 60) return `${diffMins} menit yang lalu`
+    if (diffHours < 24) return `${diffHours} jam yang lalu`
+    if (diffDays < 7) return `${diffDays} hari yang lalu`
+    return date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
+  }
 
-            // Fetch recent vendors
-            const { data: vendors } = await supabase
-                .from('vendors')
-                .select('*')
-                .order('created_at', { ascending: false })
-                .limit(3)
-
-            const notifs: Notification[] = []
-
-            // Add contract history notifications
-            if (contractHistory) {
-                contractHistory.forEach((history: any) => {
-                    notifs.push({
-                        id: `contract-${history.id}`,
-                        type: history.action.includes('Amandemen') ? 'amendment' : 'contract',
-                        title: history.action,
-                        description: `${history.contracts?.name || 'Kontrak'} - ${history.details?.substring(0, 50)}...`,
-                        time: getRelativeTime(history.created_at),
-                        icon: FileText
-                    })
-                })
-            }
-
-            // Add vendor notifications
-            if (vendors) {
-                vendors.forEach((vendor: any) => {
-                    notifs.push({
-                        id: `vendor-${vendor.id}`,
-                        type: 'vendor',
-                        title: 'Vendor Baru Ditambahkan',
-                        description: `${vendor.nama || vendor.name} telah terdaftar di sistem`,
-                        time: getRelativeTime(vendor.created_at),
-                        icon: UserPlus
-                    })
-                })
-            }
-
-            // Filter notifikasi yang sudah dibaca
-            const readIds = getReadNotifIds()
-            const filteredNotifs = notifs.filter(n => !readIds.includes(n.id))
-
-            // Sort by time and limit
-            filteredNotifs.sort((a, b) => b.id.localeCompare(a.id))
-            setNotifications(filteredNotifs.slice(0, 8))
-            setNotificationCount(filteredNotifs.length)
-        } catch (err) {
-            console.error('Error fetching notifications:', err)
-        }
+  const getPageTitle = (): string => {
+    switch (pathname) {
+      case '/dashboard':
+        return 'Dashboard'
+      case '/aset':
+        return 'Manajemen Kontrak'
+      case '/vendor':
+        return 'Data Vendor'
+      case '/laporan':
+        return 'Laporan & Analitik'
+      case '/pengaturan':
+        return 'Pengaturan'
+      default:
+        return 'Dashboard'
     }
+  }
 
-    const getRelativeTime = (dateString: string): string => {
-        if (!dateString) return 'Baru saja'
-        const date = new Date(dateString)
-        const now = new Date()
-        const diffMs = now.getTime() - date.getTime()
-        const diffMins = Math.floor(diffMs / 60000)
-        const diffHours = Math.floor(diffMs / 3600000)
-        const diffDays = Math.floor(diffMs / 86400000)
+  const toggleProfileMenu = (): void => {
+    setShowProfileMenu(!showProfileMenu)
+  }
 
-        if (diffMins < 1) return 'Baru saja'
-        if (diffMins < 60) return `${diffMins} menit yang lalu`
-        if (diffHours < 24) return `${diffHours} jam yang lalu`
-        if (diffDays < 7) return `${diffDays} hari yang lalu`
-        return date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
-    }
+  const handleLogout = (): void => {
+    localStorage.removeItem('isLoggedIn')
+    localStorage.removeItem('devMode')
+    router.push('/')
+  }
 
-    const getPageTitle = (): string => {
-        switch (pathname) {
-            case '/dashboard':
-                return 'Dashboard'
-            case '/aset':
-                return 'Manajemen Kontrak'
-            case '/vendor':
-                return 'Data Vendor'
-            case '/laporan':
-                return 'Laporan & Analitik'
-            case '/pengaturan':
-                return 'Pengaturan'
-            default:
-                return 'Dashboard'
-        }
-    }
+  const goToSettings = (): void => {
+    router.push('/pengaturan')
+    setShowProfileMenu(false)
+  }
 
-    const toggleProfileMenu = (): void => {
-        setShowProfileMenu(!showProfileMenu)
-    }
+  const handleMarkAllRead = (): void => {
+    const ids = notifications.map(n => n.id)
+    setReadNotifIds([...getReadNotifIds(), ...ids])
+    setNotifications([])
+    setNotificationCount(0)
+  }
 
-    const handleLogout = (): void => {
-        localStorage.removeItem('isLoggedIn')
-        localStorage.removeItem('devMode')
-        router.push('/')
-    }
-
-    const goToSettings = (): void => {
-        router.push('/pengaturan')
-        setShowProfileMenu(false)
-    }
-
-    const handleMarkAllRead = (): void => {
-        const ids = notifications.map(n => n.id)
-        setReadNotifIds([...getReadNotifIds(), ...ids])
-        setNotifications([])
-        setNotificationCount(0)
-    }
-
-    return (
-        <HeaderContainer className={isExpanded ? 'expanded' : 'collapsed'}>
-            <div className="header-left">
-                <button className="hamburger-menu" onClick={onMenuClick}>
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                </button>
-                <h1 className="header-title">{getPageTitle()}</h1>
-            </div>
-            <div className="header-right">
-                <LogoGroup>
-                    <img src="/images/Logo_PLN.png" alt="Logo PLN" className="logo-pln" />
-                    <img src="/images/Logo_Danantara (2).png" alt="Logo Danantara" className="logo-danantara" />
-                    <div className="logo-text">
-                        <strong>PLN (Persero)</strong>
-                        <span>UPT Manado</span>
-                    </div>
-                </LogoGroup>
-                <div className="notification-icon" onClick={() => setShowNotifications(!showNotifications)}>
-                    <Bell size={22} strokeWidth={2} />
-                    {notificationCount > 0 && <span className="notification-badge">{notificationCount}</span>}
-                    {showNotifications && (
-                        <div className="notification-dropdown" onClick={(e) => e.stopPropagation()}>
-                            <div className="notification-header">
-                                <h3>Notifikasi</h3>
-                                <span className="mark-read" onClick={handleMarkAllRead}>
-                                    Tandai sudah dibaca
-                                </span>
-                            </div>
-                            <div className="notification-list">
-                                {notifications.length > 0 ? (
-                                    notifications.map(notif => {
-                                        const IconComponent = notif.icon
-                                        return (
-                                            <div key={notif.id} className="notification-item">
-                                                <div className={`notification-icon-wrapper ${notif.type}`}>
-                                                    <IconComponent size={18} strokeWidth={2} />
-                                                </div>
-                                                <div className="notification-content">
-                                                    <div className="notification-title">{notif.title}</div>
-                                                    <div className="notification-desc">{notif.description}</div>
-                                                    <div className="notification-time">
-                                                        <Clock size={11} />
-                                                        {notif.time}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        )
-                                    })
-                                ) : (
-                                    <div className="notification-empty">
-                                        <Bell className="notification-empty-icon" size={48} strokeWidth={1.5} />
-                                        <p>Tidak ada notifikasi</p>
-                                    </div>
-                                )}
-                            </div>
+  return (
+    <HeaderContainer className={isExpanded ? 'expanded' : 'collapsed'}>
+      <div className="header-left">
+        <button className="hamburger-menu" onClick={onMenuClick}>
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+        <h1 className="header-title">{getPageTitle()}</h1>
+      </div>
+      <div className="header-right">
+        <LogoGroup>
+          <img src="/images/Logo_PLN.png" alt="Logo PLN" className="logo-pln" />
+          <img src="/images/Logo_Danantara (2).png" alt="Logo Danantara" className="logo-danantara" />
+          <div className="logo-text">
+            <strong>PLN (Persero)</strong>
+            <span>UPT Manado</span>
+          </div>
+        </LogoGroup>
+        <div className="notification-icon" onClick={() => setShowNotifications(!showNotifications)}>
+          <Bell size={22} strokeWidth={2} />
+          {notificationCount > 0 && <span className="notification-badge">{notificationCount}</span>}
+          {showNotifications && (
+            <div className="notification-dropdown" onClick={(e) => e.stopPropagation()}>
+              <div className="notification-header">
+                <h3>Notifikasi</h3>
+                <span className="mark-read" onClick={handleMarkAllRead}>
+                  Tandai sudah dibaca
+                </span>
+              </div>
+              <div className="notification-list">
+                {notifications.length > 0 ? (
+                  notifications.map(notif => {
+                    const IconComponent = notif.icon
+                    return (
+                      <div key={notif.id} className="notification-item">
+                        <div className={`notification-icon-wrapper ${notif.type}`}>
+                          <IconComponent size={18} strokeWidth={2} />
                         </div>
-                    )}
-                </div>
-                <div className="user-profile" onClick={toggleProfileMenu}>
-                    <div className="user-avatar">A</div>
-                    <div className="user-info">
-                        <span className="user-name">Admin</span>
-                        <span className="user-role">Administrator</span>
-                    </div>
-                    {showProfileMenu ? (
-                        <ChevronUp className="dropdown-arrow-svg" size={16} strokeWidth={2.5} />
-                    ) : (
-                        <ChevronDown className="dropdown-arrow-svg" size={16} strokeWidth={2.5} />
-                    )}
-                    {showProfileMenu && (
-                        <div className="profile-dropdown" onClick={(e) => e.stopPropagation()}>
-                            <div className="dropdown-item" onClick={goToSettings}>
-                                <Settings className="item-icon-svg" size={18} strokeWidth={2} />
-                                <span>Pengaturan</span>
-                            </div>
-                            <div className="dropdown-divider" />
-                            <div className="dropdown-item logout" onClick={handleLogout}>
-                                <LogOut className="item-icon-svg" size={18} strokeWidth={2} />
-                                <span>Logout</span>
-                            </div>
+                        <div className="notification-content">
+                          <div className="notification-title">{notif.title}</div>
+                          <div className="notification-desc">{notif.description}</div>
+                          <div className="notification-time">
+                            <Clock size={11} />
+                            {notif.time}
+                          </div>
                         </div>
-                    )}
-                </div>
+                      </div>
+                    )
+                  })
+                ) : (
+                  <div className="notification-empty">
+                    <Bell className="notification-empty-icon" size={48} strokeWidth={1.5} />
+                    <p>Tidak ada notifikasi</p>
+                  </div>
+                )}
+              </div>
             </div>
-        </HeaderContainer>
-    )
+          )}
+        </div>
+        <div className="user-profile" onClick={toggleProfileMenu}>
+          <div className="user-avatar">A</div>
+          <div className="user-info">
+            <span className="user-name">Admin</span>
+            <span className="user-role">Administrator</span>
+          </div>
+          {showProfileMenu ? (
+            <ChevronUp className="dropdown-arrow-svg" size={16} strokeWidth={2.5} />
+          ) : (
+            <ChevronDown className="dropdown-arrow-svg" size={16} strokeWidth={2.5} />
+          )}
+          {showProfileMenu && (
+            <div className="profile-dropdown" onClick={(e) => e.stopPropagation()}>
+              <div className="dropdown-item" onClick={goToSettings}>
+                <Settings className="item-icon-svg" size={18} strokeWidth={2} />
+                <span>Pengaturan</span>
+              </div>
+              <div className="dropdown-divider" />
+              <div className="dropdown-item logout" onClick={handleLogout}>
+                <LogOut className="item-icon-svg" size={18} strokeWidth={2} />
+                <span>Logout</span>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </HeaderContainer>
+  )
 }
 
 export default Header

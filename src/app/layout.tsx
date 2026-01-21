@@ -15,10 +15,10 @@ const outfit = Outfit({
 })
 
 export const metadata = {
-    title: 'PLN VLAAS - Sistem Manajemen Aset',
-    description: 'Platform Digital Terpadu untuk Manajemen Surat Vendor PT. PLN Persero - Vendor Letter Archive & Approval System',
+    title: 'PLN SAKTI - Sistem Arsip & Kontrak Terintegrasi',
+    description: 'Platform Digital Terpadu untuk Manajemen Surat Vendor PT. PLN Persero - Sistem Arsip & Kontrak Terintegrasi',
     icons: {
-        icon: '/images/Logo_vlaas.png',
+        icon: '/images/Logo SAKTI 2.png',
     },
 }
 

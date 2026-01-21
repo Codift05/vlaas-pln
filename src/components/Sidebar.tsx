@@ -6,10 +6,10 @@ import { LayoutDashboard, Package, Users, FileBarChart } from 'lucide-react'
 import styled from 'styled-components'
 
 interface SidebarProps {
-    isOpen: boolean
-    onClose: () => void
-    isExpanded: boolean
-    toggleSidebar: () => void
+  isOpen: boolean
+  onClose: () => void
+  isExpanded: boolean
+  toggleSidebar: () => void
 }
 
 const Overlay = styled.div`
@@ -83,41 +83,20 @@ const SidebarWrapper = styled.div<{ $isExpanded: boolean }>`
     align-items: center;
     gap: 0.75rem;
     width: 100%;
-    justify-content: ${props => props.$isExpanded ? 'flex-start' : 'center'};
+    justify-content: center;
   }
 
   .sidebar-logo-img {
-    width: clamp(2rem, 2.5rem, 3rem);
-    height: clamp(2rem, 2.5rem, 3rem);
+    width: ${props => props.$isExpanded ? '120px' : '2.5rem'};
+    height: auto;
     object-fit: contain;
     background: transparent;
     flex-shrink: 0;
+    transition: width 0.3s ease;
   }
 
   .sidebar-logo-info {
-    display: flex;
-    flex-direction: column;
-    gap: 0.125rem;
-    opacity: ${props => props.$isExpanded ? 1 : 0};
-    visibility: ${props => props.$isExpanded ? 'visible' : 'hidden'};
-    transition: opacity 0.2s, visibility 0.2s;
-    white-space: nowrap;
-    overflow: hidden;
-  }
-
-  .sidebar-logo-text {
-    font-size: clamp(1rem, 1.125rem, 1.25rem);
-    font-weight: 700;
-    color: #1e293b;
-    font-family: var(--font-inter);
-    line-height: 1.2;
-  }
-
-  .sidebar-logo-desc {
-    font-size: clamp(0.625rem, 0.688rem, 0.75rem);
-    font-weight: 500;
-    color: #64748b;
-    font-family: var(--font-inter);
+    display: none;
   }
 
   .sidebar-nav {
@@ -209,55 +188,55 @@ const SidebarWrapper = styled.div<{ $isExpanded: boolean }>`
 `;
 
 const Sidebar: FC<SidebarProps> = ({ isOpen, onClose, isExpanded, toggleSidebar }) => {
-    const pathname = usePathname()
-    const isActive = (path: string): string => pathname === path ? 'active' : ''
+  const pathname = usePathname()
+  const isActive = (path: string): string => pathname === path ? 'active' : ''
 
-    const handleNavClick = (): void => {
-        if (window.innerWidth <= 968 && onClose) onClose()
-    }
+  const handleNavClick = (): void => {
+    if (window.innerWidth <= 968 && onClose) onClose()
+  }
 
-    return (
-        <>
-            <Overlay className={isOpen ? 'active' : ''} onClick={onClose} />
-            <SidebarWrapper className={isOpen ? 'open' : ''} $isExpanded={isExpanded}>
-                <div
-                    className="sidebar-header"
-                    onClick={toggleSidebar}
-                    title={isExpanded ? "Collapse Sidebar" : "Expand Sidebar"}
-                >
-                    <div className="sidebar-logo">
-                        <img src="/images/Logo_vlaas.png" alt="VLAAS Logo" className="sidebar-logo-img" />
-                        <div className="sidebar-logo-info">
-                            <div className="sidebar-logo-text">PLN VLAAS</div>
-                            <div className="sidebar-logo-desc">Vendor Management</div>
-                        </div>
-                    </div>
-                </div>
+  return (
+    <>
+      <Overlay className={isOpen ? 'active' : ''} onClick={onClose} />
+      <SidebarWrapper className={isOpen ? 'open' : ''} $isExpanded={isExpanded}>
+        <div
+          className="sidebar-header"
+          onClick={toggleSidebar}
+          title={isExpanded ? "Collapse Sidebar" : "Expand Sidebar"}
+        >
+          <div className="sidebar-logo">
+            <img src="/images/Logo SAKTI 2.png" alt="SAKTI Logo" className="sidebar-logo-img" />
+            <div className="sidebar-logo-info">
+              <div className="sidebar-logo-text">PLN SAKTI</div>
+              <div className="sidebar-logo-desc">Sistem Arsip & Kontrak</div>
+            </div>
+          </div>
+        </div>
 
-                <nav className="sidebar-nav">
-                    <Link href="/dashboard" className={`nav-item ${isActive('/dashboard')}`} onClick={handleNavClick}>
-                        <LayoutDashboard className="nav-icon-svg" size={22} strokeWidth={2} />
-                        <span className="nav-text">Dashboard</span>
-                    </Link>
+        <nav className="sidebar-nav">
+          <Link href="/dashboard" className={`nav-item ${isActive('/dashboard')}`} onClick={handleNavClick}>
+            <LayoutDashboard className="nav-icon-svg" size={22} strokeWidth={2} />
+            <span className="nav-text">Dashboard</span>
+          </Link>
 
-                    <Link href="/aset" className={`nav-item ${isActive('/aset')}`} onClick={handleNavClick}>
-                        <Package className="nav-icon-svg" size={22} strokeWidth={2} />
-                        <span className="nav-text">Manajemen Kontrak</span>
-                    </Link>
+          <Link href="/aset" className={`nav-item ${isActive('/aset')}`} onClick={handleNavClick}>
+            <Package className="nav-icon-svg" size={22} strokeWidth={2} />
+            <span className="nav-text">Manajemen Kontrak</span>
+          </Link>
 
-                    <Link href="/vendor" className={`nav-item ${isActive('/vendor')}`} onClick={handleNavClick}>
-                        <Users className="nav-icon-svg" size={22} strokeWidth={2} />
-                        <span className="nav-text">Data Vendor</span>
-                    </Link>
+          <Link href="/vendor" className={`nav-item ${isActive('/vendor')}`} onClick={handleNavClick}>
+            <Users className="nav-icon-svg" size={22} strokeWidth={2} />
+            <span className="nav-text">Data Vendor</span>
+          </Link>
 
-                    <Link href="/laporan" className={`nav-item ${isActive('/laporan')}`} onClick={handleNavClick}>
-                        <FileBarChart className="nav-icon-svg" size={22} strokeWidth={2} />
-                        <span className="nav-text">Laporan</span>
-                    </Link>
-                </nav>
-            </SidebarWrapper>
-        </>
-    )
+          <Link href="/laporan" className={`nav-item ${isActive('/laporan')}`} onClick={handleNavClick}>
+            <FileBarChart className="nav-icon-svg" size={22} strokeWidth={2} />
+            <span className="nav-text">Laporan</span>
+          </Link>
+        </nav>
+      </SidebarWrapper>
+    </>
+  )
 }
 
 export default Sidebar
