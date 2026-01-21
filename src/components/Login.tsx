@@ -552,7 +552,7 @@ const Login: FC = () => {
       description: 'Perusahaan Listrik Negara - Menerangi Indonesia dengan energi yang andal dan berkelanjutan'
     },
     {
-      logo: '/images/Logo_Danantara (2).png',
+      logo: '/images/Danantara.jpg',
       name: 'Danantara Indonesia',
       description: 'Holding BUMN Indonesia - Mengakselerasi transformasi ekonomi nasional melalui sinergi perusahaan strategis'
     },
