@@ -542,7 +542,7 @@ const Login: FC = () => {
 
   const platforms: Platform[] = [
     {
-      logo: '/images/Logo SAKTI 2.png',
+      logo: '/images/Logo SAKTI 3.png',
       name: 'SAKTI',
       description: 'Sistem Arsip & Kontrak Terintegrasi - Platform Digital Terpadu untuk Manajemen Surat Vendor PLN'
     },
