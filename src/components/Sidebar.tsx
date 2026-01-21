@@ -2,14 +2,14 @@
 import React, { FC } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, Package, Users, FileBarChart } from 'lucide-react'
+import { LayoutDashboard, Package, Users, FileBarChart, FileCheck } from 'lucide-react'
 import styled from 'styled-components'
 
 interface SidebarProps {
-    isOpen: boolean
-    onClose: () => void
-    isExpanded: boolean
-    toggleSidebar: () => void
+  isOpen: boolean
+  onClose: () => void
+  isExpanded: boolean
+  toggleSidebar: () => void
 }
 
 const Overlay = styled.div`
@@ -209,55 +209,60 @@ const SidebarWrapper = styled.div<{ $isExpanded: boolean }>`
 `;
 
 const Sidebar: FC<SidebarProps> = ({ isOpen, onClose, isExpanded, toggleSidebar }) => {
-    const pathname = usePathname()
-    const isActive = (path: string): string => pathname === path ? 'active' : ''
+  const pathname = usePathname()
+  const isActive = (path: string): string => pathname === path ? 'active' : ''
 
-    const handleNavClick = (): void => {
-        if (window.innerWidth <= 968 && onClose) onClose()
-    }
+  const handleNavClick = (): void => {
+    if (window.innerWidth <= 968 && onClose) onClose()
+  }
 
-    return (
-        <>
-            <Overlay className={isOpen ? 'active' : ''} onClick={onClose} />
-            <SidebarWrapper className={isOpen ? 'open' : ''} $isExpanded={isExpanded}>
-                <div
-                    className="sidebar-header"
-                    onClick={toggleSidebar}
-                    title={isExpanded ? "Collapse Sidebar" : "Expand Sidebar"}
-                >
-                    <div className="sidebar-logo">
-                        <img src="/images/Logo_vlaas.png" alt="VLAAS Logo" className="sidebar-logo-img" />
-                        <div className="sidebar-logo-info">
-                            <div className="sidebar-logo-text">PLN VLAAS</div>
-                            <div className="sidebar-logo-desc">Vendor Management</div>
-                        </div>
-                    </div>
-                </div>
+  return (
+    <>
+      <Overlay className={isOpen ? 'active' : ''} onClick={onClose} />
+      <SidebarWrapper className={isOpen ? 'open' : ''} $isExpanded={isExpanded}>
+        <div
+          className="sidebar-header"
+          onClick={toggleSidebar}
+          title={isExpanded ? "Collapse Sidebar" : "Expand Sidebar"}
+        >
+          <div className="sidebar-logo">
+            <img src="/images/Logo_vlaas.png" alt="VLAAS Logo" className="sidebar-logo-img" />
+            <div className="sidebar-logo-info">
+              <div className="sidebar-logo-text">PLN VLAAS</div>
+              <div className="sidebar-logo-desc">Vendor Management</div>
+            </div>
+          </div>
+        </div>
 
-                <nav className="sidebar-nav">
-                    <Link href="/dashboard" className={`nav-item ${isActive('/dashboard')}`} onClick={handleNavClick}>
-                        <LayoutDashboard className="nav-icon-svg" size={22} strokeWidth={2} />
-                        <span className="nav-text">Dashboard</span>
-                    </Link>
+        <nav className="sidebar-nav">
+          <Link href="/dashboard" className={`nav-item ${isActive('/dashboard')}`} onClick={handleNavClick}>
+            <LayoutDashboard className="nav-icon-svg" size={22} strokeWidth={2} />
+            <span className="nav-text">Dashboard</span>
+          </Link>
 
-                    <Link href="/aset" className={`nav-item ${isActive('/aset')}`} onClick={handleNavClick}>
-                        <Package className="nav-icon-svg" size={22} strokeWidth={2} />
-                        <span className="nav-text">Manajemen Kontrak</span>
-                    </Link>
+          <Link href="/aset" className={`nav-item ${isActive('/aset')}`} onClick={handleNavClick}>
+            <Package className="nav-icon-svg" size={22} strokeWidth={2} />
+            <span className="nav-text">Manajemen Kontrak</span>
+          </Link>
 
-                    <Link href="/vendor" className={`nav-item ${isActive('/vendor')}`} onClick={handleNavClick}>
-                        <Users className="nav-icon-svg" size={22} strokeWidth={2} />
-                        <span className="nav-text">Data Vendor</span>
-                    </Link>
+          <Link href="/vendor" className={`nav-item ${isActive('/vendor')}`} onClick={handleNavClick}>
+            <Users className="nav-icon-svg" size={22} strokeWidth={2} />
+            <span className="nav-text">Data Vendor</span>
+          </Link>
 
-                    <Link href="/laporan" className={`nav-item ${isActive('/laporan')}`} onClick={handleNavClick}>
-                        <FileBarChart className="nav-icon-svg" size={22} strokeWidth={2} />
-                        <span className="nav-text">Laporan</span>
-                    </Link>
-                </nav>
-            </SidebarWrapper>
-        </>
-    )
+          <Link href="/approval-surat" className={`nav-item ${isActive('/approval-surat')}`} onClick={handleNavClick}>
+            <FileCheck className="nav-icon-svg" size={22} strokeWidth={2} />
+            <span className="nav-text">Approval Surat</span>
+          </Link>
+
+          <Link href="/laporan" className={`nav-item ${isActive('/laporan')}`} onClick={handleNavClick}>
+            <FileBarChart className="nav-icon-svg" size={22} strokeWidth={2} />
+            <span className="nav-text">Laporan</span>
+          </Link>
+        </nav>
+      </SidebarWrapper>
+    </>
+  )
 }
 
 export default Sidebar
