@@ -254,24 +254,16 @@ const VendorHeaderContainer = styled.header`
   .user-avatar {
     width: 42px;
     height: 42px;
-    background: linear-gradient(135deg, #7eb9d9 0%, #5a9dc4 100%);
-    color: white;
     border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 17px;
-    font-weight: 700;
-    font-family: 'Inter', sans-serif;
-    box-shadow: 0 2px 8px rgba(126, 185, 217, 0.2);
+    object-fit: cover;
     flex-shrink: 0;
+    border: 2px solid #e2e8f0;
   }
 
   @media (max-width: 1536px) {
     .user-avatar {
       width: 38px;
       height: 38px;
-      font-size: 16px;
     }
   }
 
@@ -284,7 +276,6 @@ const VendorHeaderContainer = styled.header`
     .user-avatar {
       width: 36px;
       height: 36px;
-      font-size: 15px;
     }
   }
 
@@ -590,7 +581,7 @@ const VendorHeader: FC = () => {
           </div>
 
           <div className="user-profile" onClick={toggleProfileMenu}>
-            <div className="user-avatar">{userInitial}</div>
+            <img src="/images/default-avatar.png" alt={userName} className="user-avatar" />
             <div className="user-info">
               <span className="user-name">{userName}</span>
               <span className="user-role">Partner</span>
