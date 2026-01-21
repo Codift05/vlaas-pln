@@ -758,10 +758,6 @@ function ManajemenAset() {
                     console.warn('History table not available:', historyError)
                 }
 
-                if (historyError) console.error('Warning: Failed to create history log', historyError)
-
-                if (historyError) console.error('Warning: Failed to create history log', historyError)
-
                 showAlert('success', 'Berhasil', 'Kontrak berhasil ditambahkan!')
             }
 
