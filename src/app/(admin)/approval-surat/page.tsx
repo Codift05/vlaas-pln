@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
-import { CheckCircle, XCircle, Clock, Eye, FileText } from 'lucide-react'
+import { CheckCircle, XCircle, Clock, Eye, FileText, Download, ExternalLink } from 'lucide-react'
+import { downloadFileFromSupabase } from '@/services/fileUploadService'
 import './ApprovalSurat.css'
 
 interface SuratPengajuan {
@@ -12,6 +13,7 @@ interface SuratPengajuan {
     nomorKontrak?: string
     keterangan?: string
     fileName?: string
+    fileUrl?: string
     status: 'PENDING' | 'APPROVED' | 'REJECTED'
     alasanPenolakan?: string
 }
@@ -135,11 +137,6 @@ export default function ApprovalSurat() {
 
     return (
         <div className="approval-surat-container">
-            <div className="approval-header">
-                <h1>Approval Surat Pengajuan</h1>
-                <p>Kelola persetujuan surat pengajuan dari vendor</p>
-            </div>
-
             {/* Statistics */}
             <div className="approval-stats">
                 <div className="approval-stat-card">
@@ -320,7 +317,43 @@ export default function ApprovalSurat() {
                             {selectedSurat.fileName && (
                                 <div className="detail-row">
                                     <div className="detail-label">File Lampiran</div>
-                                    <div className="detail-value">{selectedSurat.fileName}</div>
+                                    <div className="detail-value">
+                                        <div className="file-attachment">
+                                            <div className="file-info">
+                                                <FileText size={18} style={{ color: '#ef4444' }} />
+                                                <span>{selectedSurat.fileName}</span>
+                                            </div>
+                                            {selectedSurat.fileUrl && (
+                                                <div className="file-actions">
+                                                    <button
+                                                        className="btn-file-action view"
+                                                        onClick={() => window.open(selectedSurat.fileUrl, '_blank')}
+                                                        title="Lihat File"
+                                                    >
+                                                        <ExternalLink size={14} />
+                                                        Lihat
+                                                    </button>
+                                                    <button
+                                                        className="btn-file-action download"
+                                                        onClick={async () => {
+                                                            try {
+                                                                await downloadFileFromSupabase(
+                                                                    selectedSurat.fileUrl!,
+                                                                    selectedSurat.fileName!
+                                                                )
+                                                            } catch (error) {
+                                                                alert('Gagal mendownload file')
+                                                            }
+                                                        }}
+                                                        title="Download File"
+                                                    >
+                                                        <Download size={14} />
+                                                        Download
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
                                 </div>
                             )}
                             <div className="detail-row">

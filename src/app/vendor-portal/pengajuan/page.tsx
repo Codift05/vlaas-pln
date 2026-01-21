@@ -2,6 +2,7 @@
 import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { FileText, Upload, X, CheckCircle, Calendar, AlertCircle } from 'lucide-react'
+import { uploadPDFToSupabase } from '@/services/fileUploadService'
 import './VendorPengajuan.css'
 
 function VendorPengajuan() {
@@ -157,11 +158,21 @@ function VendorPengajuan() {
 
         setIsSubmitting(true)
 
-        // Simulate API submission
-        setTimeout(() => {
+        try {
+            // Upload file ke Supabase Storage
+            const uploadResult = await uploadPDFToSupabase(selectedFile)
+
+            if (!uploadResult.success) {
+                alert('Gagal mengupload file: ' + uploadResult.error)
+                setIsSubmitting(false)
+                return
+            }
+
+            // Prepare submission data
             const newSubmission = {
                 ...formData,
                 fileName: selectedFile.name,
+                fileUrl: uploadResult.fileUrl, // URL file di Supabase
                 status: 'PENDING',
                 tanggalPengajuan: new Date().toLocaleDateString('id-ID')
             }
@@ -172,9 +183,13 @@ function VendorPengajuan() {
             localStorage.setItem('vendorSubmissions', JSON.stringify(existingSubmissions))
 
             setIsSubmitting(false)
-            alert('Surat berhasil diajukan! Status: Menunggu Persetujuan')
+            alert('Surat berhasil diajukan! File telah tersimpan di server.')
             router.push('/vendor-portal')
-        }, 2000)
+        } catch (error) {
+            console.error('Submission error:', error)
+            alert('Terjadi kesalahan saat mengirim pengajuan')
+            setIsSubmitting(false)
+        }
     }
 
     const isFormValid = () => {
