@@ -1,19 +1,35 @@
 'use client'
-import { useState } from 'react'
-import { User, Users, Settings, Mail, Search, Lock, FileText, Save, UserPlus, Ban } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { User, Users, Settings, Mail, Search, Lock, FileText, Save, UserPlus, Ban, CheckCircle, XCircle } from 'lucide-react'
 import './Pengaturan.css'
+import {
+    updateProfile,
+    changePassword,
+    sendPasswordResetEmail,
+    getUserProfile,
+    getAllAdminUsers,
+    createAdminUser,
+    deactivateUser,
+    activateUser,
+    getAuditLogs,
+    saveSystemConfig,
+    getSystemConfig,
+    createAuditLog
+} from '../../../services/userService'
+import { supabase } from '../../../lib/supabaseClient'
 
 function Pengaturan() {
-    // const [sidebarOpen, setSidebarOpen] = useState(false) // Handled by layout
     const [activeTab, setActiveTab] = useState('profil')
-    const [userRole] = useState('Super Admin') // Simulasi role user
+    const [userRole, setUserRole] = useState('Super Admin')
+    const [currentUserId, setCurrentUserId] = useState('')
+    const [loading, setLoading] = useState(false)
 
     // State untuk Profil
     const [profileData, setProfileData] = useState({
-        namaLengkap: 'Admin User',
-        email: 'admin@pln-vlaas.com',
-        telepon: '021-1234567',
-        alamat: 'Jl. Sudirman No. 123, Jakarta'
+        namaLengkap: '',
+        email: '',
+        telepon: '',
+        alamat: ''
     })
 
     // State untuk Password
@@ -30,63 +46,226 @@ function Pengaturan() {
         namaLengkap: '',
         role: 'Verifikator'
     })
-
-    const adminUsers = [
-        { id: 1, nama: 'Super Admin', email: 'superadmin@pln.com', role: 'Super Admin', status: 'Aktif', lastLogin: '19/12/2025 10:30' },
-        { id: 2, nama: 'Verifikator 1', email: 'verifikator1@pln.com', role: 'Verifikator', status: 'Aktif', lastLogin: '19/12/2025 09:15' },
-        { id: 3, nama: 'Verifikator 2', email: 'verifikator2@pln.com', role: 'Verifikator', status: 'Aktif', lastLogin: '18/12/2025 16:45' },
-        { id: 4, nama: 'Admin Support', email: 'support@pln.com', role: 'Verifikator', status: 'Nonaktif', lastLogin: '15/12/2025 14:20' }
-    ]
+    const [adminUsers, setAdminUsers] = useState<any[]>([])
 
     // State untuk Konfigurasi Sistem
     const [systemConfig, setSystemConfig] = useState({
         retentionEnabled: true,
         retentionMonths: 12,
         emailNotifEnabled: true,
-        approvedTemplate: 'Dokumen Anda telah disetujui...',
-        rejectedTemplate: 'Dokumen Anda ditolak karena...'
+        approvedTemplate: '',
+        rejectedTemplate: ''
     })
 
     // State untuk Audit Log
-    const auditLogs = [
-        { id: 1, user: 'Super Admin', action: 'Login ke sistem', timestamp: '19/12/2025 10:30:15', ipAddress: '192.168.1.100' },
-        { id: 2, user: 'Verifikator 1', action: 'Menyetujui dokumen #AST001', timestamp: '19/12/2025 09:15:30', ipAddress: '192.168.1.101' },
-        { id: 3, user: 'Verifikator 2', action: 'Menolak dokumen #VND005', timestamp: '18/12/2025 16:45:22', ipAddress: '192.168.1.102' },
-        { id: 4, user: 'Super Admin', action: 'Menambah user baru: Admin Support', timestamp: '15/12/2025 14:20:10', ipAddress: '192.168.1.100' },
-        { id: 5, user: 'Verifikator 1', action: 'Mengubah status dokumen #AST003', timestamp: '15/12/2025 11:30:45', ipAddress: '192.168.1.101' }
-    ]
+    const [auditLogs, setAuditLogs] = useState<any[]>([])
+    const [auditFilters, setAuditFilters] = useState({
+        startDate: '',
+        endDate: '',
+        search: ''
+    })
 
-    const handleProfileUpdate = (e: any) => {
-        e.preventDefault()
-        alert('Profil berhasil diperbarui!')
+    // Load data on mount
+    useEffect(() => {
+        loadUserData()
+        if (userRole === 'Super Admin') {
+            loadAdminUsers()
+            loadSystemConfig()
+            loadAuditLogs()
+        }
+    }, [userRole])
+
+    const loadUserData = async () => {
+        try {
+            const { data: { user } } = await supabase.auth.getUser()
+            if (user) {
+                setCurrentUserId(user.id)
+                const result = await getUserProfile(user.id)
+                if (result.success && result.data) {
+                    setProfileData({
+                        namaLengkap: result.data.full_name || '',
+                        email: user.email || '',
+                        telepon: result.data.phone || '',
+                        alamat: result.data.address || ''
+                    })
+                    setUserRole(result.data.role || 'Admin')
+                }
+            }
+        } catch (error) {
+            console.error('Error loading user data:', error)
+        }
     }
 
-    const handlePasswordChange = (e: any) => {
+    const loadAdminUsers = async () => {
+        const result = await getAllAdminUsers()
+        if (result.success) {
+            setAdminUsers(result.data)
+        }
+    }
+
+    const loadSystemConfig = async () => {
+        const result = await getSystemConfig()
+        if (result.success && result.data) {
+            setSystemConfig({
+                retentionEnabled: result.data.retention_enabled,
+                retentionMonths: result.data.retention_months,
+                emailNotifEnabled: result.data.email_notif_enabled,
+                approvedTemplate: result.data.approved_template,
+                rejectedTemplate: result.data.rejected_template
+            })
+        }
+    }
+
+    const loadAuditLogs = async () => {
+        const result = await getAuditLogs(auditFilters)
+        if (result.success) {
+            setAuditLogs(result.data)
+        }
+    }
+
+    const handleProfileUpdate = async (e: any) => {
+        e.preventDefault()
+        setLoading(true)
+        try {
+            const result = await updateProfile(currentUserId, profileData)
+            if (result.success) {
+                alert(result.message)
+                await createAuditLog('Memperbarui profil pengguna')
+            } else {
+                alert('Gagal memperbarui profil: ' + result.error)
+            }
+        } catch (error) {
+            alert('Terjadi kesalahan saat memperbarui profil')
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    const handlePasswordChange = async (e: any) => {
         e.preventDefault()
         if (passwordData.newPassword !== passwordData.confirmPassword) {
             alert('Password baru dan konfirmasi tidak cocok!')
             return
         }
-        alert('Password berhasil diubah!')
-        setPasswordData({ oldPassword: '', newPassword: '', confirmPassword: '' })
-    }
-
-    const handleAddUser = (e: any) => {
-        e.preventDefault()
-        console.log('Menambah user baru:', newUserData)
-        alert('User baru berhasil ditambahkan!')
-        setShowAddUserModal(false)
-        setNewUserData({ email: '', namaLengkap: '', role: 'Verifikator' })
-    }
-
-    const handleDeactivateUser = (userId: any, userName: any) => {
-        if (window.confirm(`Apakah Anda yakin ingin menonaktifkan akses ${userName}?`)) {
-            alert(`Akses ${userName} berhasil dinonaktifkan!`)
+        if (passwordData.newPassword.length < 6) {
+            alert('Password minimal 6 karakter!')
+            return
+        }
+        setLoading(true)
+        try {
+            const result = await changePassword(passwordData.oldPassword, passwordData.newPassword)
+            if (result.success) {
+                alert(result.message)
+                setPasswordData({ oldPassword: '', newPassword: '', confirmPassword: '' })
+                await createAuditLog('Mengubah password')
+            } else {
+                alert('Gagal mengubah password: ' + result.error)
+            }
+        } catch (error) {
+            alert('Terjadi kesalahan saat mengubah password')
+        } finally {
+            setLoading(false)
         }
     }
 
-    const handleSystemConfigSave = () => {
-        alert('Konfigurasi sistem berhasil disimpan!')
+    const handlePasswordReset = async () => {
+        if (!profileData.email) {
+            alert('Email tidak tersedia')
+            return
+        }
+        setLoading(true)
+        try {
+            const result = await sendPasswordResetEmail(profileData.email)
+            if (result.success) {
+                alert(result.message)
+            } else {
+                alert('Gagal mengirim email reset: ' + result.error)
+            }
+        } catch (error) {
+            alert('Terjadi kesalahan')
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    const handleAddUser = async (e: any) => {
+        e.preventDefault()
+        setLoading(true)
+        try {
+            const result = await createAdminUser(newUserData)
+            if (result.success) {
+                alert(result.message)
+                setShowAddUserModal(false)
+                setNewUserData({ email: '', namaLengkap: '', role: 'Verifikator' })
+                await loadAdminUsers()
+                await createAuditLog(`Menambah user baru: ${newUserData.namaLengkap}`)
+            } else {
+                alert('Gagal menambah user: ' + result.error)
+            }
+        } catch (error) {
+            alert('Terjadi kesalahan saat menambah user')
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    const handleDeactivateUser = async (userId: string, userName: string) => {
+        if (!window.confirm(`Apakah Anda yakin ingin menonaktifkan akses ${userName}?`)) {
+            return
+        }
+        setLoading(true)
+        try {
+            const result = await deactivateUser(userId)
+            if (result.success) {
+                alert(result.message)
+                await loadAdminUsers()
+                await createAuditLog(`Menonaktifkan user: ${userName}`)
+            } else {
+                alert('Gagal menonaktifkan user: ' + result.error)
+            }
+        } catch (error) {
+            alert('Terjadi kesalahan')
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    const handleActivateUser = async (userId: string, userName: string) => {
+        setLoading(true)
+        try {
+            const result = await activateUser(userId)
+            if (result.success) {
+                alert(result.message)
+                await loadAdminUsers()
+                await createAuditLog(`Mengaktifkan user: ${userName}`)
+            } else {
+                alert('Gagal mengaktifkan user: ' + result.error)
+            }
+        } catch (error) {
+            alert('Terjadi kesalahan')
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    const handleSystemConfigSave = async () => {
+        setLoading(true)
+        try {
+            const result = await saveSystemConfig(systemConfig)
+            if (result.success) {
+                alert(result.message)
+            } else {
+                alert('Gagal menyimpan konfigurasi: ' + result.error)
+            }
+        } catch (error) {
+            alert('Terjadi kesalahan')
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    const handleAuditFilter = async () => {
+        await loadAuditLogs()
     }
 
     return (
@@ -207,12 +386,16 @@ function Pengaturan() {
                                         />
                                     </div>
                                 </div>
-                                <button type="submit" className="btn-save"><Lock size={18} /> Ubah Password</button>
+                                <button type="submit" className="btn-save" disabled={loading}>
+                                    <Lock size={18} /> {loading ? 'Mengubah...' : 'Ubah Password'}
+                                </button>
                             </form>
 
-                            <div className="recovery-section">
-                                <p className="recovery-text">Lupa password? Gunakan fitur pemulihan akun</p>
-                                <button className="btn-recovery"><Mail size={18} /> Kirim Email Reset Password</button>
+                            <div className="password-reset-section">
+                                <p className="password-reset-text">Lupa password? Gunakan fitur pemulihan akun</p>
+                                <button className="btn-reset" onClick={handlePasswordReset} disabled={loading}>
+                                    <Mail size={18} /> {loading ? 'Mengirim...' : 'Kirim Email Reset Password'}
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -244,7 +427,7 @@ function Pengaturan() {
                                     <tbody>
                                         {adminUsers.map((user) => (
                                             <tr key={user.id}>
-                                                <td className="user-name">{user.nama}</td>
+                                                <td className="user-name">{user.full_name}</td>
                                                 <td>{user.email}</td>
                                                 <td>
                                                     <span className={`role-badge ${user.role === 'Super Admin' ? 'super' : 'verif'}`}>
@@ -256,15 +439,26 @@ function Pengaturan() {
                                                         {user.status}
                                                     </span>
                                                 </td>
-                                                <td className="last-login">{user.lastLogin}</td>
+                                                <td className="last-login">{user.last_login ? new Date(user.last_login).toLocaleString('id-ID') : '-'}</td>
                                                 <td>
-                                                    {user.status === 'Aktif' && user.role !== 'Super Admin' && (
-                                                        <button
-                                                            className="btn-deactivate"
-                                                            onClick={() => handleDeactivateUser(user.id, user.nama)}
-                                                        >
-                                                            <Ban size={16} /> Nonaktifkan
-                                                        </button>
+                                                    {user.role !== 'Super Admin' && (
+                                                        user.status === 'Aktif' ? (
+                                                            <button
+                                                                className="btn-deactivate"
+                                                                onClick={() => handleDeactivateUser(user.id, user.full_name)}
+                                                                disabled={loading}
+                                                            >
+                                                                <Ban size={16} /> Nonaktifkan
+                                                            </button>
+                                                        ) : (
+                                                            <button
+                                                                className="btn-activate"
+                                                                onClick={() => handleActivateUser(user.id, user.full_name)}
+                                                                disabled={loading}
+                                                            >
+                                                                <CheckCircle size={16} /> Aktifkan
+                                                            </button>
+                                                        )
                                                     )}
                                                 </td>
                                             </tr>
@@ -346,8 +540,8 @@ function Pengaturan() {
                                     </>
                                 )}
                             </div>
-                            <button className="btn-save" onClick={handleSystemConfigSave}>
-                                <Save size={18} /> Simpan Konfigurasi
+                            <button className="btn-save" onClick={handleSystemConfigSave} disabled={loading}>
+                                <Save size={18} /> {loading ? 'Menyimpan...' : 'Simpan Konfigurasi'}
                             </button>
                         </div>
                     </div>
@@ -363,10 +557,30 @@ function Pengaturan() {
                             </p>
 
                             <div className="audit-filters">
-                                <input type="date" className="filter-input-audit" placeholder="Dari tanggal" />
-                                <input type="date" className="filter-input-audit" placeholder="Sampai tanggal" />
-                                <input type="text" className="filter-input-audit" placeholder="Cari user atau aktivitas..." />
-                                <button className="btn-filter-audit"><Search size={18} /> Filter</button>
+                                <input
+                                    type="date"
+                                    className="filter-input-audit"
+                                    placeholder="Dari tanggal"
+                                    value={auditFilters.startDate}
+                                    onChange={(e) => setAuditFilters({ ...auditFilters, startDate: e.target.value })}
+                                />
+                                <input
+                                    type="date"
+                                    className="filter-input-audit"
+                                    placeholder="Sampai tanggal"
+                                    value={auditFilters.endDate}
+                                    onChange={(e) => setAuditFilters({ ...auditFilters, endDate: e.target.value })}
+                                />
+                                <input
+                                    type="text"
+                                    className="filter-input-audit"
+                                    placeholder="Cari user atau aktivitas..."
+                                    value={auditFilters.search}
+                                    onChange={(e) => setAuditFilters({ ...auditFilters, search: e.target.value })}
+                                />
+                                <button className="btn-filter-audit" onClick={handleAuditFilter} disabled={loading}>
+                                    <Search size={18} /> {loading ? 'Memfilter...' : 'Filter'}
+                                </button>
                             </div>
 
                             <div className="audit-table-container">
@@ -382,10 +596,10 @@ function Pengaturan() {
                                     <tbody>
                                         {auditLogs.map((log) => (
                                             <tr key={log.id}>
-                                                <td className="timestamp">{log.timestamp}</td>
-                                                <td className="user-audit">{log.user}</td>
+                                                <td className="timestamp">{new Date(log.created_at).toLocaleString('id-ID')}</td>
+                                                <td className="user-audit">{log.profiles?.full_name || 'System'}</td>
                                                 <td className="action">{log.action}</td>
-                                                <td className="ip-address">{log.ipAddress}</td>
+                                                <td className="ip-address">{log.ip_address}</td>
                                             </tr>
                                         ))}
                                     </tbody>
