@@ -1132,7 +1132,7 @@ function ManajemenAset() {
                                                                 </div>
                                                             )}
                                                             {/* Nomor Kontrak */}
-                                                            <span>{asset.id}</span>
+                                                            <span>{asset.invoiceNumber || asset.id}</span>
                                                         </div>
                                                     </td>
                                                 )}
