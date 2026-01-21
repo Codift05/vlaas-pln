@@ -1573,7 +1573,7 @@ function ManajemenAset() {
                                         <div className="detail-grid">
                                             <div className="detail-item">
                                                 <label className="detail-label">Nomor Kontrak</label>
-                                                <div className="detail-value">{selectedAsset.id}</div>
+                                                <div className="detail-value">{selectedAsset.invoiceNumber || selectedAsset.id}</div>
                                             </div>
                                             <div className="detail-item">
                                                 <label className="detail-label">Status Saat Ini</label>
