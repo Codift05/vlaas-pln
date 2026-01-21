@@ -18,7 +18,7 @@ export const metadata = {
     title: 'PLN SAKTI - Sistem Arsip & Kontrak Terintegrasi',
     description: 'Platform Digital Terpadu untuk Manajemen Surat Vendor PT. PLN Persero - Sistem Arsip & Kontrak Terintegrasi',
     icons: {
-        icon: '/images/Logo SAKTI 2.png',
+        icon: '/images/Logo SAKTI 3.png',
     },
 }
 
