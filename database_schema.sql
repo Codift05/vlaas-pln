@@ -74,9 +74,12 @@ CREATE TABLE assets (
 -- =====================================================
 CREATE TABLE contracts (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  name VARCHAR(255),
   nomor_surat VARCHAR(100) NOT NULL,
   perihal TEXT NOT NULL,
   tanggal_masuk DATE,
+  start_date DATE,
+  end_date DATE,
   pengirim VARCHAR(255),
   penerima VARCHAR(255),
   status VARCHAR(50) DEFAULT 'Pending',
@@ -86,6 +89,7 @@ CREATE TABLE contracts (
   google_drive_id VARCHAR(255),
   notes TEXT,
   vendor_id VARCHAR(50) REFERENCES vendors(id),
+  vendor_name VARCHAR(255),
   created_by UUID REFERENCES auth.users(id),
   verified_by UUID REFERENCES auth.users(id),
   verified_at TIMESTAMP,
@@ -126,6 +130,32 @@ SELECT true, 12, true,
   'Dokumen Anda telah disetujui dan siap diproses lebih lanjut.',
   'Dokumen Anda ditolak. Silakan perbaiki dan ajukan kembali.'
 WHERE NOT EXISTS (SELECT 1 FROM system_config LIMIT 1);
+
+-- =====================================================
+-- Sample Data (Optional - untuk testing)
+-- =====================================================
+
+-- Sample vendors
+INSERT INTO vendors (id, nama, alamat, telepon, email, kategori, kontak_person, status) VALUES
+('VND001', 'PT Teknologi Indonesia', 'Jakarta Pusat', '021-12345678', 'contact@tekindo.com', 'IT Services', 'Budi Santoso', 'Aktif'),
+('VND002', 'CV Mitra Solusi', 'Bandung', '022-87654321', 'info@mitrasolusi.com', 'Consulting', 'Ani Wijaya', 'Aktif'),
+('VND003', 'PT Cahaya Network', 'Surabaya', '031-11223344', 'admin@cahaya.net', 'Network Infrastructure', 'Dedi Hartono', 'Aktif');
+
+-- Sample contracts
+INSERT INTO contracts (name, nomor_surat, perihal, tanggal_masuk, start_date, end_date, pengirim, penerima, status, kategori, vendor_id, vendor_name, notes) VALUES
+('Kontrak Pemeliharaan Server 2025', 'SK/PLN/001/2025', 'Pemeliharaan dan Monitoring Server PLN', '2025-01-15', '2025-02-01', '2025-12-31', 'PT Teknologi Indonesia', 'PLN Unit Manado', 'Aktif', 'IT Maintenance', 'VND001', 'PT Teknologi Indonesia', 'Kontrak pemeliharaan server tahunan'),
+('Perjanjian Konsultasi IT', 'SK/PLN/002/2025', 'Konsultasi dan Implementasi Sistem Arsip Digital', '2025-01-10', '2025-01-20', '2025-06-30', 'CV Mitra Solusi', 'PLN Unit Manado', 'Aktif', 'Consulting', 'VND002', 'CV Mitra Solusi', 'Konsultasi untuk digitalisasi arsip'),
+('Kontrak Infrastruktur Jaringan', 'SK/PLN/003/2024', 'Pemasangan dan Konfigurasi Network Equipment', '2024-11-01', '2024-12-01', '2025-11-30', 'PT Cahaya Network', 'PLN Unit Manado', 'Aktif', 'Infrastructure', 'VND003', 'PT Cahaya Network', 'Upgrade infrastruktur jaringan PLN'),
+('Pengadaan Software Lisensi', 'SK/PLN/004/2024', 'Pembelian Lisensi Software Enterprise', '2024-10-15', '2024-11-01', '2025-10-31', 'PT Teknologi Indonesia', 'PLN Unit Manado', 'Selesai', 'Software', 'VND001', 'PT Teknologi Indonesia', 'Lisensi software sudah diterima'),
+('Kontrak Pelatihan Karyawan', 'SK/PLN/005/2025', 'Pelatihan IT Security dan Data Protection', '2025-01-20', '2025-02-15', '2025-02-20', 'CV Mitra Solusi', 'PLN Unit Manado', 'Pending', 'Training', 'VND002', 'CV Mitra Solusi', 'Menunggu konfirmasi jadwal pelatihan');
+
+-- Sample assets
+INSERT INTO assets (asset_id, name, category, location, status, last_maintenance, vendor_id) VALUES
+('AST001', 'Server Dell PowerEdge R740', 'Server', 'Data Center - Rack A1', 'Aktif', '2025-01-10', 'VND001'),
+('AST002', 'Switch Cisco Catalyst 9300', 'Network Equipment', 'Data Center - Rack B2', 'Aktif', '2025-01-05', 'VND003'),
+('AST003', 'Firewall FortiGate 200E', 'Security Device', 'Data Center - Rack C1', 'Aktif', '2024-12-28', 'VND003'),
+('AST004', 'UPS APC Smart-UPS 3000VA', 'Power Supply', 'Data Center - Floor 1', 'Aktif', '2024-12-15', 'VND001'),
+('AST005', 'Storage NAS Synology DS1821+', 'Storage', 'Data Center - Rack A2', 'Maintenance', '2025-01-18', 'VND001');
 
 -- =====================================================
 -- Enable Row Level Security (RLS)
