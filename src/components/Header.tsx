@@ -896,7 +896,7 @@ const Header: FC<HeaderProps> = ({ onMenuClick, isExpanded = false }) => {
           )}
         </div>
         <div className="user-profile" onClick={toggleProfileMenu}>
-          <img src="/images/default-avatar.png" alt="Admin" className="user-avatar" />
+          <img src="/images/profil default instagram.jpg" alt="Admin" className="user-avatar" />
           <div className="user-info">
             <span className="user-name">Admin</span>
             <span className="user-role">Administrator</span>

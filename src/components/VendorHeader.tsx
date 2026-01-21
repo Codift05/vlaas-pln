@@ -581,7 +581,7 @@ const VendorHeader: FC = () => {
           </div>
 
           <div className="user-profile" onClick={toggleProfileMenu}>
-            <img src="/images/default-avatar.png" alt={userName} className="user-avatar" />
+            <img src="/images/profil default instagram.jpg" alt={userName} className="user-avatar" />
             <div className="user-info">
               <span className="user-name">{userName}</span>
               <span className="user-role">Partner</span>
