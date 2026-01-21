@@ -552,9 +552,9 @@ const Login: FC = () => {
       description: 'Perusahaan Listrik Negara - Menerangi Indonesia dengan energi yang andal dan berkelanjutan'
     },
     {
-      logo: '/images/Logo_BUMN.png',
-      name: 'Badan Usaha Milik Negara',
-      description: 'BUMN Untuk Indonesia - Berkarya untuk negeri, melayani dengan hati'
+      logo: '/images/Logo_Danantara (2).png',
+      name: 'Danantara Indonesia',
+      description: 'Holding BUMN Indonesia - Mengakselerasi transformasi ekonomi nasional melalui sinergi perusahaan strategis'
     },
     {
       logo: '/images/Logo_UNSRAT.png',
