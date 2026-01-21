@@ -108,10 +108,8 @@ function ManajemenAset() {
         try {
             const { data, error } = await supabase
                 .from('contracts')
-                .select(`
-                    *,
-                    history:contract_history(*)
-                `)
+                .select('*')
+                .order('created_at', { ascending: false })
 
             if (error) throw error
 
@@ -120,21 +118,21 @@ function ManajemenAset() {
             // Format data sesuai struktur UI
             const formattedData = data.map(contract => ({
                 id: contract.id || '',
-                name: contract.name || '',
-                vendorName: contract.vendor_name || '', // Map snake_case -> camelCase
-                recipient: contract.recipient || '',
-                invoiceNumber: contract.invoice_number || '',
-                amount: contract.amount ? parseFloat(contract.amount) : 0,
-                budgetType: contract.budget_type || '',
-                contractType: contract.contract_type || '',
-                category: contract.category || '',
-                location: contract.location || '',
+                name: contract.name || contract.perihal || '',
+                vendorName: contract.vendor_name || contract.pengirim || '',
+                recipient: contract.penerima || '',
+                invoiceNumber: contract.nomor_surat || '',
+                amount: 0, // Default value
+                budgetType: contract.kategori || '',
+                contractType: contract.kategori || '',
+                category: contract.kategori || '',
+                location: '-',
                 status: contract.status || 'Dalam Pekerjaan',
-                startDate: contract.start_date || '',
+                startDate: contract.start_date || contract.tanggal_masuk || '',
                 endDate: contract.end_date || '',
                 updatedAt: contract.updated_at || contract.created_at || '',
-                progress: contract.progress || 0,
-                history: contract.history || []
+                progress: 0,
+                history: []
             }))
             setAssets(formattedData)
         } catch (err) {
