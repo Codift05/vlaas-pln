@@ -1,6 +1,7 @@
 # 🔧 Fix Error: Table 'profiles' Not Found
 
 ## ❌ Error Yang Terjadi
+
 ```
 Gagal memperbarui profil: Could not find the table 'public.profiles' in the schema cache
 ```
@@ -8,11 +9,13 @@ Gagal memperbarui profil: Could not find the table 'public.profiles' in the sche
 ## ✅ Solusi
 
 ### Langkah 1: Buka Supabase Dashboard
-1. Buka https://supabase.com
+
+1. Buka <https://supabase.com>
 2. Login dan pilih project **pln-vlaas** Anda
 3. Klik menu **SQL Editor** di sidebar kiri
 
 ### Langkah 2: Jalankan Database Schema
+
 1. Di SQL Editor, klik tombol **+ New query**
 2. Copy **seluruh isi** file `database_schema.sql` (file baru yang baru dibuat)
 3. Paste ke SQL Editor
@@ -20,6 +23,7 @@ Gagal memperbarui profil: Could not find the table 'public.profiles' in the sche
 5. Tunggu sampai muncul notifikasi **Success. No rows returned**
 
 ### Langkah 3: Verifikasi Tabel Sudah Dibuat
+
 1. Klik menu **Table Editor** di sidebar
 2. Pastikan tabel-tabel berikut sudah muncul:
    - ✅ profiles
@@ -30,6 +34,7 @@ Gagal memperbarui profil: Could not find the table 'public.profiles' in the sche
    - ✅ system_config
 
 ### Langkah 4: Test Update Profile
+
 1. Refresh halaman web aplikasi Anda (F5)
 2. Login kembali
 3. Pergi ke halaman **Pengaturan**
@@ -38,7 +43,8 @@ Gagal memperbarui profil: Could not find the table 'public.profiles' in the sche
 
 ## 📋 Yang Dibuat oleh Schema
 
-### Tabel Utama:
+### Tabel Utama
+
 1. **profiles** - Data profil user (admin, verifikator, dll)
 2. **vendors** - Data vendor/mitra
 3. **assets** - Manajemen aset
@@ -46,13 +52,15 @@ Gagal memperbarui profil: Could not find the table 'public.profiles' in the sche
 5. **audit_logs** - Log aktivitas untuk audit trail
 6. **system_config** - Konfigurasi sistem (retensi, notifikasi, dll)
 
-### Fitur Keamanan:
+### Fitur Keamanan
+
 - ✅ Row Level Security (RLS) enabled untuk semua tabel
 - ✅ Policy Super Admin bisa manage semua users
 - ✅ Policy user biasa hanya bisa edit profile sendiri
 - ✅ Trigger auto-create profile saat user register
 
-### Fitur Otomatis:
+### Fitur Otomatis
+
 - ✅ Auto update `updated_at` timestamp
 - ✅ Auto create profile saat ada user baru
 - ✅ Default system config otomatis dibuat
@@ -67,15 +75,20 @@ Gagal memperbarui profil: Could not find the table 'public.profiles' in the sche
 ## 🔍 Troubleshooting
 
 ### Error: "permission denied for schema auth"
+
 **Solusi**: Ini normal, abaikan saja. Fungsi handle_new_user tetap akan bekerja karena menggunakan `SECURITY DEFINER`.
 
 ### Error: "relation already exists"
+
 **Solusi**: Ini artinya tabel sudah ada. Tidak masalah, lanjutkan saja.
 
 ### Profile tidak otomatis dibuat saat register user baru
-**Solusi**: 
+
+**Solusi**:
+
 1. Periksa trigger `on_auth_user_created` sudah ada di Database → Triggers
 2. Atau buat profile manual via SQL Editor:
+
 ```sql
 INSERT INTO profiles (id, email, full_name, role)
 VALUES (
@@ -89,6 +102,7 @@ VALUES (
 ## 📞 Butuh Bantuan?
 
 Jika masih error, cek:
+
 1. Console browser (F12) untuk error detail
 2. Supabase Dashboard → Logs untuk error server
 3. Pastikan RLS policies sudah ter-enable

@@ -7,10 +7,20 @@
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- =====================================================
+-- DROP existing tables (untuk memastikan struktur baru)
+-- =====================================================
+DROP TABLE IF EXISTS audit_logs CASCADE;
+DROP TABLE IF EXISTS system_config CASCADE;
+DROP TABLE IF EXISTS contracts CASCADE;
+DROP TABLE IF EXISTS assets CASCADE;
+DROP TABLE IF EXISTS profiles CASCADE;
+DROP TABLE IF EXISTS vendors CASCADE;
+
+-- =====================================================
 -- Table: profiles
 -- User profiles untuk admin dan users
 -- =====================================================
-CREATE TABLE IF NOT EXISTS profiles (
+CREATE TABLE profiles (
   id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   full_name VARCHAR(255),
   email VARCHAR(255) UNIQUE NOT NULL,
@@ -27,7 +37,7 @@ CREATE TABLE IF NOT EXISTS profiles (
 -- Table: vendors
 -- Data vendor/mitra bisnis
 -- =====================================================
-CREATE TABLE IF NOT EXISTS vendors (
+CREATE TABLE vendors (
   id VARCHAR(50) PRIMARY KEY,
   nama VARCHAR(255) NOT NULL,
   alamat TEXT,
@@ -45,7 +55,7 @@ CREATE TABLE IF NOT EXISTS vendors (
 -- Table: assets
 -- Manajemen aset/barang
 -- =====================================================
-CREATE TABLE IF NOT EXISTS assets (
+CREATE TABLE assets (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
   asset_id VARCHAR(50) UNIQUE NOT NULL,
   name VARCHAR(255) NOT NULL,
@@ -62,7 +72,7 @@ CREATE TABLE IF NOT EXISTS assets (
 -- Table: contracts
 -- Kontrak/dokumen
 -- =====================================================
-CREATE TABLE IF NOT EXISTS contracts (
+CREATE TABLE contracts (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
   nomor_surat VARCHAR(100) NOT NULL,
   perihal TEXT NOT NULL,
@@ -87,7 +97,7 @@ CREATE TABLE IF NOT EXISTS contracts (
 -- Table: audit_logs
 -- Log aktivitas user untuk audit trail
 -- =====================================================
-CREATE TABLE IF NOT EXISTS audit_logs (
+CREATE TABLE audit_logs (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
   user_id UUID REFERENCES auth.users(id),
   action TEXT NOT NULL,
@@ -100,7 +110,7 @@ CREATE TABLE IF NOT EXISTS audit_logs (
 -- Table: system_config
 -- Konfigurasi sistem
 -- =====================================================
-CREATE TABLE IF NOT EXISTS system_config (
+CREATE TABLE system_config (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
   retention_enabled BOOLEAN DEFAULT true,
   retention_months INTEGER DEFAULT 12,
