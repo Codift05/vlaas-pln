@@ -3,6 +3,7 @@
 ## 📋 Database Schema (Actual Columns)
 
 ### Table: `profiles`
+
 ```sql
 - id (UUID, PK)
 - full_name (VARCHAR)
@@ -17,6 +18,7 @@
 ```
 
 ### Table: `vendors`
+
 ```sql
 - id (VARCHAR, PK)
 - nama (VARCHAR)
@@ -32,6 +34,7 @@
 ```
 
 ### Table: `contracts`
+
 ```sql
 - id (UUID, PK)
 - name (VARCHAR)
@@ -64,6 +67,7 @@
 ```
 
 ### Table: `assets`
+
 ```sql
 - id (UUID, PK)
 - asset_id (VARCHAR, UNIQUE)
@@ -78,6 +82,7 @@
 ```
 
 ### Table: `audit_logs`
+
 ```sql
 - id (UUID, PK)
 - user_id (UUID, FK)
@@ -88,6 +93,7 @@
 ```
 
 ### Table: `system_config`
+
 ```sql
 - id (UUID, PK)
 - retention_enabled (BOOLEAN)
@@ -105,20 +111,27 @@
 ### ❌ CRITICAL ISSUES
 
 #### 1. **Dashboard Page** (`src/app/(admin)/dashboard/page.tsx`)
+
 **Line 129**: Query menggunakan kolom yang benar
+
 ```typescript
 .select('id, name, status, start_date, end_date, created_at, vendor_name')
 ```
+
 ✅ **Status**: CORRECT - Semua kolom ada di schema
 
 #### 2. **Aset/Kontrak Page** (`src/app/(admin)/aset/page.tsx`)
+
 **Line 110-145**: Fetch contracts
+
 ```typescript
 .from('contracts').select('*')
 ```
+
 ✅ **Status**: CORRECT
 
 **Line 730-760**: INSERT payload
+
 ```typescript
 payload = {
     name, nomor_surat, perihal, tanggal_masuk,
@@ -128,19 +141,24 @@ payload = {
     kategori, location, vendor_name, notes
 }
 ```
+
 ✅ **Status**: CORRECT - Semua kolom ada
 
 **Line 652-670**: UPDATE payload  
 ✅ **Status**: CORRECT - Semua kolom ada
 
 #### 3. **Vendor Page** (`src/app/(admin)/vendor/page.tsx`)
+
 **Line 76**: Fetch vendors
+
 ```typescript
 .from('vendors').select('*')
 ```
+
 ✅ **Status**: CORRECT
 
 **Line 180**: Insert vendor
+
 ```typescript
 .insert([{
     id, nama, alamat, telepon, email,
@@ -148,14 +166,18 @@ payload = {
     tanggal_registrasi
 }])
 ```
+
 ✅ **Status**: CORRECT - Semua kolom ada di schema
 
 #### 4. **Laporan Page** (`src/app/(admin)/laporan/page.tsx`)
+
 **Issue**: Tidak ada query langsung, hanya menggunakan data dari contracts
 ✅ **Status**: CORRECT
 
 #### 5. **Pengaturan Page** (`src/app/(admin)/pengaturan/page.tsx`)
+
 Uses:
+
 - `profiles` table ✅
 - `audit_logs` table ✅ (with fallback)
 - `system_config` table ✅ (with fallback)
@@ -166,6 +188,7 @@ Uses:
 ## 📊 Service Files Status
 
 ### ✅ contractService.ts
+
 - getAllContracts() - Uses `*` ✅
 - getContractById() - Uses `*` with vendor join ✅
 - createContract() - Manual implementation ❌ (tidak digunakan)
@@ -174,6 +197,7 @@ Uses:
 **Recommendation**: Services tidak digunakan, semua query langsung di page.tsx
 
 ### ✅ vendorService.ts  
+
 - getAllVendors() - Uses `*` ✅
 - getDashboardVendorData() - Specific columns ✅
 - getVendorById() - Uses `*` ✅
@@ -183,6 +207,7 @@ Uses:
 - autoSyncVendor() - With error handling ✅
 
 ### ✅ assetService.ts
+
 - getAllAssets() - Uses `*` ✅
 - getAssetById() - Uses `*` ✅
 - createAsset() - Standard insert ✅
@@ -190,6 +215,7 @@ Uses:
 - deleteAsset() - Standard delete ✅
 
 ### ✅ userService.ts
+
 - All functions with graceful fallbacks ✅
 - Profile, audit_logs, system_config tables ✅
 
@@ -198,14 +224,17 @@ Uses:
 ## ⚠️ Potential Issues to Monitor
 
 ### 1. **contract_history table**
+
 - Referenced in code but NOT in schema ❌
 - Currently wrapped with try-catch (graceful degradation) ✅
 - **Action**: Consider adding table or removing references
 
 ### 2. **Mapping Inconsistencies**
+
 All mappings now consistent after fixes ✅
 
 ### 3. **Default Values**
+
 - `status` default: 'Pending' ✅
 - `amount` default: 0 ✅
 - All required fields have proper defaults ✅
@@ -215,6 +244,7 @@ All mappings now consistent after fixes ✅
 ## ✅ Final Verification Checklist
 
 ### Database Schema
+
 - [x] profiles table - complete
 - [x] vendors table - complete
 - [x] contracts table - complete (all 26 columns)
@@ -224,6 +254,7 @@ All mappings now consistent after fixes ✅
 - [ ] contract_history table - MISSING (referenced in code)
 
 ### Frontend Pages
+
 - [x] Dashboard - synchronized
 - [x] Aset/Kontrak - synchronized
 - [x] Vendor - synchronized
@@ -231,12 +262,14 @@ All mappings now consistent after fixes ✅
 - [x] Pengaturan - synchronized
 
 ### Services
+
 - [x] contractService - not actively used
 - [x] vendorService - synchronized
 - [x] assetService - synchronized  
 - [x] userService - synchronized
 
 ### Error Handling
+
 - [x] All console.error replaced with console.warn
 - [x] Graceful fallbacks for missing tables
 - [x] handleSupabaseError properly implemented
@@ -260,6 +293,7 @@ All mappings now consistent after fixes ✅
 **Current Status**: ✅ **SYNCHRONIZED**
 
 All frontend code now properly matches database schema. The system is ready for:
+
 - Adding new contracts ✅
 - Editing contracts ✅
 - Managing vendors ✅
@@ -267,6 +301,7 @@ All frontend code now properly matches database schema. The system is ready for:
 - User settings ✅
 
 **Next Steps**:
+
 1. Run updated database schema in Supabase
 2. Test all CRUD operations
 3. Optionally add contract_history table for full functionality
