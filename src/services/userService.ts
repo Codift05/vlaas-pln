@@ -112,13 +112,13 @@ export const getAllAdminUsers = async () => {
             .order('created_at', { ascending: false });
 
         if (error) {
-            console.error('Error getting admin users:', error);
+            console.warn('Error getting admin users - table may not exist');
             return handleSupabaseSuccess([], 'Tabel profiles belum dikonfigurasi');
         }
 
         return handleSupabaseSuccess(data || []);
     } catch (error) {
-        console.error('Error in getAllAdminUsers:', error);
+        console.warn('Error in getAllAdminUsers - using empty array fallback');
         return handleSupabaseSuccess([], 'Error loading users');
     }
 };
@@ -249,7 +249,7 @@ export const getAuditLogs = async (filters?: any) => {
 
         return handleSupabaseSuccess(data || []);
     } catch (error) {
-        console.error('Error in getAuditLogs:', error);
+        console.warn('Error in getAuditLogs - using empty array fallback');
         return handleSupabaseSuccess([], 'Error loading audit logs');
     }
 };
@@ -296,7 +296,7 @@ export const saveSystemConfig = async (config: any) => {
             .single();
 
         if (error) {
-            console.error('Error saving system config:', error);
+            console.warn('Error saving system config - table may not exist');
             return handleSupabaseError('Tabel system_config belum dibuat. Konfigurasi tidak tersimpan.');
         }
 
