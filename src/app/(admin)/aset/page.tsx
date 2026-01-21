@@ -652,24 +652,23 @@ function ManajemenAset() {
                     .from('contracts')
                     .update({
                         name: formData.name,
-                        recipient: formData.recipient,
-                        invoice_number: formData.invoiceNumber,
-                        vendor_name: formData.vendorName,
-                        amount: formData.amount ? parseFloat(formData.amount) : 0,
-                        budget_type: formData.budgetType,
-                        contract_type: formData.contractType,
-                        category: formData.category || '-',
-                        location: formData.location,
-                        status: formData.status,
+                        nomor_surat: formData.invoiceNumber || '',
+                        perihal: formData.name || '',
                         start_date: formData.startDate,
                         end_date: formData.endDate,
+                        pengirim: formData.vendorName || '',
+                        penerima: formData.recipient || '',
+                        status: formData.status,
+                        kategori: formData.category || formData.budgetType || '-',
+                        vendor_name: formData.vendorName || '',
+                        notes: formData.location || '',
                         updated_at: new Date().toISOString()
                     })
                     .eq('id', editId)
 
                 if (updateError) throw updateError
 
-                // 3. Insert History Log (Detailed Amandemen)
+                // 3. Insert History Log (skip if table doesn't exist)
                 let changeDetails = []
 
                 if (oldData) {
@@ -702,18 +701,16 @@ function ManajemenAset() {
                         : `Update data kontrak ${editId} tanpa perubahan signifikan`
                 }
 
-                const { error: historyError } = await supabase
-                    .from('contract_history')
-                    .insert([{
+                try {
+                    await supabase.from('contract_history').insert([{
                         contract_id: editId,
                         action: actionTitle,
                         user_name: 'Admin',
                         details: actionDetails
                     }])
-
-                if (historyError) throw historyError
-
-                if (historyError) throw historyError
+                } catch (historyError) {
+                    console.warn('History table not available:', historyError)
+                }
 
                 showAlert('success', 'Berhasil', 'Kontrak berhasil diperbarui!')
             } else {
@@ -729,19 +726,18 @@ function ManajemenAset() {
 
                 // 2. Insert New Contract
                 const payload = {
-                    id: formData.id,
                     name: formData.name,
-                    recipient: formData.recipient || '',
-                    invoice_number: formData.invoiceNumber || '',
-                    vendor_name: formData.vendorName || '',
-                    amount: formData.amount ? parseFloat(formData.amount) : 0,
-                    budget_type: formData.budgetType,
-                    contract_type: formData.contractType,
-                    category: formData.category || '-',
-                    location: formData.location,
-                    status: formData.status,
+                    nomor_surat: formData.invoiceNumber || formData.id || '',
+                    perihal: formData.name || '',
+                    tanggal_masuk: formData.startDate || new Date().toISOString().split('T')[0],
                     start_date: formData.startDate,
-                    end_date: formData.endDate
+                    end_date: formData.endDate,
+                    pengirim: formData.vendorName || '',
+                    penerima: formData.recipient || '',
+                    status: formData.status,
+                    kategori: formData.category || formData.budgetType || '-',
+                    vendor_name: formData.vendorName || '',
+                    notes: formData.location || ''
                 }
 
                 const { error: insertError } = await supabase
@@ -750,13 +746,17 @@ function ManajemenAset() {
 
                 if (insertError) throw insertError
 
-                // 2. Insert Initial History
-                const { error: historyError } = await supabase.from('contract_history').insert([{
-                    contract_id: formData.id,
-                    action: 'Kontrak Dibuat',
-                    user_name: 'Admin',
-                    details: 'Kontrak baru ditambahkan ke sistem'
-                }])
+                // 2. Insert Initial History (skip if table doesn't exist)
+                try {
+                    await supabase.from('contract_history').insert([{
+                        contract_id: formData.id,
+                        action: 'Kontrak Dibuat',
+                        user_name: 'Admin',
+                        details: 'Kontrak baru ditambahkan ke sistem'
+                    }])
+                } catch (historyError) {
+                    console.warn('History table not available:', historyError)
+                }
 
                 if (historyError) console.error('Warning: Failed to create history log', historyError)
 
