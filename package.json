@@ -4,7 +4,9 @@
     "private": true,
     "scripts": {
         "dev": "next dev",
+        "dev:turbo": "next dev --turbo",
         "build": "next build",
+        "build:analyze": "ANALYZE=true next build",
         "start": "next start",
         "lint": "next lint",
         "setup-gdrive": "node scripts/generate-drive-token.js",

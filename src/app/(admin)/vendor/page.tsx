@@ -258,18 +258,47 @@ function DataVendor() {
 
         try {
             setLoading(true)
+            
+            // 1. Cek apakah vendor sedang digunakan di kontrak
+            const { data: contracts, error: checkError } = await supabase
+                .from('contracts')
+                .select('id, name, vendor_name')
+                .or(`vendor_name.eq.${vendors.find(v => v.id === id)?.nama},pengirim.eq.${vendors.find(v => v.id === id)?.nama}`)
+                .limit(5)
+
+            if (checkError) {
+                console.warn('Error checking contracts:', checkError)
+            }
+
+            // 2. Jika vendor masih dipakai, tampilkan peringatan
+            if (contracts && contracts.length > 0) {
+                const contractNames = contracts.map(c => c.name || c.invoice_number).join(', ')
+                const message = contracts.length === 1
+                    ? `Vendor ini masih digunakan di kontrak: "${contractNames}". Hapus atau ubah kontrak tersebut terlebih dahulu.`
+                    : `Vendor ini masih digunakan di ${contracts.length} kontrak (${contractNames}${contracts.length > 5 ? ', ...' : ''}). Hapus atau ubah kontrak-kontrak tersebut terlebih dahulu.`
+                
+                alert(message)
+                setLoading(false)
+                return
+            }
+
+            // 3. Jika tidak dipakai, lanjutkan delete
             const { error } = await supabase
                 .from('vendors')
                 .delete()
                 .eq('id', id)
 
-            if (error) throw error
+            if (error) {
+                console.error('Supabase delete error:', error)
+                throw new Error(error.message || error.hint || 'Gagal menghapus vendor dari database')
+            }
 
             alert('Vendor berhasil dihapus')
             fetchVendors()
         } catch (err) {
-            console.error('Error deleting vendor:', err)
-            alert('Gagal menghapus vendor')
+            const errorMessage = err instanceof Error ? err.message : 'Terjadi kesalahan tidak diketahui'
+            console.error('Error deleting vendor:', errorMessage)
+            alert(`Gagal menghapus vendor: ${errorMessage}`)
         } finally {
             setLoading(false)
         }

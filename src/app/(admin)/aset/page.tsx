@@ -736,11 +736,16 @@ function ManajemenAset() {
                 const oldData = assets.find(a => a.id === editId)
 
                 // 1. Auto-sync vendor jika vendor berubah
+                let vendorCreated = false;
                 if (formData.vendorName && formData.vendorName.trim() !== '' &&
                     oldData && oldData.vendorName !== formData.vendorName) {
                     const syncResult = await autoSyncVendor(formData.vendorName);
                     if (syncResult.success) {
                         console.log('Vendor sync on update:', syncResult.message);
+                        if (syncResult.data && !syncResult.data.exists) {
+                            vendorCreated = true;
+                            console.log('✅ Vendor baru dibuat saat edit:', formData.vendorName);
+                        }
                     }
                 }
 
@@ -815,13 +820,22 @@ function ManajemenAset() {
                     console.warn('History table not available:', historyError)
                 }
 
-                showAlert('success', 'Berhasil', 'Kontrak berhasil diperbarui!')
+                const updateMessage = vendorCreated
+                    ? `Kontrak berhasil diperbarui! Vendor "${formData.vendorName}" juga telah ditambahkan ke Data Vendor.`
+                    : 'Kontrak berhasil diperbarui!';
+
+                showAlert('success', 'Berhasil', updateMessage)
             } else {
                 // 1. Auto-sync vendor (create jika belum ada)
+                let vendorCreated = false;
                 if (formData.vendorName && formData.vendorName.trim() !== '') {
                     const syncResult = await autoSyncVendor(formData.vendorName);
                     if (syncResult.success) {
                         console.log('Vendor sync:', syncResult.message);
+                        if (syncResult.data && !syncResult.data.exists) {
+                            vendorCreated = true;
+                            console.log('✅ Vendor baru dibuat:', formData.vendorName);
+                        }
                     } else {
                         console.warn('Vendor sync warning:', syncResult.message);
                     }
@@ -867,7 +881,11 @@ function ManajemenAset() {
                     console.warn('History table not available:', historyError)
                 }
 
-                showAlert('success', 'Berhasil', 'Kontrak berhasil ditambahkan!')
+                const successMessage = vendorCreated
+                    ? `Kontrak berhasil ditambahkan! Vendor "${formData.vendorName}" juga telah ditambahkan ke Data Vendor.`
+                    : 'Kontrak berhasil ditambahkan!';
+
+                showAlert('success', 'Berhasil', successMessage)
             }
 
             // Refresh data
