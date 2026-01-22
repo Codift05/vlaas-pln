@@ -205,10 +205,10 @@ const Sidebar: FC<SidebarProps> = ({ isOpen, onClose, isExpanded, toggleSidebar 
           title={isExpanded ? "Collapse Sidebar" : "Expand Sidebar"}
         >
           <div className="sidebar-logo">
-          <img src="/images/Logo SAKTI 2.png" alt="SAKTI Logo" className="sidebar-logo-img" />
-          <div className="sidebar-logo-info">
-            <div className="sidebar-logo-text">PLN SAKTI</div>
-            <div className="sidebar-logo-desc">Sistem Arsip & Kontrak</div>
+            <img src="/images/Logo SAKTI 2.png" alt="SAKTI Logo" className="sidebar-logo-img" />
+            <div className="sidebar-logo-info">
+              <div className="sidebar-logo-text">PLN SAKTI</div>
+              <div className="sidebar-logo-desc">Sistem Arsip & Kontrak</div>
             </div>
           </div>
         </div>
@@ -229,10 +229,10 @@ const Sidebar: FC<SidebarProps> = ({ isOpen, onClose, isExpanded, toggleSidebar 
             <span className="nav-text">Data Vendor</span>
           </Link>
 
-        <Link href="/approval-surat" className={`nav-item ${isActive('/approval-surat')}`} onClick={handleNavClick}>
-          <FileCheck className="nav-icon-svg" size={22} strokeWidth={2} />
-          <span className="nav-text">Approval Surat</span>
-        </Link>
+          <Link href="/approval-surat" className={`nav-item ${isActive('/approval-surat')}`} onClick={handleNavClick}>
+            <FileCheck className="nav-icon-svg" size={22} strokeWidth={2} />
+            <span className="nav-text">Approval Surat</span>
+          </Link>
 
           <Link href="/laporan" className={`nav-item ${isActive('/laporan')}`} onClick={handleNavClick}>
             <FileBarChart className="nav-icon-svg" size={22} strokeWidth={2} />
