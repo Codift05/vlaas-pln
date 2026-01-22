@@ -8,7 +8,24 @@ import { supabase, handleSupabaseError, handleSupabaseSuccess } from '../lib/sup
 // Update user profile
 export const updateProfile = async (userId: string, profileData: any) => {
     try {
+        if (!userId || userId.trim() === '') {
+            console.error('Update profile failed: Missing User ID');
+            return handleSupabaseError({ message: 'User ID tidak valid (kosong). Silakan refresh halaman.' });
+        }
+        // First, update email if changed (requires auth update)
+        if (profileData.email) {
+            const { error: emailError } = await supabase.auth.updateUser({
+                email: profileData.email
+            });
+
+            if (emailError) {
+                console.warn('Email update error:', emailError);
+                // Continue even if email update fails
+            }
+        }
+
         // Update profile data in profiles table
+        // Use upsert to avoid RLS policy recursion issues
         const { data, error } = await supabase
             .from('profiles')
             .update({
@@ -18,22 +35,22 @@ export const updateProfile = async (userId: string, profileData: any) => {
                 updated_at: new Date().toISOString()
             })
             .eq('id', userId)
-            .select()
-            .single();
+            .select();
 
-        if (error) return handleSupabaseError(error);
-
-        // Update email if changed (requires auth update)
-        if (profileData.email) {
-            const { error: emailError } = await supabase.auth.updateUser({
-                email: profileData.email
-            });
-
-            if (emailError) return handleSupabaseError(emailError);
+        if (error) {
+            console.error('Profile update error details:', JSON.stringify(error, null, 2));
+            console.error('Failed to update user:', userId);
+            return handleSupabaseError(error);
         }
 
-        return handleSupabaseSuccess(data, 'Profil berhasil diperbarui!');
+        if (!data || data.length === 0) {
+            console.error('Update returned 0 rows. RLS blocking or ID mismatch. UserID:', userId);
+            return handleSupabaseError({ message: 'Gagal update: Data tidak ditemukan atau akses ditolak.' });
+        }
+
+        return handleSupabaseSuccess(data[0], 'Profil berhasil diperbarui!');
     } catch (error) {
+        console.error('Update profile catch error:', error);
         return handleSupabaseError(error);
     }
 };

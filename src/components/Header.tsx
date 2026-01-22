@@ -4,6 +4,7 @@ import { useRouter, usePathname } from 'next/navigation'
 import { Search, Bell, Settings, LogOut, ChevronDown, ChevronUp, FileText, UserPlus, Clock, LucideIcon } from 'lucide-react'
 import styled from 'styled-components'
 import { supabase } from '../lib/supabaseClient'
+import { getUserProfile } from '../services/userService'
 
 interface HeaderProps {
   onMenuClick?: () => void
@@ -696,6 +697,8 @@ const Header: FC<HeaderProps> = ({ onMenuClick, isExpanded = false }) => {
   const [showNotifications, setShowNotifications] = useState<boolean>(false)
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [notificationCount, setNotificationCount] = useState<number>(0)
+  const [userName, setUserName] = useState<string>('Admin')
+  const [userRole, setUserRole] = useState<string>('Administrator')
 
   const router = useRouter()
   const pathname = usePathname()
@@ -716,10 +719,41 @@ const Header: FC<HeaderProps> = ({ onMenuClick, isExpanded = false }) => {
     localStorage.setItem('readNotifIds', JSON.stringify(ids))
   }
 
-  // Fetch notifications
+  // Fetch notifications and user profile
   useEffect(() => {
     fetchNotifications()
+    fetchUserProfile()
+
+    // Listen for profile updates
+    const handleProfileUpdate = () => {
+      fetchUserProfile()
+    }
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('profile-updated', handleProfileUpdate)
+    }
+
+    return () => {
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('profile-updated', handleProfileUpdate)
+      }
+    }
   }, [])
+
+  const fetchUserProfile = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        const result = await getUserProfile(user.id)
+        if (result.success && (result as any).data) {
+          setUserName((result as any).data.full_name || user.email?.split('@')[0] || 'Admin')
+          setUserRole((result as any).data.role || 'User')
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching user profile:', error)
+    }
+  }
 
   const fetchNotifications = async (): Promise<void> => {
     try {
@@ -900,8 +934,8 @@ const Header: FC<HeaderProps> = ({ onMenuClick, isExpanded = false }) => {
         <div className="user-profile" onClick={toggleProfileMenu}>
           <img src="/images/profil default instagram.jpg" alt="Admin" className="user-avatar" />
           <div className="user-info">
-            <span className="user-name">Admin</span>
-            <span className="user-role">Administrator</span>
+            <span className="user-name">{userName}</span>
+            <span className="user-role">{userRole}</span>
           </div>
           {showProfileMenu ? (
             <ChevronUp className="dropdown-arrow-svg" size={16} strokeWidth={2.5} />

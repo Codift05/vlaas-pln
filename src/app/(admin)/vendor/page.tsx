@@ -263,18 +263,72 @@ function DataVendor() {
 
         try {
             setLoading(true)
+
+            const vendorName = vendors.find(v => v.id === id)?.nama
+
+            // 1. Cek apakah vendor sedang digunakan di table assets
+            const { data: assets, error: assetsError } = await supabase
+                .from('assets')
+                .select('id, name')
+                .eq('vendor_id', id)
+                .limit(5)
+
+            if (assetsError) {
+                console.warn('Error checking assets:', assetsError)
+            }
+
+            // 2. Cek apakah vendor sedang digunakan di kontrak
+            const { data: contracts, error: checkError } = await supabase
+                .from('contracts')
+                .select('id, name, vendor_name')
+                .or(`vendor_name.eq.${vendorName},pengirim.eq.${vendorName}`)
+                .limit(5)
+
+            if (checkError) {
+                console.warn('Error checking contracts:', checkError)
+            }
+
+            // 3. Jika vendor masih dipakai, tampilkan peringatan
+            const usedInAssets = assets && assets.length > 0
+            const usedInContracts = contracts && contracts.length > 0
+
+            if (usedInAssets || usedInContracts) {
+                let message = `Vendor "${vendorName}" tidak dapat dihapus karena masih digunakan di:\n\n`
+
+                if (usedInAssets) {
+                    const assetNames = assets.map(a => a.name).join(', ')
+                    message += `📦 Assets (${assets.length}): ${assetNames}\n`
+                }
+
+                if (usedInContracts) {
+                    const contractNames = contracts.map(c => c.name).join(', ')
+                    message += `📄 Kontrak (${contracts.length}): ${contractNames}\n`
+                }
+
+                message += '\nHapus atau ubah data tersebut terlebih dahulu.'
+
+                alert(message)
+                setLoading(false)
+                return
+            }
+
+            // 4. Jika tidak dipakai, lanjutkan delete
             const { error } = await supabase
                 .from('vendors')
                 .delete()
                 .eq('id', id)
 
-            if (error) throw error
+            if (error) {
+                console.error('Supabase delete error:', error)
+                throw new Error(error.message || error.hint || 'Gagal menghapus vendor dari database')
+            }
 
-            alert('Vendor berhasil dihapus')
+            alert('✅ Vendor berhasil dihapus')
             fetchVendors()
         } catch (err) {
-            console.error('Error deleting vendor:', err)
-            alert('Gagal menghapus vendor')
+            const errorMessage = err instanceof Error ? err.message : 'Terjadi kesalahan tidak diketahui'
+            console.error('Error deleting vendor:', errorMessage)
+            alert(`Gagal menghapus vendor: ${errorMessage}`)
         } finally {
             setLoading(false)
         }

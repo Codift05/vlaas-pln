@@ -150,7 +150,7 @@ export async function createFolder(
         let errorMessage = `Failed to create folder: ${folderName}`;
 
         if (error.code === 403) {
-            errorMessage += '\n\n⚠️ PERMISSION DENIED!\n\nService account tidak punya akses untuk membuat folder di Google Drive.\n\nSolusi:\n1. Buka Google Drive\n2. Buat folder "Berkas Kontrak" secara manual\n3. Share folder tersebut dengan service account email\n4. Set permission ke "Editor" atau "Content Manager"';
+            errorMessage += '\n\n PERMISSION DENIED!\n\nService account tidak punya akses untuk membuat folder di Google Drive.\n\nSolusi:\n1. Buka Google Drive\n2. Buat folder "Berkas Kontrak" secara manual\n3. Share folder tersebut dengan service account email\n4. Set permission ke "Editor" atau "Content Manager"';
         }
 
         throw new Error(errorMessage);

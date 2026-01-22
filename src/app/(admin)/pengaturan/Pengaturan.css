@@ -1,48 +1,50 @@
 /* Settings Tabs */
+/* Settings Tabs */
 .settings-tabs {
   display: flex;
   gap: 12px;
-  margin-bottom: 32px;
-  border-bottom: 2px solid rgba(233, 236, 239, 0.5);
-  overflow-x: auto;
-  padding-bottom: 2px;
+  margin-bottom: 24px;
+  padding: 6px;
+  background: rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(8px);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  flex-wrap: wrap;
 }
 
 .tab-btn {
-  padding: 14px 24px;
-  background: none;
-  border: none;
-  border-bottom: 3px solid transparent;
+  padding: 10px 20px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 12px;
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 600;
   font-family: 'Inter', sans-serif;
-  color: #8b95a1;
+  color: #64748b;
   cursor: pointer;
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.2s ease;
   white-space: nowrap;
   display: flex;
   align-items: center;
   gap: 8px;
-  letter-spacing: 0.2px;
   outline: none !important;
-  box-shadow: none !important;
 }
 
 .tab-btn:hover {
-  color: #5a9dc4;
-  background: rgba(126, 185, 217, 0.08);
+  background: rgba(255, 255, 255, 0.8);
+  color: #3b82f6;
+  transform: translateY(-1px);
 }
 
 .tab-btn:focus {
   outline: none !important;
-  box-shadow: none !important;
 }
 
 .tab-btn.active {
-  color: #5a9dc4;
-  border-bottom-color: #7eb9d9;
-  outline: none !important;
-  box-shadow: none !important;
+  background: #eff6ff; /* Matches Sidebar active bg */
+  color: #3b82f6;      /* Matches Sidebar active text */
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.1);
+  border-color: rgba(59, 130, 246, 0.1);
 }
 
 /* Settings Content */

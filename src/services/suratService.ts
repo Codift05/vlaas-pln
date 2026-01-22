@@ -44,14 +44,14 @@ export const createSurat = async (data: any): Promise<SupabaseResponse> => {
 };
 
 // Get all surat (with optional filtering)
-export const getAllSurat = async (statusFilter: string = 'ALL'): Promise<SupabaseResponse<SuratPengajuan[]>> => {
+export const getAllSurat = async (statusFilter: string = 'distinguish'): Promise<SupabaseResponse<SuratPengajuan[]>> => {
     try {
         let query = supabase
             .from('surat_pengajuan')
             .select('*')
             .order('created_at', { ascending: false });
 
-        if (statusFilter !== 'ALL') {
+        if (statusFilter !== 'ALL' && statusFilter !== 'distinguish') {
             query = query.eq('status', statusFilter);
         }
 

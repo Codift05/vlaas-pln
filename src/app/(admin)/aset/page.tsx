@@ -203,58 +203,37 @@ function ManajemenAset() {
     // Fetch data contracts & history from Supabase
     const fetchContracts = async () => {
         try {
-            // Fetch contracts
-            const { data: contractsData, error: contractsError } = await supabase
+            const { data, error } = await supabase
                 .from('contracts')
                 .select('*')
                 .order('created_at', { ascending: false })
 
-            if (contractsError) throw contractsError
+            if (error) throw error
 
-            // Fetch history for all contracts
-            const { data: historyData, error: historyError } = await supabase
-                .from('contract_history')
-                .select('*')
+            console.log('Raw data from Supabase:', data) // Debug log
 
-            if (historyError) {
-                console.warn('Error fetching history:', historyError)
-            }
-
-            console.log('Raw data from Supabase:', contractsData) // Debug log
-
-            // Merge contracts with their history and map fields flexibly
-            const formattedData = contractsData.map(contract => {
-                const contractHistory = historyData?.filter(h => h.contract_id === contract.id) || []
-
-                return {
-                    id: contract.id || '',
-                    name: contract.name || contract.perihal || '',
-                    vendorName: contract.vendor_name || contract.pengirim || '',
-                    recipient: contract.penerima || contract.recipient || '',
-                    invoiceNumber: contract.nomor_surat || contract.invoice_number || '',
-                    amount: contract.amount ? parseFloat(contract.amount) : 0,
-                    budgetType: contract.budget_type || contract.kategori || '',
-                    contractType: contract.contract_type || contract.kategori || '',
-                    category: contract.kategori || contract.budget_type || '',
-                    location: contract.location || contract.notes || '-',
-                    status: contract.status || 'Dalam Pekerjaan',
-                    startDate: contract.start_date || contract.tanggal_masuk || '',
-                    endDate: contract.end_date || '',
-                    updatedAt: contract.updated_at || contract.created_at || '',
-                    progress: contract.progress || 0,
-                    history: contractHistory
-                }
-            })
+            // Format data sesuai struktur UI
+            const formattedData = data.map(contract => ({
+                id: contract.id || '',
+                name: contract.name || contract.perihal || '',
+                vendorName: contract.vendor_name || contract.pengirim || '',
+                recipient: contract.penerima || contract.recipient || '',
+                invoiceNumber: contract.nomor_surat || contract.invoice_number || '',
+                amount: contract.amount ? parseFloat(contract.amount) : 0,
+                budgetType: contract.budget_type || contract.kategori || '',
+                contractType: contract.contract_type || contract.kategori || '',
+                category: contract.kategori || contract.budget_type || '',
+                location: contract.location || contract.notes || '-',
+                status: contract.status || 'Dalam Pekerjaan',
+                startDate: contract.start_date || contract.tanggal_masuk || '',
+                endDate: contract.end_date || '',
+                updatedAt: contract.updated_at || contract.created_at || '',
+                progress: 0,
+                history: []
+            }))
             setAssets(formattedData)
         } catch (err) {
-            // Show more details if Supabase error
-            if (err && typeof err === 'object' && 'message' in err) {
-                console.error('Error fetching contracts:', err.message)
-            } else if (err && typeof err === 'object' && 'details' in err) {
-                console.error('Error fetching contracts:', err.details)
-            } else {
-                console.error('Error fetching contracts:', err)
-            }
+            console.error('Error fetching contracts:', err)
             setAssets([])
         }
     }
@@ -757,11 +736,16 @@ function ManajemenAset() {
                 const oldData = assets.find(a => a.id === editId)
 
                 // 1. Auto-sync vendor jika vendor berubah
+                let vendorCreated = false;
                 if (formData.vendorName && formData.vendorName.trim() !== '' &&
                     oldData && oldData.vendorName !== formData.vendorName) {
                     const syncResult = await autoSyncVendor(formData.vendorName);
                     if (syncResult.success) {
-                        console.log('Vendor sync on update:', 'message' in syncResult ? syncResult.message : 'Success');
+                        console.log('Vendor sync on update:', syncResult.message);
+                        if (syncResult.data && !syncResult.data.exists) {
+                            vendorCreated = true;
+                            console.log('✅ Vendor baru dibuat saat edit:', formData.vendorName);
+                        }
                     }
                 }
 
@@ -836,15 +820,24 @@ function ManajemenAset() {
                     console.warn('History table not available:', historyError)
                 }
 
-                showAlert('success', 'Berhasil', 'Kontrak berhasil diperbarui!')
+                const updateMessage = vendorCreated
+                    ? `Kontrak berhasil diperbarui! Vendor "${formData.vendorName}" juga telah ditambahkan ke Data Vendor.`
+                    : 'Kontrak berhasil diperbarui!';
+
+                showAlert('success', 'Berhasil', updateMessage)
             } else {
                 // 1. Auto-sync vendor (create jika belum ada)
+                let vendorCreated = false;
                 if (formData.vendorName && formData.vendorName.trim() !== '') {
                     const syncResult = await autoSyncVendor(formData.vendorName);
                     if (syncResult.success) {
-                        console.log('Vendor sync:', 'message' in syncResult ? syncResult.message : 'Success');
+                        console.log('Vendor sync:', syncResult.message);
+                        if (syncResult.data && !syncResult.data.exists) {
+                            vendorCreated = true;
+                            console.log('✅ Vendor baru dibuat:', formData.vendorName);
+                        }
                     } else {
-                        console.warn('Vendor sync warning:', 'message' in syncResult ? syncResult.message : 'error' in syncResult ? syncResult.error : 'Unknown error');
+                        console.warn('Vendor sync warning:', syncResult.message);
                     }
                 }
 
@@ -888,7 +881,11 @@ function ManajemenAset() {
                     console.warn('History table not available:', historyError)
                 }
 
-                showAlert('success', 'Berhasil', 'Kontrak berhasil ditambahkan!')
+                const successMessage = vendorCreated
+                    ? `Kontrak berhasil ditambahkan! Vendor "${formData.vendorName}" juga telah ditambahkan ke Data Vendor.`
+                    : 'Kontrak berhasil ditambahkan!';
+
+                showAlert('success', 'Berhasil', successMessage)
             }
 
             // Refresh data

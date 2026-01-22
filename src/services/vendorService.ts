@@ -185,16 +185,24 @@ export const autoSyncVendor = async (vendorName) => {
       });
     }
 
-    // 3. Jika vendor belum ada, otomatis create dengan data minimal
+    // 3. Generate unique vendor ID
+    const generateVendorId = () => {
+      const timestamp = Date.now();
+      const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+      return `VND-${timestamp}-${random}`;
+    };
+
+    // 4. Jika vendor belum ada, otomatis create dengan data minimal
     const newVendorData = {
-      id: `AUTO-${Date.now()}`, // Generate ID otomatis
+      id: generateVendorId(), // Generate ID unik
       nama: vendorName.trim(),
-      alamat: '', // Alamat kosong
-      telepon: '', // Telepon kosong
-      email: '', // Email kosong, bisa diisi nanti
-      kontak_person: '', // Kontak person kosong
+      alamat: '-', // Alamat placeholder
+      telepon: '-', // Telepon placeholder
+      email: '-', // Email placeholder, bisa diisi nanti
+      kontak_person: '-', // Kontak person placeholder
       status: 'Aktif', // Status default Aktif
-      tanggal_registrasi: new Date().toISOString().split('T')[0] // Tanggal hari ini
+      tanggal_registrasi: new Date().toISOString().split('T')[0], // Tanggal hari ini
+      created_at: new Date().toISOString()
     };
 
     const { data: newVendor, error: createError } = await supabase
