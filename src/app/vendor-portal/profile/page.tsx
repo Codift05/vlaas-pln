@@ -1,11 +1,16 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { Building2, MapPin, Phone, User, Mail, Save, Edit2 } from 'lucide-react'
+import { supabase } from '../../../lib/supabaseClient'
 import './VendorProfile.css'
 
 function VendorProfile() {
     const [isEditing, setIsEditing] = useState(false)
     const [loading, setLoading] = useState(false)
+    const [vendorId, setVendorId] = useState('')
+    const [showIncompleteModal, setShowIncompleteModal] = useState(false)
+    const [profileImage, setProfileImage] = useState('')
+    const [uploadingImage, setUploadingImage] = useState(false)
     const [profileData, setProfileData] = useState({
         companyName: '',
         companyType: 'PT',
@@ -26,17 +31,86 @@ function VendorProfile() {
         established: ''
     })
 
-    // Load data from localStorage on mount
+    // Load data from Supabase based on logged-in vendor
     useEffect(() => {
-        const savedProfile = localStorage.getItem('vendorProfile')
-        const vendorEmail = localStorage.getItem('vendorEmail')
+        const loadVendorProfile = async () => {
+            // Check if running in browser
+            if (typeof window === 'undefined') return
 
-        if (savedProfile) {
-            setProfileData(JSON.parse(savedProfile))
-        } else if (vendorEmail) {
-            setProfileData(prev => ({ ...prev, email: vendorEmail }))
-            setIsEditing(true) // Force edit mode on first login
+            const vendorEmail = localStorage.getItem('vendorEmail')
+            const vendorUserId = localStorage.getItem('vendorUserId')
+
+            if (!vendorEmail || !vendorUserId) return
+
+            try {
+                // Fetch user data from vendor_users
+                const { data: userData, error: userError } = await supabase
+                    .from('vendor_users')
+                    .select('id, email, profile_image')
+                    .eq('id', parseInt(vendorUserId))
+                    .single()
+
+                if (userError) {
+                    console.error('Error fetching user:', userError)
+                    return
+                }
+
+                // Fetch vendor profile data
+                const { data: vendorData, error: vendorError } = await supabase
+                    .from('vendors')
+                    .select('*')
+                    .eq('user_id', parseInt(vendorUserId))
+                    .single()
+
+                if (vendorError) {
+                    console.error('Error fetching vendor:', vendorError)
+                    return
+                }
+
+                if (userData && vendorData) {
+                    setVendorId(vendorData.id)
+                    setProfileImage(userData.profile_image || '')
+                    setProfileData({
+                        companyName: vendorData.nama || '',
+                        companyType: 'PT',
+                        address: vendorData.alamat || '',
+                        city: '',
+                        province: '',
+                        postalCode: '',
+                        phone: vendorData.telepon || '',
+                        fax: '',
+                        email: userData.email || '',
+                        picName: vendorData.kontak_person || '',
+                        picPosition: '',
+                        picPhone: vendorData.telepon || '',
+                        picEmail: userData.email || '',
+                        npwp: '',
+                        siup: '',
+                        tdp: '',
+                        established: ''
+                    })
+
+                    // Update localStorage for header
+                    localStorage.setItem('vendorProfile', JSON.stringify({
+                        userId: userData.id,
+                        vendorId: vendorData.id,
+                        companyName: vendorData.nama,
+                        picName: vendorData.kontak_person,
+                        profileImage: userData.profile_image || ''
+                    }))
+                    window.dispatchEvent(new Event('profileUpdated'))
+
+                    // Show incomplete modal if profile is not complete
+                    if (!vendorData.nama || !vendorData.alamat || !vendorData.telepon || !vendorData.kontak_person) {
+                        setShowIncompleteModal(true)
+                    }
+                }
+            } catch (err) {
+                console.error('Error loading vendor profile:', err)
+            }
         }
+
+        loadVendorProfile()
     }, [])
 
     const handleInputChange = (e) => {
@@ -47,19 +121,126 @@ function VendorProfile() {
         }))
     }
 
+    const handleImageUpload = async (e) => {
+        const file = e.target.files?.[0]
+        if (!file) return
+
+        // Validate file type
+        if (!file.type.startsWith('image/')) {
+            alert('File harus berupa gambar')
+            return
+        }
+
+        // Validate file size (max 2MB)
+        if (file.size > 2 * 1024 * 1024) {
+            alert('Ukuran file maksimal 2MB')
+            return
+        }
+
+        setUploadingImage(true)
+
+        try {
+            const vendorUserId = localStorage.getItem('vendorUserId')
+            if (!vendorUserId) {
+                throw new Error('Session expired. Silakan login ulang.')
+            }
+
+            // Create unique filename
+            const fileExt = file.name.split('.').pop()
+            const fileName = `${vendorUserId}-${Date.now()}.${fileExt}`
+            const filePath = `${fileName}`  // Simplified path
+
+            console.log('Uploading file:', filePath)
+
+            // Upload to Supabase Storage
+            const { data: uploadData, error: uploadError } = await supabase.storage
+                .from('vendor-profiles')
+                .upload(filePath, file, {
+                    cacheControl: '3600',
+                    upsert: true  // Allow overwrite
+                })
+
+            if (uploadError) {
+                console.error('Upload error details:', uploadError)
+                if (uploadError.message.includes('not found')) {
+                    throw new Error('Bucket "vendor-profiles" belum dibuat di Supabase Storage. Silakan buat bucket terlebih dahulu.')
+                }
+                throw uploadError
+            }
+
+            console.log('Upload success:', uploadData)
+
+            // Get public URL
+            const { data: { publicUrl } } = supabase.storage
+                .from('vendor-profiles')
+                .getPublicUrl(filePath)
+
+            console.log('Public URL:', publicUrl)
+
+            // Update vendor_users table (not vendors table)
+            const { error: updateError } = await supabase
+                .from('vendor_users')
+                .update({ profile_image: publicUrl })
+                .eq('id', parseInt(vendorUserId))
+
+            if (updateError) {
+                console.error('Database update error:', updateError)
+                throw updateError
+            }
+
+            // Update state and localStorage
+            setProfileImage(publicUrl)
+            const currentProfile = JSON.parse(localStorage.getItem('vendorProfile') || '{}')
+            localStorage.setItem('vendorProfile', JSON.stringify({
+                ...currentProfile,
+                profileImage: publicUrl
+            }))
+            window.dispatchEvent(new Event('profileUpdated'))
+
+            alert('Foto profil berhasil diupload!')
+        } catch (err) {
+            console.error('Error uploading image:', err)
+            const errorMessage = err instanceof Error ? err.message : 'Gagal upload foto profil. Silakan coba lagi.'
+            alert(errorMessage)
+        } finally {
+            setUploadingImage(false)
+        }
+    }
+
     const handleSubmit = async (e) => {
         e.preventDefault()
         setLoading(true)
 
-        // Simulate API call
-        setTimeout(() => {
-            localStorage.setItem('vendorProfile', JSON.stringify(profileData))
+        try {
+            // Update vendor data in Supabase
+            const { error } = await supabase
+                .from('vendors')
+                .update({
+                    nama: profileData.companyName,
+                    alamat: profileData.address,
+                    telepon: profileData.phone,
+                    kontak_person: profileData.picName
+                })
+                .eq('id', vendorId)
+
+            if (error) throw error
+
+            // Update localStorage for header
+            localStorage.setItem('vendorProfile', JSON.stringify({
+                companyName: profileData.companyName,
+                picName: profileData.picName
+            }))
+
             // Trigger custom event to update header
             window.dispatchEvent(new Event('profileUpdated'))
             setLoading(false)
             setIsEditing(false)
             alert('Profil perusahaan berhasil disimpan!')
-        }, 1000)
+        } catch (err) {
+            console.error('Error saving profile:', err)
+            alert('Gagal menyimpan profil. Silakan coba lagi.')
+            setLoading(false)
+        }
     }
 
     const handleCancel = () => {
@@ -90,20 +271,100 @@ function VendorProfile() {
                     )}
                 </div>
 
-                {!isProfileComplete() && !isEditing && (
-                    <div className="warning-banner">
-                        <span className="warning-icon">⚠️</span>
-                        <div>
-                            <strong>Profil Belum Lengkap</strong>
+                {/* Incomplete Profile Modal */}
+                {showIncompleteModal && !isEditing && (
+                    <div className="modal-overlay" onClick={() => setShowIncompleteModal(false)}>
+                        <div className="incomplete-modal" onClick={(e) => e.stopPropagation()}>
+                            <div className="modal-icon">
+                                <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <circle cx="32" cy="32" r="32" fill="#FEF3C7" />
+                                    <path d="M32 20V36M32 44H32.02" stroke="#F59E0B" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+                                </svg>
+                            </div>
+                            <h3>Profil Belum Lengkap</h3>
                             <p>Lengkapi profil perusahaan Anda untuk dapat mengajukan surat.</p>
+                            <div className="modal-buttons">
+                                <button
+                                    className="btn-complete-now"
+                                    onClick={() => {
+                                        setShowIncompleteModal(false)
+                                        setIsEditing(true)
+                                    }}
+                                >
+                                    Lengkapi Sekarang
+                                </button>
+                                <button
+                                    className="btn-later"
+                                    onClick={() => setShowIncompleteModal(false)}
+                                >
+                                    Nanti Saja
+                                </button>
+                            </div>
                         </div>
-                        <button className="btn-complete" onClick={() => setIsEditing(true)}>
-                            Lengkapi Sekarang
-                        </button>
                     </div>
                 )}
 
                 <form onSubmit={handleSubmit} className="profile-form">
+                    {/* Profile Image Upload */}
+                    <div className="profile-image-section">
+                        <div className="profile-image-container">
+                            <div className="profile-image-wrapper">
+                                {profileImage ? (
+                                    <img src={profileImage} alt="Profile" className="profile-image" />
+                                ) : (
+                                    <div className="profile-image-placeholder">
+                                        <User size={48} />
+                                    </div>
+                                )}
+                            </div>
+                            <div className="profile-image-info">
+                                <h3>Foto Profil Perusahaan</h3>
+                                <p>Upload foto atau logo perusahaan Anda</p>
+                                <div className="profile-image-actions">
+                                    <label htmlFor="profileImageInput" className="btn-upload-image">
+                                        {uploadingImage ? 'Mengupload...' : 'Upload Foto'}
+                                    </label>
+                                    <input
+                                        id="profileImageInput"
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={handleImageUpload}
+                                        disabled={uploadingImage}
+                                        style={{ display: 'none' }}
+                                    />
+                                    {profileImage && (
+                                        <button
+                                            type="button"
+                                            className="btn-remove-image"
+                                            onClick={async () => {
+                                                if (confirm('Hapus foto profil?')) {
+                                                    try {
+                                                        await supabase
+                                                            .from('vendors')
+                                                            .update({ profile_image: null })
+                                                            .eq('id', vendorId)
+                                                        setProfileImage('')
+                                                        const currentProfile = JSON.parse(localStorage.getItem('vendorProfile') || '{}')
+                                                        localStorage.setItem('vendorProfile', JSON.stringify({
+                                                            ...currentProfile,
+                                                            profileImage: ''
+                                                        }))
+                                                        window.dispatchEvent(new Event('profileUpdated'))
+                                                    } catch (err) {
+                                                        alert('Gagal menghapus foto')
+                                                    }
+                                                }
+                                            }}
+                                        >
+                                            Hapus
+                                        </button>
+                                    )}
+                                </div>
+                                <small>Format: JPG, PNG, WEBP. Maksimal 2MB</small>
+                            </div>
+                        </div>
+                    </div>
+
                     <div className="profile-sections">
                         {/* Company Information */}
                         <section className="profile-section">
@@ -391,8 +652,8 @@ function VendorProfile() {
                         </div>
                     )}
                 </form>
-            </div>
-        </div>
+            </div >
+        </div >
     )
 }
 

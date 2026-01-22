@@ -2,6 +2,7 @@
 import React, { FC, useState, useEffect, FormEvent, ChangeEvent } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { login as loginService } from '../services/authService'
+import { supabase } from '../lib/supabaseClient'
 import styled from 'styled-components'
 
 interface Platform {
@@ -443,6 +444,118 @@ const LoginContainer = styled.div`
       font-size: 26px;
     }
   }
+
+  /* Register Modal Styles */
+  .register-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    padding: 20px;
+    overflow-y: auto;
+  }
+
+  .register-modal-card {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    width: 100%;
+    max-width: 600px;
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative;
+    animation: slideUp 0.3s ease-out;
+  }
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .register-modal-header {
+    padding: 30px 30px 20px;
+    border-bottom: 1px solid #e0e0e0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    background: white;
+    z-index: 10;
+    border-radius: 16px 16px 0 0;
+  }
+
+  .register-modal-title {
+    font-size: 28px;
+    font-weight: bold;
+    color: #1e3c72;
+    margin: 0;
+  }
+
+  .register-modal-close {
+    background: none;
+    border: none;
+    font-size: 28px;
+    color: #999;
+    cursor: pointer;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s;
+  }
+
+  .register-modal-close:hover {
+    background: #f5f5f5;
+    color: #333;
+  }
+
+  .register-modal-body {
+    padding: 30px;
+  }
+
+  .register-modal-subtitle {
+    text-align: center;
+    color: #666;
+    margin-bottom: 25px;
+    font-size: 14px;
+  }
+
+  @media (max-width: 640px) {
+    .register-modal-card {
+      max-width: 100%;
+      max-height: 100vh;
+      border-radius: 0;
+    }
+
+    .register-modal-header {
+      padding: 20px;
+      border-radius: 0;
+    }
+
+    .register-modal-title {
+      font-size: 22px;
+    }
+
+    .register-modal-body {
+      padding: 20px;
+    }
+  }
 `;
 
 const Login: FC = () => {
@@ -455,6 +568,18 @@ const Login: FC = () => {
   const [devMode, setDevMode] = useState<boolean>(false)
   const [loading, setLoading] = useState<boolean>(false)
   const [error, setError] = useState<string>('')
+  const [isRegisterMode, setIsRegisterMode] = useState<boolean>(false)
+
+  // Register form fields
+  const [registerData, setRegisterData] = useState({
+    nama: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+    telepon: '',
+    alamat: '',
+    kontakPerson: ''
+  })
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -463,7 +588,121 @@ const Login: FC = () => {
   }, [])
 
   const isVendorLogin = pathname === '/vendor-login'
+  const handleRegister = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
+    e.preventDefault()
+    setError('')
+    setLoading(true)
 
+    try {
+      // Validasi
+      if (!registerData.nama || !registerData.email || !registerData.password || !registerData.telepon) {
+        setError('Nama, email, password, dan telepon wajib diisi')
+        setLoading(false)
+        return
+      }
+
+      if (registerData.password !== registerData.confirmPassword) {
+        setError('Password dan konfirmasi password tidak cocok')
+        setLoading(false)
+        return
+      }
+
+      if (registerData.password.length < 6) {
+        setError('Password minimal 6 karakter')
+        setLoading(false)
+        return
+      }
+
+      // 1. Create user account in vendor_users table
+      const { data: newUser, error: userError } = await supabase
+        .from('vendor_users')
+        .insert([{
+          email: registerData.email,
+          password: registerData.password, // In production, hash this!
+          profile_image: null
+        }])
+        .select()
+        .single()
+
+      if (userError) {
+        console.error('User creation error:', userError)
+        if (userError.code === '23505') {
+          setError('Email sudah terdaftar. Gunakan email lain.')
+        } else if (userError.message) {
+          setError(`Gagal membuat akun: ${userError.message}`)
+        } else {
+          setError('Gagal membuat akun. Pastikan semua data sudah benar.')
+        }
+        setLoading(false)
+        return
+      }
+
+      // 2. Generate vendor ID
+      const { data: existingVendors, error: countError } = await supabase
+        .from('vendors')
+        .select('id')
+        .order('created_at', { ascending: false })
+        .limit(1)
+
+      if (countError) throw countError
+
+      let newVendorId = 'VND001'
+      if (existingVendors && existingVendors.length > 0) {
+        const lastId = existingVendors[0].id
+        const lastNumber = parseInt(lastId.replace('VND', ''))
+        newVendorId = `VND${String(lastNumber + 1).padStart(3, '0')}`
+      }
+
+      // 3. Create vendor profile in vendors table with user_id reference
+      const { error: vendorError } = await supabase
+        .from('vendors')
+        .insert([{
+          id: newVendorId,
+          user_id: newUser.id, // Link to vendor_users
+          nama: registerData.nama,
+          email: registerData.email,
+          telepon: registerData.telepon,
+          alamat: registerData.alamat || '',
+          kontak_person: registerData.kontakPerson || '',
+          status: 'Aktif'
+        }])
+
+      if (vendorError) {
+        console.error('Vendor profile error:', vendorError)
+        // Rollback: delete user if vendor creation fails
+        await supabase.from('vendor_users').delete().eq('id', newUser.id)
+
+        setError(`Gagal membuat profil vendor: ${vendorError.message}`)
+        setLoading(false)
+        return
+      }
+
+      // Registrasi berhasil
+      alert(`Registrasi berhasil! ID Vendor Anda: ${newVendorId}\n\nSilakan login dengan email dan password yang sudah didaftarkan.`)
+
+      // Reset form dan kembali ke login
+      setRegisterData({
+        nama: '',
+        email: '',
+        password: '',
+        confirmPassword: '',
+        telepon: '',
+        alamat: '',
+        kontakPerson: ''
+      })
+      setIsRegisterMode(false)
+      setEmail(registerData.email)
+
+    } catch (err) {
+      console.error('Register error:', err)
+      const errorMessage = err && typeof err === 'object' && 'message' in err
+        ? err.message
+        : 'Terjadi kesalahan saat registrasi. Silakan coba lagi.'
+      setError(errorMessage)
+    } finally {
+      setLoading(false)
+    }
+  }
   const handleLogin = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault()
     setError('')
@@ -491,8 +730,51 @@ const Login: FC = () => {
       }
 
       if (isVendorLogin) {
+        // Authenticate vendor from vendor_users table
+        const { data: user, error: authError } = await supabase
+          .from('vendor_users')
+          .select('id, email, profile_image')
+          .eq('email', email)
+          .eq('password', password)
+          .single()
+
+        if (authError || !user) {
+          setError('Email atau password salah')
+          setLoading(false)
+          return
+        }
+
+        // Get vendor profile data
+        const { data: vendorProfile, error: profileError } = await supabase
+          .from('vendors')
+          .select('*')
+          .eq('user_id', user.id)
+          .single()
+
+        if (profileError || !vendorProfile) {
+          setError('Profil vendor tidak ditemukan')
+          setLoading(false)
+          return
+        }
+
+        // Store login session
         localStorage.setItem('vendorLoggedIn', 'true')
         localStorage.setItem('vendorEmail', email)
+        localStorage.setItem('vendorUserId', user.id.toString())
+
+        // Store complete profile data
+        localStorage.setItem('vendorProfile', JSON.stringify({
+          userId: user.id,
+          vendorId: vendorProfile.id,
+          email: user.email,
+          profileImage: user.profile_image || '',
+          companyName: vendorProfile.nama,
+          picName: vendorProfile.kontak_person,
+          nama: vendorProfile.nama,
+          alamat: vendorProfile.alamat,
+          telepon: vendorProfile.telepon,
+          kontak_person: vendorProfile.kontak_person
+        }))
 
         if (rememberMe) {
           localStorage.setItem('rememberMe', 'true')
@@ -598,7 +880,9 @@ const Login: FC = () => {
           </div>
 
           <form className="login-form" onSubmit={handleLogin}>
-            <h1 className="form-title">{isVendorLogin ? 'Login Sebagai Vendor' : 'Log In Akun'}</h1>
+            <h1 className="form-title">
+              {isVendorLogin ? 'Login Sebagai Vendor' : 'Login Sebagai Admin'}
+            </h1>
             <p className="form-greeting">
               Selamat Datang di <span className="highlight">VLAAS</span>
             </p>
@@ -610,6 +894,7 @@ const Login: FC = () => {
               </div>
             )}
 
+            {/* Login Form */}
             <div className="input-group">
               <label className="input-label">
                 Email atau No. Handphone <span className="required">*</span>
@@ -668,7 +953,7 @@ const Login: FC = () => {
 
             {isVendorLogin ? (
               <p className="register-text">
-                Belum punya akun vendor? <a href="#" className="register-link">Daftar Sekarang</a>
+                Belum punya akun vendor? <a href="#" className="register-link" onClick={(e) => { e.preventDefault(); setIsRegisterMode(true); setError(''); }}>Daftar Sekarang</a>
               </p>
             ) : (
               <p className="register-text">
@@ -693,6 +978,155 @@ const Login: FC = () => {
           </label>
         </div>
       </div>
+
+      {/* Register Modal Popup */}
+      {isRegisterMode && (
+        <div className="register-modal-overlay" onClick={() => { setIsRegisterMode(false); setError(''); }}>
+          <div className="register-modal-card" onClick={(e) => e.stopPropagation()}>
+            <div className="register-modal-header">
+              <h2 className="register-modal-title">Daftar Vendor Baru</h2>
+              <button className="register-modal-close" onClick={() => { setIsRegisterMode(false); setError(''); }}>
+                ×
+              </button>
+            </div>
+
+            <div className="register-modal-body">
+              <p className="register-modal-subtitle">
+                Selamat Datang di <span className="highlight">VLAAS</span>
+              </p>
+
+              {error && (
+                <div className="error-message">
+                  <span className="error-icon">⚠️</span>
+                  <span>{error}</span>
+                </div>
+              )}
+
+              <form onSubmit={handleRegister}>
+                <div className="input-group">
+                  <label className="input-label">
+                    Nama Vendor <span className="required">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="PT Nama Vendor"
+                    value={registerData.nama}
+                    onChange={(e) => setRegisterData({ ...registerData, nama: e.target.value })}
+                    className="input-field"
+                    required
+                    disabled={loading}
+                  />
+                </div>
+
+                <div className="input-group">
+                  <label className="input-label">
+                    Email <span className="required">*</span>
+                  </label>
+                  <input
+                    type="email"
+                    placeholder="vendor@example.com"
+                    value={registerData.email}
+                    onChange={(e) => setRegisterData({ ...registerData, email: e.target.value })}
+                    className="input-field"
+                    required
+                    disabled={loading}
+                  />
+                </div>
+
+                <div className="input-group">
+                  <label className="input-label">
+                    Telepon <span className="required">*</span>
+                  </label>
+                  <input
+                    type="tel"
+                    placeholder="081234567890"
+                    value={registerData.telepon}
+                    onChange={(e) => setRegisterData({ ...registerData, telepon: e.target.value })}
+                    className="input-field"
+                    required
+                    disabled={loading}
+                  />
+                </div>
+
+                <div className="input-group">
+                  <label className="input-label">
+                    Alamat
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Alamat lengkap vendor"
+                    value={registerData.alamat}
+                    onChange={(e) => setRegisterData({ ...registerData, alamat: e.target.value })}
+                    className="input-field"
+                    disabled={loading}
+                  />
+                </div>
+
+                <div className="input-group">
+                  <label className="input-label">
+                    Kontak Person
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Nama kontak person"
+                    value={registerData.kontakPerson}
+                    onChange={(e) => setRegisterData({ ...registerData, kontakPerson: e.target.value })}
+                    className="input-field"
+                    disabled={loading}
+                  />
+                </div>
+
+                <div className="input-group">
+                  <label className="input-label">
+                    Password <span className="required">*</span>
+                  </label>
+                  <div className="password-wrapper">
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      placeholder="Minimal 6 karakter"
+                      value={registerData.password}
+                      onChange={(e) => setRegisterData({ ...registerData, password: e.target.value })}
+                      className="input-field"
+                      required
+                      disabled={loading}
+                    />
+                    <button
+                      type="button"
+                      className="toggle-password"
+                      onClick={() => setShowPassword(!showPassword)}
+                      disabled={loading}
+                    >
+                    </button>
+                  </div>
+                </div>
+
+                <div className="input-group">
+                  <label className="input-label">
+                    Konfirmasi Password <span className="required">*</span>
+                  </label>
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder="Ulangi password"
+                    value={registerData.confirmPassword}
+                    onChange={(e) => setRegisterData({ ...registerData, confirmPassword: e.target.value })}
+                    className="input-field"
+                    required
+                    disabled={loading}
+                  />
+                </div>
+
+                <button type="submit" className="login-button" disabled={loading} style={{ marginTop: '20px' }}>
+                  {loading ? 'Memproses...' : 'DAFTAR'}
+                </button>
+
+                <p className="register-text">
+                  Sudah punya akun? <a href="#" className="register-link" onClick={(e) => { e.preventDefault(); setIsRegisterMode(false); setError(''); }}>Login di sini</a>
+                </p>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
     </LoginContainer>
   )
 }

@@ -450,6 +450,7 @@ const VendorHeader: FC = () => {
   const [showProfileMenu, setShowProfileMenu] = useState<boolean>(false)
   const [userName, setUserName] = useState<string>('Vendor')
   const [userInitial, setUserInitial] = useState<string>('V')
+  const [profileImage, setProfileImage] = useState<string>('')
 
   useEffect(() => {
     const savedProfile = localStorage.getItem('vendorProfile')
@@ -462,6 +463,10 @@ const VendorHeader: FC = () => {
         } else if (profile.companyName) {
           setUserName(profile.companyName)
           setUserInitial(profile.companyName.charAt(0).toUpperCase())
+        }
+        // Load profile image if available
+        if (profile.profileImage) {
+          setProfileImage(profile.profileImage)
         }
       } catch (error) {
         console.error('Error parsing profile:', error)
@@ -481,6 +486,12 @@ const VendorHeader: FC = () => {
           } else if (profile.companyName) {
             setUserName(profile.companyName)
             setUserInitial(profile.companyName.charAt(0).toUpperCase())
+          }
+          // Update profile image when changed
+          if (profile.profileImage) {
+            setProfileImage(profile.profileImage)
+          } else {
+            setProfileImage('')
           }
         } catch (error) {
           console.error('Error parsing profile:', error)
@@ -581,7 +592,11 @@ const VendorHeader: FC = () => {
           </div>
 
           <div className="user-profile" onClick={toggleProfileMenu}>
-            <img src="/images/profil default instagram.jpg" alt={userName} className="user-avatar" />
+            {profileImage ? (
+              <img src={profileImage} alt={userName} className="user-avatar" />
+            ) : (
+              <img src="/images/profil default instagram.jpg" alt={userName} className="user-avatar" />
+            )}
             <div className="user-info">
               <span className="user-name">{userName}</span>
               <span className="user-role">Partner</span>

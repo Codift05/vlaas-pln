@@ -79,19 +79,24 @@ function DataVendor() {
 
             if (error) throw error
 
-            // Map DB columns (snake_case) to frontend (camelCase)
-            const formattedData = data.map(vendor => ({
-                id: vendor.id, // Display ID e.g VND001
-                nama: vendor.name || vendor.nama, // Handle potential inconsistent naming
-                alamat: vendor.alamat || vendor.address, // Fix: use alamat from DB
-                telepon: vendor.telepon || vendor.phone,
-                email: vendor.email,
-                // kategori: vendor.kategori || vendor.category || '-',
-                kontakPerson: vendor.kontak_person || vendor.contact_person,
-                status: vendor.status,
-                tanggalRegistrasi: vendor.tanggal_registrasi || vendor.registration_date // Format if needed
-            }))
+            console.log('Raw vendor data from Supabase:', data) // Debug log
 
+            // Map DB columns to frontend format
+            const formattedData = data.map(vendor => {
+                console.log('Processing vendor:', vendor) // Debug each vendor
+                return {
+                    id: vendor.id || '',
+                    nama: vendor.name || vendor.nama || vendor.vendor_name || '',
+                    alamat: vendor.alamat || vendor.address || '',
+                    telepon: vendor.telepon || vendor.phone || '',
+                    email: vendor.email || '',
+                    kontakPerson: vendor.kontak_person || vendor.contact_person || '',
+                    status: vendor.status || 'Aktif',
+                    tanggalRegistrasi: vendor.tanggal_registrasi || vendor.created_at || ''
+                }
+            })
+
+            console.log('Formatted vendor data:', formattedData) // Debug log
             setVendors(formattedData)
         } catch (err) {
             console.error('Error fetching vendors:', err)
