@@ -1,26 +1,44 @@
 'use client'
 import React, { useState, useEffect } from 'react';
 import { Download, Calendar, Clock, CheckCircle, XCircle } from 'lucide-react';
+import { getAllSurat } from '@/services/suratService';
 import './VendorDashboard.css';
 
 export default function VendorDashboard() {
     const [currentPage, setCurrentPage] = useState(1);
     const [suratData, setSuratData] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
     const itemsPerPage = 5;
 
-    // Load data from localStorage
+    // Load data from Supabase
     useEffect(() => {
-        const loadSubmissions = () => {
-            const submissions = JSON.parse(localStorage.getItem('vendorSubmissions') || '[]');
-            // Reverse to show newest first
-            setSuratData(submissions.reverse());
+        const loadSubmissions = async () => {
+            setIsLoading(true);
+            const result = await getAllSurat();
+
+            if (result.success && result.data) {
+                // Transform data to match component structure
+                const transformedData = result.data.map(surat => ({
+                    id: surat.id,
+                    nomorSurat: surat.nomor_surat,
+                    perihal: surat.perihal,
+                    namaPekerjaan: surat.nama_pekerjaan,
+                    nomorKontrak: surat.nomor_kontrak,
+                    tanggalPengajuan: new Date(surat.created_at).toLocaleDateString('id-ID'),
+                    tanggalSurat: new Date(surat.tanggal_surat).toLocaleDateString('id-ID'),
+                    status: surat.status,
+                    fileUrl: surat.file_url
+                }));
+                setSuratData(transformedData.reverse()); // Newest first
+            }
+            setIsLoading(false);
         };
 
         loadSubmissions();
 
-        // Listen for storage changes
-        window.addEventListener('storage', loadSubmissions);
-        return () => window.removeEventListener('storage', loadSubmissions);
+        // Refresh data every 30 seconds
+        const interval = setInterval(loadSubmissions, 30000);
+        return () => clearInterval(interval);
     }, []);
 
     // Calculate statistics
@@ -128,64 +146,80 @@ export default function VendorDashboard() {
                     <h2>Riwayat Pengajuan Surat</h2>
                 </div>
 
-                <table className="vendor-table">
-                    <thead>
-                        <tr>
-                            <th>Nomor Surat</th>
-                            <th>Perihal</th>
-                            <th>Tanggal Pengajuan</th>
-                            <th>Tanggal Surat</th>
-                            <th>Status</th>
-                            <th>Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {currentData.length === 0 ? (
-                            <tr>
-                                <td colSpan="6" style={{ textAlign: 'center', padding: '2rem', color: '#999' }}>
-                                    Belum ada pengajuan surat
-                                </td>
-                            </tr>
-                        ) : (
-                            currentData.map((surat, index) => (
-                                <tr key={index}>
-                                    <td>{surat.nomorSurat}</td>
-                                    <td>{surat.perihal}</td>
-                                    <td>{surat.tanggalPengajuan}</td>
-                                    <td>{surat.tanggalSurat}</td>
-                                    <td>{getStatusBadge(surat.status)}</td>
-                                    <td>
-                                        <button className="btn-download">
-                                            <Download size={16} />
-                                            Unduh
-                                        </button>
-                                    </td>
-                                </tr>
-                            ))
-                        )}
-                    </tbody>
-                </table>
-
-                {suratData.length > 0 && (
-                    <div className="pagination">
-                        <button
-                            onClick={handlePreviousPage}
-                            disabled={currentPage === 1}
-                            className="pagination-btn"
-                        >
-                            ← Sebelumnya
-                        </button>
-                        <span className="page-info">
-                            Halaman {currentPage} dari {totalPages || 1}
-                        </span>
-                        <button
-                            onClick={handleNextPage}
-                            disabled={currentPage === totalPages}
-                            className="pagination-btn"
-                        >
-                            Selanjutnya →
-                        </button>
+                {isLoading ? (
+                    <div style={{ textAlign: 'center', padding: '3rem', color: '#64748b' }}>
+                        <p>Memuat data...</p>
                     </div>
+                ) : (
+                    <>
+                        <table className="vendor-table">
+                            <thead>
+                                <tr>
+                                    <th>Nomor Surat</th>
+                                    <th>Perihal</th>
+                                    <th>Nama Pekerjaan</th>
+                                    <th>Nomor Kontrak</th>
+                                    <th>Tanggal Pengajuan</th>
+                                    <th>Tanggal Surat</th>
+                                    <th>Status</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {currentData.length === 0 ? (
+                                    <tr>
+                                        <td colSpan={8} style={{ textAlign: 'center', padding: '2rem', color: '#999' }}>
+                                            Belum ada pengajuan surat
+                                        </td>
+                                    </tr>
+                                ) : (
+                                    currentData.map((surat, index) => (
+                                        <tr key={index}>
+                                            <td>{surat.nomorSurat}</td>
+                                            <td>{surat.perihal}</td>
+                                            <td style={{ color: surat.namaPekerjaan ? 'inherit' : '#94a3b8' }}>
+                                                {surat.namaPekerjaan || '-'}
+                                            </td>
+                                            <td style={{ color: surat.nomorKontrak ? 'inherit' : '#94a3b8' }}>
+                                                {surat.nomorKontrak || '-'}
+                                            </td>
+                                            <td>{surat.tanggalPengajuan}</td>
+                                            <td>{surat.tanggalSurat}</td>
+                                            <td>{getStatusBadge(surat.status)}</td>
+                                            <td>
+                                                <button className="btn-download">
+                                                    <Download size={16} />
+                                                    Unduh
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    ))
+                                )}
+                            </tbody>
+                        </table>
+
+                        {suratData.length > 0 && (
+                            <div className="pagination">
+                                <button
+                                    onClick={handlePreviousPage}
+                                    disabled={currentPage === 1}
+                                    className="pagination-btn"
+                                >
+                                    ← Sebelumnya
+                                </button>
+                                <span className="page-info">
+                                    Halaman {currentPage} dari {totalPages || 1}
+                                </span>
+                                <button
+                                    onClick={handleNextPage}
+                                    disabled={currentPage === totalPages}
+                                    className="pagination-btn"
+                                >
+                                    Selanjutnya →
+                                </button>
+                            </div>
+                        )}
+                    </>
                 )}
             </div>
         </div>
