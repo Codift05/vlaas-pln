@@ -203,39 +203,57 @@ function ManajemenAset() {
     // Fetch data contracts & history from Supabase
     const fetchContracts = async () => {
         try {
-            const { data, error } = await supabase
+            // Fetch contracts
+            const { data: contractsData, error: contractsError } = await supabase
                 .from('contracts')
-                .select(`
-                    *,
-                    history:contract_history(*)
-                `)
+                .select('*')
 
-            if (error) throw error
+            if (contractsError) throw contractsError
 
-            console.log('Raw data from Supabase:', data) // Debug log
+            // Fetch history for all contracts
+            const { data: historyData, error: historyError } = await supabase
+                .from('contract_history')
+                .select('*')
 
-            // Format data sesuai struktur UI
-            const formattedData = data.map(contract => ({
-                id: contract.id || '',
-                name: contract.name || '',
-                vendorName: contract.vendor_name || '', // Map snake_case -> camelCase
-                recipient: contract.recipient || '',
-                invoiceNumber: contract.invoice_number || '',
-                amount: contract.amount ? parseFloat(contract.amount) : 0,
-                budgetType: contract.budget_type || '',
-                contractType: contract.contract_type || '',
-                category: contract.category || '',
-                location: contract.location || '',
-                status: contract.status || 'Dalam Pekerjaan',
-                startDate: contract.start_date || '',
-                endDate: contract.end_date || '',
-                updatedAt: contract.updated_at || contract.created_at || '',
-                progress: contract.progress || 0,
-                history: contract.history || []
-            }))
+            if (historyError) {
+                console.warn('Error fetching history:', historyError)
+            }
+
+            console.log('Raw data from Supabase:', contractsData) // Debug log
+
+            // Merge contracts with their history
+            const formattedData = contractsData.map(contract => {
+                const contractHistory = historyData?.filter(h => h.contract_id === contract.id) || []
+
+                return {
+                    id: contract.id || '',
+                    name: contract.name || '',
+                    vendorName: contract.vendor_name || '', // Map snake_case -> camelCase
+                    recipient: contract.recipient || '',
+                    invoiceNumber: contract.invoice_number || '',
+                    amount: contract.amount ? parseFloat(contract.amount) : 0,
+                    budgetType: contract.budget_type || '',
+                    contractType: contract.contract_type || '',
+                    category: contract.category || '',
+                    location: contract.location || '',
+                    status: contract.status || 'Dalam Pekerjaan',
+                    startDate: contract.start_date || '',
+                    endDate: contract.end_date || '',
+                    updatedAt: contract.updated_at || contract.created_at || '',
+                    progress: contract.progress || 0,
+                    history: contractHistory
+                }
+            })
             setAssets(formattedData)
         } catch (err) {
-            console.error('Error fetching contracts:', err)
+            // Show more details if Supabase error
+            if (err && typeof err === 'object' && 'message' in err) {
+                console.error('Error fetching contracts:', err.message)
+            } else if (err && typeof err === 'object' && 'details' in err) {
+                console.error('Error fetching contracts:', err.details)
+            } else {
+                console.error('Error fetching contracts:', err)
+            }
             setAssets([])
         }
     }
@@ -742,7 +760,7 @@ function ManajemenAset() {
                     oldData && oldData.vendorName !== formData.vendorName) {
                     const syncResult = await autoSyncVendor(formData.vendorName);
                     if (syncResult.success) {
-                        console.log('Vendor sync on update:', syncResult.message);
+                        console.log('Vendor sync on update:', 'message' in syncResult ? syncResult.message : 'Success');
                     }
                 }
 
@@ -820,9 +838,9 @@ function ManajemenAset() {
                 if (formData.vendorName && formData.vendorName.trim() !== '') {
                     const syncResult = await autoSyncVendor(formData.vendorName);
                     if (syncResult.success) {
-                        console.log('Vendor sync:', syncResult.message);
+                        console.log('Vendor sync:', 'message' in syncResult ? syncResult.message : 'Success');
                     } else {
-                        console.warn('Vendor sync warning:', syncResult.message);
+                        console.warn('Vendor sync warning:', 'message' in syncResult ? syncResult.message : 'error' in syncResult ? syncResult.error : 'Unknown error');
                     }
                 }
 

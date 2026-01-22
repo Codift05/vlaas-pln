@@ -201,6 +201,8 @@ export default function ApprovalSurat() {
                                     <th>Perihal</th>
                                     <th>Tanggal Pengajuan</th>
                                     <th>Tanggal Surat</th>
+                                    <th>Nama Pekerjaan</th>
+                                    <th>Nomor Kontrak</th>
                                     <th>Status</th>
                                     <th>Aksi</th>
                                 </tr>
@@ -212,6 +214,8 @@ export default function ApprovalSurat() {
                                         <td>{surat.perihal}</td>
                                         <td>{surat.tanggalPengajuan}</td>
                                         <td>{surat.tanggalSurat}</td>
+                                        <td>{surat.namaPekerjaan || '-'}</td>
+                                        <td>{surat.nomorKontrak || '-'}</td>
                                         <td>{getStatusBadge(surat.status)}</td>
                                         <td>
                                             <div className="action-buttons">
@@ -247,166 +251,173 @@ export default function ApprovalSurat() {
                             </tbody>
                         </table>
 
-                        {totalPages > 1 && (
-                            <div className="pagination">
-                                <button
-                                    className="pagination-btn"
-                                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                                    disabled={currentPage === 1}
-                                >
-                                    ← Sebelumnya
-                                </button>
-                                <span className="page-info">
-                                    Halaman {currentPage} dari {totalPages}
-                                </span>
-                                <button
-                                    className="pagination-btn"
-                                    onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                                    disabled={currentPage === totalPages}
-                                >
-                                    Selanjutnya →
-                                </button>
-                            </div>
-                        )}
+                        {
+                            totalPages > 1 && (
+                                <div className="pagination">
+                                    <button
+                                        className="pagination-btn"
+                                        onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                                        disabled={currentPage === 1}
+                                    >
+                                        ← Sebelumnya
+                                    </button>
+                                    <span className="page-info">
+                                        Halaman {currentPage} dari {totalPages}
+                                    </span>
+                                    <button
+                                        className="pagination-btn"
+                                        onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                                        disabled={currentPage === totalPages}
+                                    >
+                                        Selanjutnya →
+                                    </button>
+                                </div>
+                            )
+                        }
                     </>
-                )}
-            </div>
+                )
+                }
+            </div >
 
             {/* Detail Modal */}
-            {showDetailModal && selectedSurat && (
-                <div className="modal-overlay" onClick={() => setShowDetailModal(false)}>
-                    <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-                        <div className="modal-header">
-                            <h3>Detail Surat Pengajuan</h3>
-                        </div>
-                        <div className="modal-body">
-                            <div className="detail-row">
-                                <div className="detail-label">Nomor Surat</div>
-                                <div className="detail-value">{selectedSurat.nomorSurat}</div>
+            {
+                showDetailModal && selectedSurat && (
+                    <div className="modal-overlay" onClick={() => setShowDetailModal(false)}>
+                        <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                            <div className="modal-header">
+                                <h3>Detail Surat Pengajuan</h3>
                             </div>
-                            <div className="detail-row">
-                                <div className="detail-label">Perihal</div>
-                                <div className="detail-value">{selectedSurat.perihal}</div>
-                            </div>
-                            <div className="detail-row">
-                                <div className="detail-label">Tanggal Pengajuan</div>
-                                <div className="detail-value">{selectedSurat.tanggalPengajuan}</div>
-                            </div>
-                            <div className="detail-row">
-                                <div className="detail-label">Tanggal Surat</div>
-                                <div className="detail-value">{selectedSurat.tanggalSurat}</div>
-                            </div>
-                            {selectedSurat.namaPekerjaan && (
+                            <div className="modal-body">
                                 <div className="detail-row">
-                                    <div className="detail-label">Nama Pekerjaan</div>
-                                    <div className="detail-value">{selectedSurat.namaPekerjaan}</div>
+                                    <div className="detail-label">Nomor Surat</div>
+                                    <div className="detail-value">{selectedSurat.nomorSurat}</div>
                                 </div>
-                            )}
-                            {selectedSurat.nomorKontrak && (
                                 <div className="detail-row">
-                                    <div className="detail-label">Nomor Kontrak</div>
-                                    <div className="detail-value">{selectedSurat.nomorKontrak}</div>
+                                    <div className="detail-label">Perihal</div>
+                                    <div className="detail-value">{selectedSurat.perihal}</div>
                                 </div>
-                            )}
-                            {selectedSurat.keterangan && (
                                 <div className="detail-row">
-                                    <div className="detail-label">Keterangan</div>
-                                    <div className="detail-value">{selectedSurat.keterangan}</div>
+                                    <div className="detail-label">Tanggal Pengajuan</div>
+                                    <div className="detail-value">{selectedSurat.tanggalPengajuan}</div>
                                 </div>
-                            )}
-                            {selectedSurat.fileName && (
                                 <div className="detail-row">
-                                    <div className="detail-label">File Lampiran</div>
-                                    <div className="detail-value">
-                                        <div className="file-attachment">
-                                            <div className="file-info">
-                                                <FileText size={18} style={{ color: '#ef4444' }} />
-                                                <span>{selectedSurat.fileName}</span>
-                                            </div>
-                                            {selectedSurat.fileUrl && (
-                                                <div className="file-actions">
-                                                    <button
-                                                        className="btn-file-action view"
-                                                        onClick={() => window.open(selectedSurat.fileUrl, '_blank')}
-                                                        title="Lihat File"
-                                                    >
-                                                        <ExternalLink size={14} />
-                                                        Lihat
-                                                    </button>
-                                                    <button
-                                                        className="btn-file-action download"
-                                                        onClick={async () => {
-                                                            try {
-                                                                await downloadFileFromSupabase(
-                                                                    selectedSurat.fileUrl!,
-                                                                    selectedSurat.fileName!
-                                                                )
-                                                            } catch (error) {
-                                                                alert('Gagal mendownload file')
-                                                            }
-                                                        }}
-                                                        title="Download File"
-                                                    >
-                                                        <Download size={14} />
-                                                        Download
-                                                    </button>
+                                    <div className="detail-label">Tanggal Surat</div>
+                                    <div className="detail-value">{selectedSurat.tanggalSurat}</div>
+                                </div>
+                                {selectedSurat.namaPekerjaan && (
+                                    <div className="detail-row">
+                                        <div className="detail-label">Nama Pekerjaan</div>
+                                        <div className="detail-value">{selectedSurat.namaPekerjaan}</div>
+                                    </div>
+                                )}
+                                {selectedSurat.nomorKontrak && (
+                                    <div className="detail-row">
+                                        <div className="detail-label">Nomor Kontrak</div>
+                                        <div className="detail-value">{selectedSurat.nomorKontrak}</div>
+                                    </div>
+                                )}
+                                {selectedSurat.keterangan && (
+                                    <div className="detail-row">
+                                        <div className="detail-label">Keterangan</div>
+                                        <div className="detail-value">{selectedSurat.keterangan}</div>
+                                    </div>
+                                )}
+                                {selectedSurat.fileName && (
+                                    <div className="detail-row">
+                                        <div className="detail-label">File Lampiran</div>
+                                        <div className="detail-value">
+                                            <div className="file-attachment">
+                                                <div className="file-info">
+                                                    <FileText size={18} style={{ color: '#ef4444' }} />
+                                                    <span>{selectedSurat.fileName}</span>
                                                 </div>
-                                            )}
+                                                {selectedSurat.fileUrl && (
+                                                    <div className="file-actions">
+                                                        <button
+                                                            className="btn-file-action view"
+                                                            onClick={() => window.open(selectedSurat.fileUrl, '_blank')}
+                                                            title="Lihat File"
+                                                        >
+                                                            <ExternalLink size={14} />
+                                                            Lihat
+                                                        </button>
+                                                        <button
+                                                            className="btn-file-action download"
+                                                            onClick={async () => {
+                                                                try {
+                                                                    await downloadFileFromSupabase(
+                                                                        selectedSurat.fileUrl!,
+                                                                        selectedSurat.fileName!
+                                                                    )
+                                                                } catch (error) {
+                                                                    alert('Gagal mendownload file')
+                                                                }
+                                                            }}
+                                                            title="Download File"
+                                                        >
+                                                            <Download size={14} />
+                                                            Download
+                                                        </button>
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            )}
-                            <div className="detail-row">
-                                <div className="detail-label">Status</div>
-                                <div className="detail-value">{getStatusBadge(selectedSurat.status)}</div>
-                            </div>
-                            {selectedSurat.alasanPenolakan && (
+                                )}
                                 <div className="detail-row">
-                                    <div className="detail-label">Alasan Penolakan</div>
-                                    <div className="detail-value">{selectedSurat.alasanPenolakan}</div>
+                                    <div className="detail-label">Status</div>
+                                    <div className="detail-value">{getStatusBadge(selectedSurat.status)}</div>
                                 </div>
-                            )}
-                        </div>
-                        <div className="modal-actions">
-                            <button className="btn-cancel" onClick={() => setShowDetailModal(false)}>
-                                Tutup
-                            </button>
+                                {selectedSurat.alasanPenolakan && (
+                                    <div className="detail-row">
+                                        <div className="detail-label">Alasan Penolakan</div>
+                                        <div className="detail-value">{selectedSurat.alasanPenolakan}</div>
+                                    </div>
+                                )}
+                            </div>
+                            <div className="modal-actions">
+                                <button className="btn-cancel" onClick={() => setShowDetailModal(false)}>
+                                    Tutup
+                                </button>
+                            </div>
                         </div>
                     </div>
-                </div>
-            )}
+                )
+            }
 
             {/* Reject Modal */}
-            {showRejectModal && selectedSurat && (
-                <div className="modal-overlay" onClick={() => setShowRejectModal(false)}>
-                    <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-                        <div className="modal-header">
-                            <h3>Tolak Pengajuan Surat</h3>
-                            <p style={{ color: '#64748b', fontSize: '0.875rem', marginTop: '0.5rem' }}>
-                                Surat: {selectedSurat.nomorSurat}
-                            </p>
-                        </div>
-                        <div className="modal-body">
-                            <div className="form-group">
-                                <label>Alasan Penolakan <span style={{ color: '#ef4444' }}>*</span></label>
-                                <textarea
-                                    value={rejectReason}
-                                    onChange={(e) => setRejectReason(e.target.value)}
-                                    placeholder="Masukkan alasan penolakan..."
-                                />
+            {
+                showRejectModal && selectedSurat && (
+                    <div className="modal-overlay" onClick={() => setShowRejectModal(false)}>
+                        <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                            <div className="modal-header">
+                                <h3>Tolak Pengajuan Surat</h3>
+                                <p style={{ color: '#64748b', fontSize: '0.875rem', marginTop: '0.5rem' }}>
+                                    Surat: {selectedSurat.nomorSurat}
+                                </p>
+                            </div>
+                            <div className="modal-body">
+                                <div className="form-group">
+                                    <label>Alasan Penolakan <span style={{ color: '#ef4444' }}>*</span></label>
+                                    <textarea
+                                        value={rejectReason}
+                                        onChange={(e) => setRejectReason(e.target.value)}
+                                        placeholder="Masukkan alasan penolakan..."
+                                    />
+                                </div>
+                            </div>
+                            <div className="modal-actions">
+                                <button className="btn-cancel" onClick={() => setShowRejectModal(false)}>
+                                    Batal
+                                </button>
+                                <button className="btn-confirm danger" onClick={confirmReject}>
+                                    Tolak Surat
+                                </button>
                             </div>
                         </div>
-                        <div className="modal-actions">
-                            <button className="btn-cancel" onClick={() => setShowRejectModal(false)}>
-                                Batal
-                            </button>
-                            <button className="btn-confirm danger" onClick={confirmReject}>
-                                Tolak Surat
-                            </button>
-                        </div>
                     </div>
-                </div>
-            )}
-        </div>
+                )
+            }
+        </div >
     )
 }
