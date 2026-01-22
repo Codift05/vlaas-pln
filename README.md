@@ -69,6 +69,10 @@
 - **Preview PDF Langsung** - Lihat dokumen tanpa perlu download
 - **Audit Log Viewer** - Riwayat lengkap setiap aktivitas persetujuan
 - **Visualisasi Data** - Grafik dan chart untuk analisis tren surat
+- **📁 Upload PDF Kontrak ke Google Drive** - Upload otomatis dengan struktur folder dinamis (NEW!)
+  - Auto-organize: `Berkas Kontrak/[AI|AO]/[Nama Kontrak]/`
+  - Validasi file type & size
+  - Integration dengan Google Drive API via Service Account
 
 ### Keamanan Enterprise
 
@@ -98,6 +102,10 @@
   - Edge Functions (Email notifications)
   - Real-time subscriptions
   - Row Level Security (RLS)
+- **File Storage**: Google Drive API
+  - Service Account authentication
+  - Dynamic folder structure
+  - Automated file organization
 
 ### DevOps & Tools
 - **Version Control**: Git + GitHub
@@ -388,11 +396,25 @@ vlaas-pln/
 
 ## Dokumentasi
 
-### API Documentation
+### 📚 Core Documentation
+
+- [**Quick Start Guide**](QUICK_START.md) - Panduan memulai project
+- [**Supabase Setup**](SUPABASE_SETUP.md) - Konfigurasi database dan auth
+- [**Google Drive Setup**](GOOGLE_DRIVE_SETUP.md) - Setup Google Drive integration
+
+### 🆕 Upload Feature Documentation
+
+- [**Upload Feature Docs**](UPLOAD_FEATURE_DOCS.md) - Dokumentasi lengkap fitur upload PDF
+- [**Upload Quick Start**](UPLOAD_QUICK_START.md) - Panduan cepat setup & penggunaan upload
+- [**Architecture Diagram**](ARCHITECTURE_DIAGRAM.md) - Visualisasi arsitektur sistem upload
+- [**Testing Checklist**](TESTING_CHECKLIST.md) - Checklist untuk testing fitur
+- [**Troubleshooting**](TROUBLESHOOTING.md) - Panduan mengatasi masalah upload
+
+### 📖 API Documentation
 
 Dokumentasi lengkap API tersedia di: [docs/API.md](docs/API.md) *(coming soon)*
 
-### User Guide
+### 👥 User Guide
 
 - [Panduan Vendor](docs/VENDOR_GUIDE.md) *(coming soon)*
 - [Panduan Admin](docs/ADMIN_GUIDE.md) *(coming soon)*

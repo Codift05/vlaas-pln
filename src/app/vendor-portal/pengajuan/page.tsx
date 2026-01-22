@@ -2,6 +2,7 @@
 import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { FileText, Upload, X, CheckCircle, Calendar, AlertCircle } from 'lucide-react'
+import { uploadPDFToSupabase } from '@/services/fileUploadService'
 import './VendorPengajuan.css'
 
 function VendorPengajuan() {
@@ -11,8 +12,9 @@ function VendorPengajuan() {
     const [formData, setFormData] = useState({
         nomorSurat: '',
         perihal: '',
-        tanggalMulai: '',
-        tanggalSelesai: '',
+        tanggalSurat: '',
+        namaPekerjaan: '',
+        nomorKontrak: '',
         keterangan: ''
     })
 
@@ -135,22 +137,8 @@ function VendorPengajuan() {
             newErrors.perihal = 'Perihal wajib diisi'
         }
 
-        if (!formData.tanggalMulai) {
-            newErrors.tanggalMulai = 'Tanggal mulai wajib diisi'
-        }
-
-        if (!formData.tanggalSelesai) {
-            newErrors.tanggalSelesai = 'Tanggal selesai wajib diisi'
-        }
-
-        // Validate date range
-        if (formData.tanggalMulai && formData.tanggalSelesai) {
-            const startDate = new Date(formData.tanggalMulai)
-            const endDate = new Date(formData.tanggalSelesai)
-
-            if (endDate < startDate) {
-                newErrors.tanggalSelesai = 'Tanggal selesai tidak boleh lebih awal dari tanggal mulai'
-            }
+        if (!formData.tanggalSurat) {
+            newErrors.tanggalSurat = 'Tanggal surat wajib diisi'
         }
 
         if (!selectedFile) {
@@ -170,11 +158,21 @@ function VendorPengajuan() {
 
         setIsSubmitting(true)
 
-        // Simulate API submission
-        setTimeout(() => {
+        try {
+            // Upload file ke Supabase Storage
+            const uploadResult = await uploadPDFToSupabase(selectedFile)
+
+            if (!uploadResult.success) {
+                alert('Gagal mengupload file: ' + uploadResult.error)
+                setIsSubmitting(false)
+                return
+            }
+
+            // Prepare submission data
             const newSubmission = {
                 ...formData,
                 fileName: selectedFile.name,
+                fileUrl: uploadResult.fileUrl, // URL file di Supabase
                 status: 'PENDING',
                 tanggalPengajuan: new Date().toLocaleDateString('id-ID')
             }
@@ -185,16 +183,19 @@ function VendorPengajuan() {
             localStorage.setItem('vendorSubmissions', JSON.stringify(existingSubmissions))
 
             setIsSubmitting(false)
-            alert('Surat berhasil diajukan! Status: Menunggu Persetujuan')
+            alert('Surat berhasil diajukan! File telah tersimpan di server.')
             router.push('/vendor-portal')
-        }, 2000)
+        } catch (error) {
+            console.error('Submission error:', error)
+            alert('Terjadi kesalahan saat mengirim pengajuan')
+            setIsSubmitting(false)
+        }
     }
 
     const isFormValid = () => {
         return formData.nomorSurat &&
             formData.perihal &&
-            formData.tanggalMulai &&
-            formData.tanggalSelesai &&
+            formData.tanggalSurat &&
             selectedFile &&
             uploadProgress === 100
     }
@@ -235,7 +236,21 @@ function VendorPengajuan() {
                                         <span className="error-text">{errors.nomorSurat}</span>
                                     )}
                                 </div>
-                                <div className="form-group span-2">
+                                <div className="form-group">
+                                    <label htmlFor="namaPekerjaan">
+                                        Nama Pekerjaan
+                                    </label>
+                                    <input
+                                        type="text"
+                                        id="namaPekerjaan"
+                                        name="namaPekerjaan"
+                                        value={formData.namaPekerjaan}
+                                        onChange={handleInputChange}
+                                        placeholder="Contoh: Pemeliharaan Transformer"
+                                        className="form-input"
+                                    />
+                                </div>
+                                <div className="form-group">
                                     <label htmlFor="perihal">
                                         Perihal <span className="required">*</span>
                                     </label>
@@ -253,36 +268,33 @@ function VendorPengajuan() {
                                     )}
                                 </div>
                                 <div className="form-group">
-                                    <label htmlFor="tanggalMulai">
-                                        <Calendar size={16} /> Tanggal Mulai Kontrak <span className="required">*</span>
+                                    <label htmlFor="nomorKontrak">
+                                        Nomor Kontrak
                                     </label>
                                     <input
-                                        type="date"
-                                        id="tanggalMulai"
-                                        name="tanggalMulai"
-                                        value={formData.tanggalMulai}
+                                        type="text"
+                                        id="nomorKontrak"
+                                        name="nomorKontrak"
+                                        value={formData.nomorKontrak}
                                         onChange={handleInputChange}
-                                        className={`form-input${errors.tanggalMulai ? ' error' : ''}`}
+                                        placeholder="Contoh: KTR/2025/001"
+                                        className="form-input"
                                     />
-                                    {errors.tanggalMulai && (
-                                        <span className="error-text">{errors.tanggalMulai}</span>
-                                    )}
                                 </div>
                                 <div className="form-group">
-                                    <label htmlFor="tanggalSelesai">
-                                        <Calendar size={16} /> Tanggal Selesai Kontrak <span className="required">*</span>
+                                    <label htmlFor="tanggalSurat">
+                                        <Calendar size={16} /> Tanggal Surat <span className="required">*</span>
                                     </label>
                                     <input
                                         type="date"
-                                        id="tanggalSelesai"
-                                        name="tanggalSelesai"
-                                        value={formData.tanggalSelesai}
+                                        id="tanggalSurat"
+                                        name="tanggalSurat"
+                                        value={formData.tanggalSurat}
                                         onChange={handleInputChange}
-                                        min={formData.tanggalMulai}
-                                        className={`form-input${errors.tanggalSelesai ? ' error' : ''}`}
+                                        className={`form-input${errors.tanggalSurat ? ' error' : ''}`}
                                     />
-                                    {errors.tanggalSelesai && (
-                                        <span className="error-text">{errors.tanggalSelesai}</span>
+                                    {errors.tanggalSurat && (
+                                        <span className="error-text">{errors.tanggalSurat}</span>
                                     )}
                                 </div>
                                 <div className="form-group span-2">

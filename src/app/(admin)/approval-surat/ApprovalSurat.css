@@ -1,0 +1,691 @@
+.approval-surat-container {
+    min-height: calc(100vh - 80px);
+
+/* Stats Cards - mengikuti style KPI dari Laporan */
+.approval-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px;
+    margin-bottom: 32px;
+}
+
+.approval-stat-card {
+    background: rgba(255, 255, 255, 0.65);
+    backdrop-filter: blur(8px);
+    padding: 26px 24px;
+    border-radius: 24px;
+    box-shadow: 0 2px 16px rgba(0, 0, 0, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.approval-stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 0;
+    height: 100%;
+    background: linear-gradient(90deg, rgba(126, 185, 217, 0.08) 0%, transparent 100%);
+    transition: width 0.3s;
+}
+
+.approval-stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+}
+
+.approval-stat-card:hover::before {
+    width: 100%;
+}
+
+.approval-stat-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    color: white;
+    transition: transform 0.25s;
+}
+
+.approval-stat-card:hover .approval-stat-icon {
+    transform: scale(1.05);
+}
+
+.approval-stat-icon.pending {
+    background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+}
+
+.approval-stat-icon.approved {
+    background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+}
+
+.approval-stat-icon.rejected {
+    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+}
+
+.approval-stat-info {
+    flex: 1;
+}
+
+.approval-stat-info .stat-value {
+    font-size: 34px;
+    font-weight: 700;
+    color: #2b3f50;
+    line-height: 1;
+    margin-bottom: 4px;
+    letter-spacing: -0.8px;
+    font-family: 'Inter', sans-serif;
+}
+
+.approval-stat-info .stat-label {
+    font-size: 13px;
+    color: #8b95a1;
+    font-weight: 500;
+    letter-spacing: 0.2px;
+    font-family: 'Inter', sans-serif;
+}
+
+/* Table Container - mengikuti style chart-card dari Laporan */
+.approval-table-container {
+    background: rgba(255, 255, 255, 0.65);
+    backdrop-filter: blur(8px);
+    border-radius: 24px;
+    box-shadow: 0 2px 16px rgba(0, 0, 0, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    overflow: hidden;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    min-height: 600px;
+}
+
+.approval-table-container:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+}
+
+.approval-table-header {
+    padding: 26px;
+    border-bottom: 1px solid rgba(226, 232, 240, 0.6);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.approval-table-header h2 {
+    font-size: 18px;
+    font-weight: 700;
+    color: #2b3f50;
+    margin: 0;
+    font-family: 'Inter', sans-serif;
+    letter-spacing: -0.3px;
+}
+
+.approval-table-actions {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.filter-select {
+    padding: 10px 16px;
+    border: 1px solid rgba(200, 210, 220, 0.5);
+    border-radius: 12px;
+    font-size: 14px;
+    font-family: 'Inter', sans-serif;
+    color: #2b3f50;
+    background: rgba(255, 255, 255, 0.8);
+    cursor: pointer;
+    outline: none;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    min-width: 160px;
+}
+
+.filter-select:hover,
+.filter-select:focus {
+    border-color: #7eb9d9;
+    background: white;
+}
+
+/* Table */
+.approval-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.approval-table thead {
+    background: rgba(248, 250, 252, 0.8);
+}
+
+.approval-table th {
+    padding: 16px 24px;
+    text-align: left;
+    font-size: 13px;
+    font-weight: 600;
+    color: #8b95a1;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid rgba(226, 232, 240, 0.6);
+    font-family: 'Inter', sans-serif;
+}
+
+.approval-table td {
+    padding: 18px 24px;
+    border-bottom: 1px solid rgba(226, 232, 240, 0.4);
+    color: #2b3f50;
+    font-size: 14px;
+    font-family: 'Inter', sans-serif;
+}
+
+.approval-table tbody tr {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.approval-table tbody tr:hover {
+    background: rgba(248, 250, 252, 0.5);
+}
+
+/* Status Badge */
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 600;
+    font-family: 'Inter', sans-serif;
+    letter-spacing: 0.2px;
+}
+
+.status-badge.status-pending {
+    background: #fff9e1;
+    color: #b8860b;
+}
+
+.status-badge.status-approved {
+    background: #d4edda;
+    color: #155724;
+}
+
+.status-badge.status-rejected {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+/* Action Buttons */
+.action-buttons {
+    display: flex;
+    gap: 8px;
+}
+
+.btn-approve,
+.btn-reject,
+.btn-detail {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    letter-spacing: 0.2px;
+}
+
+.btn-approve {
+    background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+    color: white;
+    box-shadow: 0 2px 8px rgba(46, 204, 113, 0.2);
+}
+
+.btn-approve:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(46, 204, 113, 0.3);
+}
+
+.btn-reject {
+    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+    color: white;
+    box-shadow: 0 2px 8px rgba(231, 76, 60, 0.2);
+}
+
+.btn-reject:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(231, 76, 60, 0.3);
+}
+
+.btn-detail {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: white;
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
+}
+
+.btn-detail:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(59, 130, 246, 0.3);
+}
+
+.btn-approve:disabled,
+.btn-reject:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Modal */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(15, 23, 42, 0.45);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 1rem;
+    animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.modal-content {
+    background: rgba(255, 255, 255, 0.98);
+    backdrop-filter: blur(12px);
+    border-radius: 24px;
+    padding: 32px;
+    max-width: 540px;
+    width: 100%;
+    max-height: 85vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    position: relative;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(40px) scale(0.96);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.modal-header {
+    margin-bottom: 24px;
+}
+
+.modal-header h3 {
+    font-size: 20px;
+    font-weight: 700;
+    color: #2b3f50;
+    margin-bottom: 6px;
+    font-family: 'Inter', sans-serif;
+    letter-spacing: -0.3px;
+}
+
+.modal-header p {
+    font-size: 14px;
+    color: #8b95a1;
+    font-family: 'Inter', sans-serif;
+}
+
+.modal-body {
+    margin-bottom: 24px;
+}
+
+.detail-row {
+    display: flex;
+    padding: 14px 0;
+    border-bottom: 1px solid rgba(226, 232, 240, 0.5);
+}
+
+.detail-row:last-child {
+    border-bottom: none;
+}
+
+.detail-label {
+    font-weight: 600;
+    color: #8b95a1;
+    min-width: 160px;
+    font-size: 14px;
+    font-family: 'Inter', sans-serif;
+    letter-spacing: 0.2px;
+}
+
+.detail-value {
+    color: #2b3f50;
+    font-size: 14px;
+    flex: 1;
+    font-family: 'Inter', sans-serif;
+}
+
+/* File Attachment Styles */
+.file-attachment {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+}
+
+.file-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: rgba(239, 68, 68, 0.05);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    border-radius: 6px;
+    color: #2b3f50;
+    font-weight: 500;
+}
+
+.file-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.btn-file-action {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-file-action.view {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: white;
+}
+
+.btn-file-action.view:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.btn-file-action.download {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+}
+
+.btn-file-action.download:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    color: #2b3f50;
+    margin-bottom: 10px;
+    font-family: 'Inter', sans-serif;
+    letter-spacing: 0.2px;
+}
+
+.form-group textarea {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid rgba(200, 210, 220, 0.5);
+    border-radius: 12px;
+    font-size: 14px;
+    font-family: 'Inter', sans-serif;
+    color: #2b3f50;
+    background: rgba(255, 255, 255, 0.8);
+    resize: vertical;
+    min-height: 120px;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.form-group textarea:focus {
+    outline: none;
+    border-color: #7eb9d9;
+    background: white;
+    box-shadow: 0 0 0 3px rgba(126, 185, 217, 0.1);
+}
+
+.modal-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+}
+
+.btn-cancel {
+    padding: 11px 24px;
+    border: 1px solid rgba(200, 210, 220, 0.5);
+    background: rgba(255, 255, 255, 0.8);
+    color: #64748b;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-cancel:hover,
+.btn-cancel:focus {
+    background: white;
+    border-color: #7eb9d9;
+    color: #2b3f50;
+}
+
+.btn-confirm {
+    padding: 11px 24px;
+    border: none;
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: white;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
+}
+
+.btn-confirm:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(59, 130, 246, 0.3);
+}
+
+.btn-confirm.danger {
+    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+    box-shadow: 0 2px 8px rgba(231, 76, 60, 0.2);
+}
+
+.btn-confirm.danger:hover {
+    box-shadow: 0 4px 16px rgba(231, 76, 60, 0.3);
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 80px 40px;
+    color: #8b95a1;
+}
+}
+
+.empty-state-icon {
+    margin: 0 auto 20px;
+    width: 64px;
+    height: 64px;
+    opacity: 0.4;
+    color: #cbd5e1;
+}
+
+.empty-state h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: #64748b;
+    margin-bottom: 8px;
+    font-family: 'Inter', sans-serif;
+}
+
+.empty-state p {
+    font-size: 14px;
+    color: #94a3b8;
+    font-family: 'Inter', sans-serif;
+}
+
+/* Pagination */
+.pagination {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 26px;
+    border-top: 1px solid rgba(226, 232, 240, 0.6);
+    background: rgba(248, 250, 252, 0.3);
+}
+
+.pagination-btn {
+    padding: 10px 20px;
+    border: 1px solid rgba(200, 210, 220, 0.5);
+    background: rgba(255, 255, 255, 0.8);
+    color: #475569;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.pagination-btn:hover:not(:disabled) {
+    background: white;
+    border-color: #7eb9d9;
+    color: #2b3f50;
+    transform: translateY(-1px);
+}
+
+.pagination-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.page-info {
+    font-size: 14px;
+    color: #64748b;
+    font-weight: 500;
+    font-family: 'Inter', sans-serif;
+    opacity: 0.5;
+}
+
+.empty-state h3 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #64748b;
+    margin-bottom: 0.5rem;
+}
+
+.empty-state p {
+    font-size: 0.875rem;
+}
+
+/* Pagination */
+.pagination {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.5rem;
+    border-top: 1px solid #e2e8f0;
+}
+
+.pagination-btn {
+    padding: 0.5rem 1rem;
+    border: 1px solid #e2e8f0;
+    background: white;
+    color: #475569;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.pagination-btn:hover:not(:disabled) {
+    background: #f8fafc;
+    border-color: #3b82f6;
+    color: #3b82f6;
+}
+
+.pagination-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.page-info {
+    font-size: 0.875rem;
+    color: #64748b;
+}
+
+/* Responsive */
+@media (max-width: 968px) {
+    .approval-surat-container {
+        padding: 1rem;
+    }
+
+    .approval-stats {
+        grid-template-columns: 1fr;
+    }
+
+    .approval-table-header {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: flex-start;
+    }
+
+    .approval-table {
+        font-size: 0.75rem;
+    }
+
+    .approval-table th,
+    .approval-table td {
+        padding: 0.75rem 1rem;
+    }
+
+    .action-buttons {
+        flex-direction: column;
+    }
+
+    .btn-approve,
+    .btn-reject,
+    .btn-detail {
+        width: 100%;
+        justify-content: center;
+    }
+}
