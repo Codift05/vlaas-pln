@@ -23,8 +23,13 @@ export const supabase = createClient(
   }
 );
 
+// Response Types
+export type SupabaseResponse<T = any> =
+  | { success: true; data: T; message: string }
+  | { success: false; error: string };
+
 // Helper function untuk error handling
-export const handleSupabaseError = (error: any) => {
+export const handleSupabaseError = (error: any): SupabaseResponse => {
   // Handle berbagai format error
   let errorMessage = 'Terjadi kesalahan pada server';
 
@@ -56,7 +61,7 @@ export const handleSupabaseError = (error: any) => {
 };
 
 // Helper function untuk success response
-export const handleSupabaseSuccess = (data: any, message?: string) => {
+export const handleSupabaseSuccess = (data: any, message?: string): SupabaseResponse => {
   return {
     success: true,
     data,

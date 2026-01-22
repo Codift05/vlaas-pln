@@ -745,9 +745,9 @@ const Header: FC<HeaderProps> = ({ onMenuClick, isExpanded = false }) => {
       const { data: { user } } = await supabase.auth.getUser()
       if (user) {
         const result = await getUserProfile(user.id)
-        if (result.success && result.data) {
-          setUserName(result.data.full_name || user.email?.split('@')[0] || 'Admin')
-          setUserRole(result.data.role || 'User')
+        if (result.success && (result as any).data) {
+          setUserName((result as any).data.full_name || user.email?.split('@')[0] || 'Admin')
+          setUserRole((result as any).data.role || 'User')
         }
       }
     } catch (error) {

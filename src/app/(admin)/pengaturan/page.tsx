@@ -81,14 +81,14 @@ function Pengaturan() {
             if (user) {
                 setCurrentUserId(user.id)
                 const result = await getUserProfile(user.id)
-                if (result.success && result.data) {
+                if (result.success && (result as any).data) {
                     setProfileData({
-                        namaLengkap: result.data.full_name || '',
+                        namaLengkap: (result as any).data.full_name || '',
                         email: user.email || '',
-                        telepon: result.data.phone || '',
-                        alamat: result.data.address || ''
+                        telepon: (result as any).data.phone || '',
+                        alamat: (result as any).data.address || ''
                     })
-                    setUserRole(result.data.role || 'Admin')
+                    setUserRole((result as any).data.role || 'Admin')
                 }
             }
         } catch (error) {
@@ -99,19 +99,19 @@ function Pengaturan() {
     const loadAdminUsers = async () => {
         const result = await getAllAdminUsers()
         if (result.success) {
-            setAdminUsers(result.data)
+            setAdminUsers((result as any).data)
         }
     }
 
     const loadSystemConfig = async () => {
         const result = await getSystemConfig()
-        if (result.success && result.data) {
+        if (result.success && (result as any).data) {
             setSystemConfig({
-                retentionEnabled: result.data.retention_enabled,
-                retentionMonths: result.data.retention_months,
-                emailNotifEnabled: result.data.email_notif_enabled,
-                approvedTemplate: result.data.approved_template,
-                rejectedTemplate: result.data.rejected_template
+                retentionEnabled: (result as any).data.retention_enabled,
+                retentionMonths: (result as any).data.retention_months,
+                emailNotifEnabled: (result as any).data.email_notif_enabled,
+                approvedTemplate: (result as any).data.approved_template,
+                rejectedTemplate: (result as any).data.rejected_template
             })
         }
     }
@@ -119,7 +119,7 @@ function Pengaturan() {
     const loadAuditLogs = async () => {
         const result = await getAuditLogs(auditFilters)
         if (result.success) {
-            setAuditLogs(result.data)
+            setAuditLogs((result as any).data)
         }
     }
 
@@ -155,12 +155,12 @@ function Pengaturan() {
                 if (user) {
                     // Refresh data agar sinkron
                     const updatedProfile = await getUserProfile(user.id)
-                    if (updatedProfile.success && updatedProfile.data) {
-                        setProfileData(prev => ({ ...prev, ...updatedProfile.data }))
+                    if (updatedProfile.success && (updatedProfile as any).data) {
+                        setProfileData(prev => ({ ...prev, ... (updatedProfile as any).data }))
                     }
                 }
 
-                alert(result.message)
+                alert((result as any).message)
 
                 // Dispatch event agar Header update otomatis
                 if (typeof window !== 'undefined') {
@@ -169,7 +169,7 @@ function Pengaturan() {
 
                 await createAuditLog('Memperbarui profil pengguna')
             } else {
-                alert('Gagal memperbarui profil: ' + result.error)
+                alert('Gagal memperbarui profil: ' + (result as any).error)
             }
         } catch (error) {
             alert('Terjadi kesalahan saat memperbarui profil')
@@ -192,11 +192,11 @@ function Pengaturan() {
         try {
             const result = await changePassword(passwordData.oldPassword, passwordData.newPassword)
             if (result.success) {
-                alert(result.message)
+                alert((result as any).message)
                 setPasswordData({ oldPassword: '', newPassword: '', confirmPassword: '' })
                 await createAuditLog('Mengubah password')
             } else {
-                alert('Gagal mengubah password: ' + result.error)
+                alert('Gagal mengubah password: ' + (result as any).error)
             }
         } catch (error) {
             alert('Terjadi kesalahan saat mengubah password')
@@ -214,9 +214,9 @@ function Pengaturan() {
         try {
             const result = await sendPasswordResetEmail(profileData.email)
             if (result.success) {
-                alert(result.message)
+                alert((result as any).message)
             } else {
-                alert('Gagal mengirim email reset: ' + result.error)
+                alert('Gagal mengirim email reset: ' + (result as any).error)
             }
         } catch (error) {
             alert('Terjadi kesalahan')
@@ -231,13 +231,13 @@ function Pengaturan() {
         try {
             const result = await createAdminUser(newUserData)
             if (result.success) {
-                alert(result.message)
+                alert((result as any).message)
                 setShowAddUserModal(false)
                 setNewUserData({ email: '', namaLengkap: '', role: 'Verifikator' })
                 await loadAdminUsers()
                 await createAuditLog(`Menambah user baru: ${newUserData.namaLengkap}`)
             } else {
-                alert('Gagal menambah user: ' + result.error)
+                alert('Gagal menambah user: ' + (result as any).error)
             }
         } catch (error) {
             alert('Terjadi kesalahan saat menambah user')
@@ -254,11 +254,11 @@ function Pengaturan() {
         try {
             const result = await deactivateUser(userId)
             if (result.success) {
-                alert(result.message)
+                alert((result as any).message)
                 await loadAdminUsers()
                 await createAuditLog(`Menonaktifkan user: ${userName}`)
             } else {
-                alert('Gagal menonaktifkan user: ' + result.error)
+                alert('Gagal menonaktifkan user: ' + (result as any).error)
             }
         } catch (error) {
             alert('Terjadi kesalahan')
@@ -272,11 +272,11 @@ function Pengaturan() {
         try {
             const result = await activateUser(userId)
             if (result.success) {
-                alert(result.message)
+                alert((result as any).message)
                 await loadAdminUsers()
                 await createAuditLog(`Mengaktifkan user: ${userName}`)
             } else {
-                alert('Gagal mengaktifkan user: ' + result.error)
+                alert('Gagal mengaktifkan user: ' + (result as any).error)
             }
         } catch (error) {
             alert('Terjadi kesalahan')
@@ -290,9 +290,9 @@ function Pengaturan() {
         try {
             const result = await saveSystemConfig(systemConfig)
             if (result.success) {
-                alert(result.message)
+                alert((result as any).message)
             } else {
-                alert('Gagal menyimpan konfigurasi: ' + result.error)
+                alert('Gagal menyimpan konfigurasi: ' + (result as any).error)
             }
         } catch (error) {
             alert('Terjadi kesalahan')
@@ -351,7 +351,24 @@ function Pengaturan() {
                 {activeTab === 'profil' && (
                     <div className="tab-panel">
                         <div className="settings-section">
-                            <h3 className="section-title">Edit Profil Pengguna</h3>
+                            <div className="section-header">
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                    <div style={{
+                                        padding: '8px',
+                                        borderRadius: '8px',
+                                        background: 'rgba(59, 130, 246, 0.1)',
+                                        color: '#3b82f6',
+                                        display: 'flex',
+                                        boxShadow: '0 2px 4px rgba(59, 130, 246, 0.1)'
+                                    }}>
+                                        <User size={20} strokeWidth={2.5} />
+                                    </div>
+                                    <div>
+                                        <h3 className="section-title" style={{ marginBottom: '4px' }}>Edit Profil Pengguna</h3>
+                                        <p className="section-description" style={{ marginBottom: 0 }}>Perbarui informasi pribadi anda</p>
+                                    </div>
+                                </div>
+                            </div>
                             <form onSubmit={handleProfileUpdate} className="settings-form">
                                 <div className="form-row">
                                     <div className="form-group-settings">
@@ -403,7 +420,24 @@ function Pengaturan() {
                 {activeTab === 'security' && (
                     <div className="tab-panel">
                         <div className="settings-section">
-                            <h3 className="section-title">Ubah Password</h3>
+                            <div className="section-header">
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                    <div style={{
+                                        padding: '8px',
+                                        borderRadius: '8px',
+                                        background: 'rgba(245, 158, 11, 0.1)',
+                                        color: '#f59e0b',
+                                        display: 'flex',
+                                        boxShadow: '0 2px 4px rgba(245, 158, 11, 0.1)'
+                                    }}>
+                                        <Lock size={20} strokeWidth={2.5} />
+                                    </div>
+                                    <div>
+                                        <h3 className="section-title" style={{ marginBottom: '4px' }}>Ubah Password</h3>
+                                        <p className="section-description" style={{ marginBottom: 0 }}>Amankan akun anda dengan password kuat</p>
+                                    </div>
+                                </div>
+                            </div>
                             <form onSubmit={handlePasswordChange} className="settings-form">
                                 <div className="form-group-settings">
                                     <label>Password Lama</label>
@@ -454,7 +488,19 @@ function Pengaturan() {
                     <div className="tab-panel">
                         <div className="settings-section">
                             <div className="section-header">
-                                <h3 className="section-title">Daftar Pengguna Admin</h3>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                    <div style={{
+                                        padding: '8px',
+                                        borderRadius: '8px',
+                                        background: 'rgba(16, 185, 129, 0.1)',
+                                        color: '#10b981',
+                                        display: 'flex',
+                                        boxShadow: '0 2px 4px rgba(16, 185, 129, 0.1)'
+                                    }}>
+                                        <Users size={20} strokeWidth={2.5} />
+                                    </div>
+                                    <h3 className="section-title" style={{ marginBottom: 0 }}>Daftar Pengguna Admin</h3>
+                                </div>
                                 <button className="btn-add-user" onClick={() => setShowAddUserModal(true)}>
                                     <UserPlus size={18} /> Tambah Admin Baru
                                 </button>
@@ -522,7 +568,21 @@ function Pengaturan() {
                 {activeTab === 'system' && userRole === 'Super Admin' && (
                     <div className="tab-panel">
                         <div className="settings-section">
-                            <h3 className="section-title">Kebijakan Retensi Data</h3>
+                            <div className="section-header" style={{ marginBottom: '16px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                    <div style={{
+                                        padding: '8px',
+                                        borderRadius: '8px',
+                                        background: 'rgba(124, 58, 237, 0.1)',
+                                        color: '#7c3aed',
+                                        display: 'flex',
+                                        boxShadow: '0 2px 4px rgba(124, 58, 237, 0.1)'
+                                    }}>
+                                        <Settings size={20} strokeWidth={2.5} />
+                                    </div>
+                                    <h3 className="section-title" style={{ marginBottom: 0 }}>Kebijakan Retensi Data</h3>
+                                </div>
+                            </div>
                             <div className="config-group">
                                 <div className="toggle-group">
                                     <label className="toggle-label">
@@ -552,7 +612,21 @@ function Pengaturan() {
                         </div>
 
                         <div className="settings-section">
-                            <h3 className="section-title">Pengaturan Notifikasi Email</h3>
+                            <div className="section-header" style={{ marginBottom: '16px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                    <div style={{
+                                        padding: '8px',
+                                        borderRadius: '8px',
+                                        background: 'rgba(236, 72, 153, 0.1)',
+                                        color: '#ec4899',
+                                        display: 'flex',
+                                        boxShadow: '0 2px 4px rgba(236, 72, 153, 0.1)'
+                                    }}>
+                                        <Mail size={20} strokeWidth={2.5} />
+                                    </div>
+                                    <h3 className="section-title" style={{ marginBottom: 0 }}>Pengaturan Notifikasi Email</h3>
+                                </div>
+                            </div>
                             <div className="config-group">
                                 <div className="toggle-group">
                                     <label className="toggle-label">
@@ -599,7 +673,21 @@ function Pengaturan() {
                 {activeTab === 'audit' && userRole === 'Super Admin' && (
                     <div className="tab-panel">
                         <div className="settings-section">
-                            <h3 className="section-title">Riwayat Aktivitas Sistem</h3>
+                            <div className="section-header">
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                    <div style={{
+                                        padding: '8px',
+                                        borderRadius: '8px',
+                                        background: 'rgba(100, 116, 139, 0.1)',
+                                        color: '#64748b',
+                                        display: 'flex',
+                                        boxShadow: '0 2px 4px rgba(100, 116, 139, 0.1)'
+                                    }}>
+                                        <FileText size={20} strokeWidth={2.5} />
+                                    </div>
+                                    <h3 className="section-title" style={{ marginBottom: 0 }}>Riwayat Aktivitas Sistem</h3>
+                                </div>
+                            </div>
                             <p className="section-description">
                                 Log aktivitas ini tidak dapat diubah atau dihapus untuk menjaga integritas audit trail
                             </p>

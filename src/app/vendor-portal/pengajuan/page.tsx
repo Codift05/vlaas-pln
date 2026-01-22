@@ -3,6 +3,7 @@ import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { FileText, Upload, X, CheckCircle, Calendar, AlertCircle } from 'lucide-react'
 import { uploadPDFToSupabase } from '@/services/fileUploadService'
+import { createSurat } from '@/services/suratService'
 import './VendorPengajuan.css'
 
 function VendorPengajuan() {
@@ -168,23 +169,22 @@ function VendorPengajuan() {
                 return
             }
 
-            // Prepare submission data
-            const newSubmission = {
+            // Save to Supabase
+            const submissionData = {
                 ...formData,
                 fileName: selectedFile.name,
-                fileUrl: uploadResult.fileUrl, // URL file di Supabase
-                status: 'PENDING',
-                tanggalPengajuan: new Date().toLocaleDateString('id-ID')
+                fileUrl: uploadResult.fileUrl
             }
 
-            // Save to localStorage for demo
-            const existingSubmissions = JSON.parse(localStorage.getItem('vendorSubmissions') || '[]')
-            existingSubmissions.push(newSubmission)
-            localStorage.setItem('vendorSubmissions', JSON.stringify(existingSubmissions))
+            const result = await createSurat(submissionData)
 
-            setIsSubmitting(false)
-            alert('Surat berhasil diajukan! File telah tersimpan di server.')
-            router.push('/vendor-portal')
+            if (result.success) {
+                setIsSubmitting(false)
+                alert('Surat berhasil diajukan! File telah tersimpan di server.')
+                router.push('/vendor-portal')
+            } else {
+                throw new Error((result as any).error || 'Gagal menyimpan data surat')
+            }
         } catch (error) {
             console.error('Submission error:', error)
             alert('Terjadi kesalahan saat mengirim pengajuan')
