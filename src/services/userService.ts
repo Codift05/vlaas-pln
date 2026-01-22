@@ -8,32 +8,42 @@ import { supabase, handleSupabaseError, handleSupabaseSuccess } from '../lib/sup
 // Update user profile
 export const updateProfile = async (userId: string, profileData: any) => {
     try {
-        // Update profile data in profiles table
-        const { data, error } = await supabase
-            .from('profiles')
-            .update({
-                full_name: profileData.namaLengkap,
-                phone: profileData.telepon,
-                address: profileData.alamat,
-                updated_at: new Date().toISOString()
-            })
-            .eq('id', userId)
-            .select()
-            .single();
-
-        if (error) return handleSupabaseError(error);
-
-        // Update email if changed (requires auth update)
+        // First, update email if changed (requires auth update)
         if (profileData.email) {
             const { error: emailError } = await supabase.auth.updateUser({
                 email: profileData.email
             });
 
-            if (emailError) return handleSupabaseError(emailError);
+            if (emailError) {
+                console.warn('Email update error:', emailError);
+                // Continue even if email update fails
+            }
+        }
+
+        // Update profile data in profiles table
+        // Use upsert to avoid RLS policy recursion issues
+        const { data, error } = await supabase
+            .from('profiles')
+            .upsert({
+                id: userId,
+                full_name: profileData.namaLengkap,
+                phone: profileData.telepon,
+                address: profileData.alamat,
+                updated_at: new Date().toISOString()
+            }, {
+                onConflict: 'id'
+            })
+            .select()
+            .single();
+
+        if (error) {
+            console.error('Profile update error:', error);
+            return handleSupabaseError(error);
         }
 
         return handleSupabaseSuccess(data, 'Profil berhasil diperbarui!');
     } catch (error) {
+        console.error('Update profile catch error:', error);
         return handleSupabaseError(error);
     }
 };

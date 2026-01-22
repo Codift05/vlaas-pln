@@ -258,31 +258,56 @@ function DataVendor() {
 
         try {
             setLoading(true)
-            
-            // 1. Cek apakah vendor sedang digunakan di kontrak
+
+            const vendorName = vendors.find(v => v.id === id)?.nama
+
+            // 1. Cek apakah vendor sedang digunakan di table assets
+            const { data: assets, error: assetsError } = await supabase
+                .from('assets')
+                .select('id, name')
+                .eq('vendor_id', id)
+                .limit(5)
+
+            if (assetsError) {
+                console.warn('Error checking assets:', assetsError)
+            }
+
+            // 2. Cek apakah vendor sedang digunakan di kontrak
             const { data: contracts, error: checkError } = await supabase
                 .from('contracts')
                 .select('id, name, vendor_name')
-                .or(`vendor_name.eq.${vendors.find(v => v.id === id)?.nama},pengirim.eq.${vendors.find(v => v.id === id)?.nama}`)
+                .or(`vendor_name.eq.${vendorName},pengirim.eq.${vendorName}`)
                 .limit(5)
 
             if (checkError) {
                 console.warn('Error checking contracts:', checkError)
             }
 
-            // 2. Jika vendor masih dipakai, tampilkan peringatan
-            if (contracts && contracts.length > 0) {
-                const contractNames = contracts.map(c => c.name || c.invoice_number).join(', ')
-                const message = contracts.length === 1
-                    ? `Vendor ini masih digunakan di kontrak: "${contractNames}". Hapus atau ubah kontrak tersebut terlebih dahulu.`
-                    : `Vendor ini masih digunakan di ${contracts.length} kontrak (${contractNames}${contracts.length > 5 ? ', ...' : ''}). Hapus atau ubah kontrak-kontrak tersebut terlebih dahulu.`
-                
+            // 3. Jika vendor masih dipakai, tampilkan peringatan
+            const usedInAssets = assets && assets.length > 0
+            const usedInContracts = contracts && contracts.length > 0
+
+            if (usedInAssets || usedInContracts) {
+                let message = `Vendor "${vendorName}" tidak dapat dihapus karena masih digunakan di:\n\n`
+
+                if (usedInAssets) {
+                    const assetNames = assets.map(a => a.name).join(', ')
+                    message += `📦 Assets (${assets.length}): ${assetNames}\n`
+                }
+
+                if (usedInContracts) {
+                    const contractNames = contracts.map(c => c.name).join(', ')
+                    message += `📄 Kontrak (${contracts.length}): ${contractNames}\n`
+                }
+
+                message += '\nHapus atau ubah data tersebut terlebih dahulu.'
+
                 alert(message)
                 setLoading(false)
                 return
             }
 
-            // 3. Jika tidak dipakai, lanjutkan delete
+            // 4. Jika tidak dipakai, lanjutkan delete
             const { error } = await supabase
                 .from('vendors')
                 .delete()
@@ -293,7 +318,7 @@ function DataVendor() {
                 throw new Error(error.message || error.hint || 'Gagal menghapus vendor dari database')
             }
 
-            alert('Vendor berhasil dihapus')
+            alert('✅ Vendor berhasil dihapus')
             fetchVendors()
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : 'Terjadi kesalahan tidak diketahui'
