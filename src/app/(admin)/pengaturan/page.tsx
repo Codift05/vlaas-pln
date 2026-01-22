@@ -125,11 +125,48 @@ function Pengaturan() {
 
     const handleProfileUpdate = async (e: any) => {
         e.preventDefault()
+
+        let userIdToUse = currentUserId;
+
+        // Fallback: Jika state currentUserId kosong, coba ambil dari session langsung
+        if (!userIdToUse) {
+            try {
+                const { data: { user } } = await supabase.auth.getUser();
+                if (user) {
+                    userIdToUse = user.id;
+                    setCurrentUserId(user.id); // Update state untuk next time
+                }
+            } catch (err) {
+                console.error("Failed to fetch user on demand", err);
+            }
+        }
+
+        if (!userIdToUse) {
+            alert('Sesi anda telah berakhir atau data tidak valid. Mohon login ulang.')
+            return
+        }
+
         setLoading(true)
         try {
-            const result = await updateProfile(currentUserId, profileData)
+            const result = await updateProfile(userIdToUse, profileData)
             if (result.success) {
+                // Update local state jika berhasil
+                const { data: { user } } = await supabase.auth.getUser()
+                if (user) {
+                    // Refresh data agar sinkron
+                    const updatedProfile = await getUserProfile(user.id)
+                    if (updatedProfile.success && updatedProfile.data) {
+                        setProfileData(prev => ({ ...prev, ...updatedProfile.data }))
+                    }
+                }
+
                 alert(result.message)
+
+                // Dispatch event agar Header update otomatis
+                if (typeof window !== 'undefined') {
+                    window.dispatchEvent(new CustomEvent('profile-updated'))
+                }
+
                 await createAuditLog('Memperbarui profil pengguna')
             } else {
                 alert('Gagal memperbarui profil: ' + result.error)
@@ -278,6 +315,12 @@ function Pengaturan() {
                 >
                     <User size={18} /> Profil & Akun
                 </button>
+                <button
+                    className={`tab-btn ${activeTab === 'security' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('security')}
+                >
+                    <Lock size={18} /> Keamanan
+                </button>
                 {userRole === 'Super Admin' && (
                     <>
                         <button
@@ -353,9 +396,14 @@ function Pengaturan() {
                                 <button type="submit" className="btn-save"><Save size={18} /> Simpan Perubahan</button>
                             </form>
                         </div>
+                    </div>
+                )}
 
+                {/* Keamanan Tab */}
+                {activeTab === 'security' && (
+                    <div className="tab-panel">
                         <div className="settings-section">
-                            <h3 className="section-title">Keamanan</h3>
+                            <h3 className="section-title">Ubah Password</h3>
                             <form onSubmit={handlePasswordChange} className="settings-form">
                                 <div className="form-group-settings">
                                     <label>Password Lama</label>
