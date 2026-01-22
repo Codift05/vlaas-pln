@@ -32,6 +32,11 @@ function VendorProfile() {
     })
 
     // Load data from Supabase based on logged-in vendor
+    // ========================================
+    // LOAD DATA DARI DATABASE (bukan localStorage!)
+    // Setiap kali halaman dibuka, data di-fetch dari Supabase
+    // Jadi kalau login dari device lain, data tetap sama
+    // ========================================
     useEffect(() => {
         const loadVendorProfile = async () => {
             // Check if running in browser
@@ -40,13 +45,21 @@ function VendorProfile() {
             const vendorEmail = localStorage.getItem('vendorEmail')
             const vendorUserId = localStorage.getItem('vendorUserId')
 
-            if (!vendorEmail || !vendorUserId) return
+            console.log('🔍 Loading vendor profile from DATABASE:', { vendorEmail, vendorUserId })
+
+            if (!vendorEmail || !vendorUserId) {
+                console.warn('No vendor credentials in localStorage')
+                return
+            }
 
             try {
-                // Fetch user data from vendor_users
+                // ========================================
+                // FETCH DATA DARI DATABASE SUPABASE
+                // Termasuk profile_image yang sudah diupload
+                // ========================================
                 const { data: userData, error: userError } = await supabase
                     .from('vendor_users')
-                    .select('id, email, profile_image')
+                    .select('*')
                     .eq('id', parseInt(vendorUserId))
                     .single()
 
@@ -55,53 +68,47 @@ function VendorProfile() {
                     return
                 }
 
-                // Fetch vendor profile data
-                const { data: vendorData, error: vendorError } = await supabase
-                    .from('vendors')
-                    .select('*')
-                    .eq('user_id', parseInt(vendorUserId))
-                    .single()
-
-                if (vendorError) {
-                    console.error('Error fetching vendor:', vendorError)
-                    return
-                }
-
-                if (userData && vendorData) {
-                    setVendorId(vendorData.id)
-                    setProfileImage(userData.profile_image || '')
-                    setProfileData({
-                        companyName: vendorData.nama || '',
-                        companyType: 'PT',
-                        address: vendorData.alamat || '',
-                        city: '',
-                        province: '',
-                        postalCode: '',
-                        phone: vendorData.telepon || '',
-                        fax: '',
-                        email: userData.email || '',
-                        picName: vendorData.kontak_person || '',
-                        picPosition: '',
-                        picPhone: vendorData.telepon || '',
-                        picEmail: userData.email || '',
-                        npwp: '',
-                        siup: '',
-                        tdp: '',
-                        established: ''
+                if (userData) {
+                    console.log('✅ Data loaded from DATABASE:', {
+                        id: userData.id,
+                        email: userData.email,
+                        company: userData.company_name,
+                        profileImage: userData.profile_image ? 'YES (from Supabase)' : 'NO'
                     })
 
-                    // Update localStorage for header
+                    setVendorId(userData.id)
+                    setProfileImage(userData.profile_image || '') // Foto dari database
+                    setProfileData({
+                        companyName: userData.company_name || '',
+                        companyType: userData.company_type || 'PT',
+                        address: userData.address || '',
+                        city: userData.city || '',
+                        province: userData.province || '',
+                        postalCode: userData.postal_code || '',
+                        phone: userData.phone || '',
+                        fax: userData.fax || '',
+                        email: userData.email || '',
+                        picName: userData.pic_name || '',
+                        picPosition: userData.pic_position || '',
+                        picPhone: userData.pic_phone || '',
+                        picEmail: userData.pic_email || '',
+                        npwp: userData.npwp || '',
+                        siup: userData.siup || '',
+                        tdp: userData.tdp || '',
+                        established: userData.established ? String(userData.established) : ''
+                    })
+
+                    // Update localStorage (hanya untuk cache header, bukan primary storage)
                     localStorage.setItem('vendorProfile', JSON.stringify({
                         userId: userData.id,
-                        vendorId: vendorData.id,
-                        companyName: vendorData.nama,
-                        picName: vendorData.kontak_person,
+                        companyName: userData.company_name,
+                        picName: userData.pic_name,
                         profileImage: userData.profile_image || ''
                     }))
                     window.dispatchEvent(new Event('profileUpdated'))
 
                     // Show incomplete modal if profile is not complete
-                    if (!vendorData.nama || !vendorData.alamat || !vendorData.telepon || !vendorData.kontak_person) {
+                    if (!userData.company_name || !userData.address || !userData.phone || !userData.pic_name) {
                         setShowIncompleteModal(true)
                     }
                 }
@@ -140,19 +147,37 @@ function VendorProfile() {
         setUploadingImage(true)
 
         try {
-            const vendorUserId = localStorage.getItem('vendorUserId')
-            if (!vendorUserId) {
-                throw new Error('Session expired. Silakan login ulang.')
+            // Get vendor user ID from state or localStorage
+            let userId = vendorId
+            if (!userId) {
+                const vendorUserId = localStorage.getItem('vendorUserId')
+                const vendorProfile = localStorage.getItem('vendorProfile')
+
+                if (vendorUserId) {
+                    userId = parseInt(vendorUserId)
+                } else if (vendorProfile) {
+                    const profile = JSON.parse(vendorProfile)
+                    userId = profile.userId
+                }
+            }
+
+            if (!userId) {
+                alert('Sesi login tidak ditemukan. Silakan refresh halaman atau login ulang.')
+                setUploadingImage(false)
+                return
             }
 
             // Create unique filename
             const fileExt = file.name.split('.').pop()
-            const fileName = `${vendorUserId}-${Date.now()}.${fileExt}`
+            const fileName = `${userId}-${Date.now()}.${fileExt}`
             const filePath = `${fileName}`  // Simplified path
 
-            console.log('Uploading file:', filePath)
+            console.log('Uploading file:', filePath, 'for user:', userId)
 
-            // Upload to Supabase Storage
+            // ========================================
+            // STEP 1: Upload file to Supabase Storage
+            // File disimpan PERMANEN di cloud storage
+            // ========================================
             const { data: uploadData, error: uploadError } = await supabase.storage
                 .from('vendor-profiles')
                 .upload(filePath, file, {
@@ -168,36 +193,50 @@ function VendorProfile() {
                 throw uploadError
             }
 
-            console.log('Upload success:', uploadData)
+            console.log('Upload success to Supabase Storage:', uploadData)
 
-            // Get public URL
+            // ========================================
+            // STEP 2: Get public URL dari Supabase
+            // URL ini bisa diakses dari device manapun
+            // ========================================
             const { data: { publicUrl } } = supabase.storage
                 .from('vendor-profiles')
                 .getPublicUrl(filePath)
 
-            console.log('Public URL:', publicUrl)
+            console.log('Public URL from Supabase:', publicUrl)
 
-            // Update vendor_users table (not vendors table)
+            // ========================================
+            // STEP 3: Save URL ke DATABASE (vendor_users table)
+            // Ini yang penting! Data tersimpan di database
+            // Saat login dari device lain, foto akan load dari sini
+            // ========================================
             const { error: updateError } = await supabase
                 .from('vendor_users')
                 .update({ profile_image: publicUrl })
-                .eq('id', parseInt(vendorUserId))
+                .eq('id', userId)
 
             if (updateError) {
                 console.error('Database update error:', updateError)
                 throw updateError
             }
 
-            // Update state and localStorage
+            console.log('✅ Photo URL saved to database!')
+
+            // ========================================
+            // STEP 4: Update localStorage (HANYA untuk cache)
+            // Ini BUKAN storage utama, hanya untuk performa
+            // Saat login ulang, data akan di-load dari database (step di useEffect)
+            // ========================================
             setProfileImage(publicUrl)
             const currentProfile = JSON.parse(localStorage.getItem('vendorProfile') || '{}')
             localStorage.setItem('vendorProfile', JSON.stringify({
                 ...currentProfile,
+                userId: userId,
                 profileImage: publicUrl
             }))
             window.dispatchEvent(new Event('profileUpdated'))
 
-            alert('Foto profil berhasil diupload!')
+            alert('✅ Foto profil berhasil diupload ke Supabase!')
         } catch (err) {
             console.error('Error uploading image:', err)
             const errorMessage = err instanceof Error ? err.message : 'Gagal upload foto profil. Silakan coba lagi.'
@@ -212,23 +251,39 @@ function VendorProfile() {
         setLoading(true)
 
         try {
-            // Update vendor data in Supabase
+            const vendorUserId = localStorage.getItem('vendorUserId')
+
+            // Update all data in vendor_users table
             const { error } = await supabase
-                .from('vendors')
+                .from('vendor_users')
                 .update({
-                    nama: profileData.companyName,
-                    alamat: profileData.address,
-                    telepon: profileData.phone,
-                    kontak_person: profileData.picName
+                    company_name: profileData.companyName,
+                    company_type: profileData.companyType,
+                    address: profileData.address,
+                    city: profileData.city,
+                    province: profileData.province,
+                    postal_code: profileData.postalCode,
+                    phone: profileData.phone,
+                    fax: profileData.fax,
+                    pic_name: profileData.picName,
+                    pic_position: profileData.picPosition,
+                    pic_phone: profileData.picPhone,
+                    pic_email: profileData.picEmail,
+                    npwp: profileData.npwp,
+                    siup: profileData.siup,
+                    tdp: profileData.tdp,
+                    established: profileData.established ? parseInt(profileData.established) : null
                 })
-                .eq('id', vendorId)
+                .eq('id', parseInt(vendorUserId))
 
             if (error) throw error
 
             // Update localStorage for header
             localStorage.setItem('vendorProfile', JSON.stringify({
+                userId: parseInt(vendorUserId),
                 companyName: profileData.companyName,
-                picName: profileData.picName
+                picName: profileData.picName,
+                profileImage: profileImage
             }))
 
             // Trigger custom event to update header

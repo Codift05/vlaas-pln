@@ -713,6 +713,14 @@ const Login: FC = () => {
         if (isVendorLogin) {
           localStorage.setItem('vendorLoggedIn', 'true')
           localStorage.setItem('vendorEmail', email || 'vendor@demo.com')
+          localStorage.setItem('vendorUserId', '2') // Demo vendor user ID
+          localStorage.setItem('vendorProfile', JSON.stringify({
+            userId: 2,
+            email: 'Vendor@gmail.com',
+            companyName: 'PT Demo Vendor',
+            picName: 'Demo User',
+            profileImage: ''
+          }))
           router.push('/vendor-portal')
         } else {
           localStorage.setItem('adminLoggedIn', 'true')
@@ -733,26 +741,13 @@ const Login: FC = () => {
         // Authenticate vendor from vendor_users table
         const { data: user, error: authError } = await supabase
           .from('vendor_users')
-          .select('id, email, profile_image')
+          .select('*')
           .eq('email', email)
           .eq('password', password)
           .single()
 
         if (authError || !user) {
           setError('Email atau password salah')
-          setLoading(false)
-          return
-        }
-
-        // Get vendor profile data
-        const { data: vendorProfile, error: profileError } = await supabase
-          .from('vendors')
-          .select('*')
-          .eq('user_id', user.id)
-          .single()
-
-        if (profileError || !vendorProfile) {
-          setError('Profil vendor tidak ditemukan')
           setLoading(false)
           return
         }
@@ -765,21 +760,17 @@ const Login: FC = () => {
         // Store complete profile data
         localStorage.setItem('vendorProfile', JSON.stringify({
           userId: user.id,
-          vendorId: vendorProfile.id,
           email: user.email,
-          profileImage: user.profile_image || '',
-          companyName: vendorProfile.nama,
-          picName: vendorProfile.kontak_person,
-          nama: vendorProfile.nama,
-          alamat: vendorProfile.alamat,
-          telepon: vendorProfile.telepon,
-          kontak_person: vendorProfile.kontak_person
+          companyName: user.company_name || '',
+          picName: user.pic_name || '',
+          profileImage: user.profile_image || ''
         }))
 
         if (rememberMe) {
           localStorage.setItem('rememberMe', 'true')
         }
 
+        console.log('Vendor logged in:', user.id, user.email)
         router.push('/vendor-portal')
       } else {
         const result = await loginService(email, password)
