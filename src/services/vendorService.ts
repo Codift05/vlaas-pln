@@ -172,7 +172,7 @@ export const autoSyncVendor = async (vendorName) => {
       .limit(1);
 
     if (searchError) {
-      console.error('Error checking vendor:', searchError);
+      console.warn('Error checking vendor - table may not exist');
       return handleSupabaseError(searchError);
     }
 
@@ -204,7 +204,7 @@ export const autoSyncVendor = async (vendorName) => {
       .single();
 
     if (createError) {
-      console.error('Error creating vendor:', createError);
+      console.warn('Error creating vendor - table may not exist or duplicate key');
       return handleSupabaseError(createError);
     }
 
@@ -215,7 +215,7 @@ export const autoSyncVendor = async (vendorName) => {
     });
 
   } catch (error) {
-    console.error('Error in autoSyncVendor:', error);
-    return handleSupabaseError(error);
+    console.warn('Error in autoSyncVendor - continuing without vendor sync');
+    return { success: false, message: 'Vendor sync failed, but continuing' };
   }
 };

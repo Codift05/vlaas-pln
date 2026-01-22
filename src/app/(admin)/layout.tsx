@@ -1,9 +1,20 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import styled from 'styled-components'
-import Sidebar from '../../components/Sidebar'
-import Header from '../../components/Header'
+import dynamic from 'next/dynamic'
+import LoadingSpinner from '../../components/LoadingSpinner'
 import ProtectedRoute from '../../components/ProtectedRoute'
+
+// Dynamic imports untuk code splitting
+const Sidebar = dynamic(() => import('../../components/Sidebar'), {
+  loading: () => <div style={{ width: '80px' }} />,
+  ssr: true
+})
+
+const Header = dynamic(() => import('../../components/Header'), {
+  loading: () => <div style={{ height: '80px' }} />,
+  ssr: true
+})
 
 const LayoutContainer = styled.div`
   display: flex;

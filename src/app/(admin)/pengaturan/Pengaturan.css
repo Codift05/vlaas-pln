@@ -365,6 +365,40 @@
   box-shadow: 0 4px 16px rgba(231, 76, 60, 0.4);
 }
 
+.btn-deactivate:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-activate {
+  padding: 8px 16px;
+  background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  font-family: 'Inter', sans-serif;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 2px 8px rgba(39, 174, 96, 0.3);
+}
+
+.btn-activate:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(39, 174, 96, 0.4);
+}
+
+.btn-activate:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
 /* System Configuration */
 .config-group {
   display: flex;

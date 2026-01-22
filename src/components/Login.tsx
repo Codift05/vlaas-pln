@@ -5,9 +5,9 @@ import { login as loginService } from '../services/authService'
 import styled from 'styled-components'
 
 interface Platform {
-    logo: string
-    name: string
-    description: string
+  logo: string
+  name: string
+  description: string
 }
 
 const LoginContainer = styled.div`
@@ -446,255 +446,255 @@ const LoginContainer = styled.div`
 `;
 
 const Login: FC = () => {
-    const router = useRouter()
-    const pathname = usePathname()
-    const [showPassword, setShowPassword] = useState<boolean>(false)
-    const [email, setEmail] = useState<string>('')
-    const [password, setPassword] = useState<string>('')
-    const [rememberMe, setRememberMe] = useState<boolean>(false)
-    const [devMode, setDevMode] = useState<boolean>(false)
-    const [loading, setLoading] = useState<boolean>(false)
-    const [error, setError] = useState<string>('')
+  const router = useRouter()
+  const pathname = usePathname()
+  const [showPassword, setShowPassword] = useState<boolean>(false)
+  const [email, setEmail] = useState<string>('')
+  const [password, setPassword] = useState<string>('')
+  const [rememberMe, setRememberMe] = useState<boolean>(false)
+  const [devMode, setDevMode] = useState<boolean>(false)
+  const [loading, setLoading] = useState<boolean>(false)
+  const [error, setError] = useState<string>('')
 
-    useEffect(() => {
-        if (typeof window !== 'undefined') {
-            setDevMode(localStorage.getItem('devMode') === 'true')
-        }
-    }, [])
-
-    const isVendorLogin = pathname === '/vendor-login'
-
-    const handleLogin = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
-        e.preventDefault()
-        setError('')
-        setLoading(true)
-
-        try {
-            if (devMode) {
-                if (isVendorLogin) {
-                    localStorage.setItem('vendorLoggedIn', 'true')
-                    localStorage.setItem('vendorEmail', email || 'vendor@demo.com')
-                    router.push('/vendor-portal')
-                } else {
-                    localStorage.setItem('adminLoggedIn', 'true')
-                    localStorage.setItem('adminEmail', email || 'admin@demo.com')
-                    router.push('/dashboard')
-                }
-                setLoading(false)
-                return
-            }
-
-            if (!email || !password) {
-                setError('Email dan password harus diisi')
-                setLoading(false)
-                return
-            }
-
-            if (isVendorLogin) {
-                localStorage.setItem('vendorLoggedIn', 'true')
-                localStorage.setItem('vendorEmail', email)
-
-                if (rememberMe) {
-                    localStorage.setItem('rememberMe', 'true')
-                }
-
-                router.push('/vendor-portal')
-            } else {
-                const result = await loginService(email, password)
-
-                if (result.success) {
-                    console.log('Login berhasil:', 'data' in result ? result.data : null)
-
-                    if (rememberMe) {
-                        localStorage.setItem('rememberMe', 'true')
-                    }
-
-                    router.push('/dashboard')
-                } else {
-                    setError(('error' in result ? result.error : null) || 'Email atau password salah')
-                }
-            }
-        } catch (err) {
-            console.error('Login error:', err)
-            setError('Terjadi kesalahan. Silakan coba lagi.')
-        } finally {
-            setLoading(false)
-        }
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setDevMode(localStorage.getItem('devMode') === 'true')
     }
+  }, [])
 
-    const toggleDevMode = (): void => {
-        const newDevMode = !devMode
-        setDevMode(newDevMode)
-        localStorage.setItem('devMode', newDevMode.toString())
+  const isVendorLogin = pathname === '/vendor-login'
 
-        if (newDevMode) {
-            if (isVendorLogin) {
-                localStorage.setItem('vendorLoggedIn', 'true')
-                localStorage.setItem('vendorEmail', 'vendor@demo.com')
-                router.push('/vendor-portal')
-            } else {
-                localStorage.setItem('adminLoggedIn', 'true')
-                localStorage.setItem('adminEmail', 'admin@demo.com')
-                router.push('/dashboard')
-            }
+  const handleLogin = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
+    e.preventDefault()
+    setError('')
+    setLoading(true)
+
+    try {
+      if (devMode) {
+        if (isVendorLogin) {
+          localStorage.setItem('vendorLoggedIn', 'true')
+          localStorage.setItem('vendorEmail', email || 'vendor@demo.com')
+          router.push('/vendor-portal')
+        } else {
+          localStorage.setItem('adminLoggedIn', 'true')
+          localStorage.setItem('adminEmail', email || 'admin@demo.com')
+          router.push('/dashboard')
         }
+        setLoading(false)
+        return
+      }
+
+      if (!email || !password) {
+        setError('Email dan password harus diisi')
+        setLoading(false)
+        return
+      }
+
+      if (isVendorLogin) {
+        localStorage.setItem('vendorLoggedIn', 'true')
+        localStorage.setItem('vendorEmail', email)
+
+        if (rememberMe) {
+          localStorage.setItem('rememberMe', 'true')
+        }
+
+        router.push('/vendor-portal')
+      } else {
+        const result = await loginService(email, password)
+
+        if (result.success) {
+          console.log('Login berhasil:', 'data' in result ? result.data : null)
+
+          if (rememberMe) {
+            localStorage.setItem('rememberMe', 'true')
+          }
+
+          router.push('/dashboard')
+        } else {
+          setError(('error' in result ? result.error : null) || 'Email atau password salah')
+        }
+      }
+    } catch (err) {
+      console.error('Login error:', err)
+      setError('Terjadi kesalahan. Silakan coba lagi.')
+    } finally {
+      setLoading(false)
     }
+  }
 
-    const platforms: Platform[] = [
-        {
-            logo: '/images/Logo_vlaas.png',
-            name: 'VLAAS',
-            description: 'Vendor Letter Archive & Approval System - Platform Digital Terpadu untuk Manajemen Surat Vendor PLN'
-        },
-        {
-            logo: '/images/Logo_PLN.png',
-            name: 'PT PLN (Persero)',
-            description: 'Perusahaan Listrik Negara - Menerangi Indonesia dengan energi yang andal dan berkelanjutan'
-        },
-        {
-            logo: '/images/Logo_BUMN.png',
-            name: 'Badan Usaha Milik Negara',
-            description: 'BUMN Untuk Indonesia - Berkarya untuk negeri, melayani dengan hati'
-        },
-        {
-            logo: '/images/Logo_UNSRAT.png',
-            name: 'Universitas Sam Ratulangi',
-            description: 'Program Magang - Kemitraan pendidikan untuk mengembangkan talenta digital Indonesia'
-        }
-    ]
+  const toggleDevMode = (): void => {
+    const newDevMode = !devMode
+    setDevMode(newDevMode)
+    localStorage.setItem('devMode', newDevMode.toString())
 
-    return (
-        <LoginContainer>
-            <div className="left-section">
-                <div className="sso-header">
-                    <h1 className="sso-title">Sistem Manajemen Vendor</h1>
-                    <p className="sso-subtitle">
-                        Selamat datang di VLAAS - Platform Digital Terpadu untuk Manajemen Surat dan Aset Vendor PT PLN (Persero).<br />
-                        Kelola dokumen vendor, aset, dan laporan dengan sistem yang aman, efisien, dan terintegrasi.
-                    </p>
-                </div>
+    if (newDevMode) {
+      if (isVendorLogin) {
+        localStorage.setItem('vendorLoggedIn', 'true')
+        localStorage.setItem('vendorEmail', 'vendor@demo.com')
+        router.push('/vendor-portal')
+      } else {
+        localStorage.setItem('adminLoggedIn', 'true')
+        localStorage.setItem('adminEmail', 'admin@demo.com')
+        router.push('/dashboard')
+      }
+    }
+  }
 
-                <div className="platforms-list">
-                    {platforms.map((platform, index) => (
-                        <div key={index} className="platform-item">
-                            <div className="platform-icon">
-                                <img src={platform.logo} alt={platform.name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-                            </div>
-                            <div className="platform-info">
-                                <h3 className="platform-name">{platform.name}</h3>
-                                <p className="platform-desc">{platform.description}</p>
-                            </div>
-                        </div>
-                    ))}
-                </div>
+  const platforms: Platform[] = [
+    {
+      logo: '/images/Logo SAKTI 3.png',
+      name: 'SAKTI',
+      description: 'Sistem Arsip & Kontrak Terintegrasi - Platform Digital Terpadu untuk Manajemen Surat Vendor PLN'
+    },
+    {
+      logo: '/images/Logo_PLN.png',
+      name: 'PT PLN (Persero)',
+      description: 'Perusahaan Listrik Negara - Menerangi Indonesia dengan energi yang andal dan berkelanjutan'
+    },
+    {
+      logo: '/images/Danantara.jpg',
+      name: 'Danantara Indonesia',
+      description: 'Holding BUMN Indonesia - Mengakselerasi transformasi ekonomi nasional melalui sinergi perusahaan strategis'
+    },
+    {
+      logo: '/images/Logo_UNSRAT.png',
+      name: 'Universitas Sam Ratulangi',
+      description: 'Program Magang - Kemitraan pendidikan untuk mengembangkan talenta digital Indonesia'
+    }
+  ]
+
+  return (
+    <LoginContainer>
+      <div className="left-section">
+        <div className="sso-header">
+          <h1 className="sso-title">Sistem Manajemen Vendor</h1>
+          <p className="sso-subtitle">
+            Selamat datang di SAKTI - Platform Digital Terpadu untuk Manajemen Surat dan Aset Vendor PT PLN (Persero).<br />
+            Kelola dokumen vendor, aset, dan laporan dengan sistem yang aman, efisien, dan terintegrasi.
+          </p>
+        </div>
+
+        <div className="platforms-list">
+          {platforms.map((platform, index) => (
+            <div key={index} className="platform-item">
+              <div className="platform-icon">
+                <img src={platform.logo} alt={platform.name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+              </div>
+              <div className="platform-info">
+                <h3 className="platform-name">{platform.name}</h3>
+                <p className="platform-desc">{platform.description}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="right-section">
+        <div className="back-button"></div>
+
+        <div className="login-form-wrapper">
+          <div className="login-logo">
+            <img src="/images/Logo SAKTI 2.png" alt="SAKTI Logo" className="vlaas-logo" />
+          </div>
+
+          <form className="login-form" onSubmit={handleLogin}>
+            <h1 className="form-title">{isVendorLogin ? 'Login Sebagai Vendor' : 'Log In Akun'}</h1>
+            <p className="form-greeting">
+              Selamat Datang di <span className="highlight">VLAAS</span>
+            </p>
+
+            {error && (
+              <div className="error-message">
+                <span className="error-icon">⚠️</span>
+                <span>{error}</span>
+              </div>
+            )}
+
+            <div className="input-group">
+              <label className="input-label">
+                Email atau No. Handphone <span className="required">*</span>
+              </label>
+              <input
+                type="text"
+                placeholder="example@pln.co.id"
+                value={email}
+                onChange={(e: ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
+                className="input-field"
+                required
+                disabled={loading}
+              />
             </div>
 
-            <div className="right-section">
-                <div className="back-button"></div>
-
-                <div className="login-form-wrapper">
-                    <div className="login-logo">
-                        <img src="/images/Logo_vlaas.png" alt="VLAAS Logo" className="vlaas-logo" />
-                    </div>
-
-                    <form className="login-form" onSubmit={handleLogin}>
-                        <h1 className="form-title">{isVendorLogin ? 'Login Sebagai Vendor' : 'Log In Akun'}</h1>
-                        <p className="form-greeting">
-                            Selamat Datang di <span className="highlight">VLAAS</span>
-                        </p>
-
-                        {error && (
-                            <div className="error-message">
-                                <span className="error-icon">⚠️</span>
-                                <span>{error}</span>
-                            </div>
-                        )}
-
-                        <div className="input-group">
-                            <label className="input-label">
-                                Email atau No. Handphone <span className="required">*</span>
-                            </label>
-                            <input
-                                type="text"
-                                placeholder="example@pln.co.id"
-                                value={email}
-                                onChange={(e: ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
-                                className="input-field"
-                                required
-                                disabled={loading}
-                            />
-                        </div>
-
-                        <div className="input-group">
-                            <label className="input-label">
-                                Password <span className="required">*</span>
-                            </label>
-                            <div className="password-wrapper">
-                                <input
-                                    type={showPassword ? 'text' : 'password'}
-                                    placeholder="••••••••••"
-                                    value={password}
-                                    onChange={(e: ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
-                                    className="input-field"
-                                    required
-                                    disabled={loading}
-                                />
-                                <button
-                                    type="button"
-                                    className="toggle-password"
-                                    onClick={() => setShowPassword(!showPassword)}
-                                    disabled={loading}
-                                >
-                                </button>
-                            </div>
-                        </div>
-
-                        <div className="form-options">
-                            <label className="remember-me">
-                                <input
-                                    type="checkbox"
-                                    checked={rememberMe}
-                                    onChange={(e: ChangeEvent<HTMLInputElement>) => setRememberMe(e.target.checked)}
-                                    disabled={loading}
-                                />
-                                <span>Ingat Saya</span>
-                            </label>
-                            <a href="#" className="forgot-password">Lupa Password</a>
-                        </div>
-
-                        <button type="submit" className="login-button" disabled={loading}>
-                            {loading ? 'Memproses...' : 'LOGIN'}
-                        </button>
-
-                        {isVendorLogin ? (
-                            <p className="register-text">
-                                Belum punya akun vendor? <a href="#" className="register-link">Daftar Sekarang</a>
-                            </p>
-                        ) : (
-                            <p className="register-text">
-                                Login sebagai vendor? <a href="/vendor-login" className="register-link">Klik di sini</a>
-                            </p>
-                        )}
-                    </form>
-
-                    <div className="footer">
-                        <p className="footer-text">Powered by UPT PLN Manado</p>
-                    </div>
-                </div>
-
-                <div className="dev-mode-container">
-                    <label className="dev-mode-toggle">
-                        <input
-                            type="checkbox"
-                            checked={devMode}
-                            onChange={toggleDevMode}
-                        />
-                        <span className="toggle-slider"></span>
-                    </label>
-                </div>
+            <div className="input-group">
+              <label className="input-label">
+                Password <span className="required">*</span>
+              </label>
+              <div className="password-wrapper">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="••••••••••"
+                  value={password}
+                  onChange={(e: ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
+                  className="input-field"
+                  required
+                  disabled={loading}
+                />
+                <button
+                  type="button"
+                  className="toggle-password"
+                  onClick={() => setShowPassword(!showPassword)}
+                  disabled={loading}
+                >
+                </button>
+              </div>
             </div>
-        </LoginContainer>
-    )
+
+            <div className="form-options">
+              <label className="remember-me">
+                <input
+                  type="checkbox"
+                  checked={rememberMe}
+                  onChange={(e: ChangeEvent<HTMLInputElement>) => setRememberMe(e.target.checked)}
+                  disabled={loading}
+                />
+                <span>Ingat Saya</span>
+              </label>
+              <a href="#" className="forgot-password">Lupa Password</a>
+            </div>
+
+            <button type="submit" className="login-button" disabled={loading}>
+              {loading ? 'Memproses...' : 'LOGIN'}
+            </button>
+
+            {isVendorLogin ? (
+              <p className="register-text">
+                Belum punya akun vendor? <a href="#" className="register-link">Daftar Sekarang</a>
+              </p>
+            ) : (
+              <p className="register-text">
+                Login sebagai vendor? <a href="/vendor-login" className="register-link">Klik di sini</a>
+              </p>
+            )}
+          </form>
+
+          <div className="footer">
+            <p className="footer-text">Powered by UPT PLN Manado</p>
+          </div>
+        </div>
+
+        <div className="dev-mode-container">
+          <label className="dev-mode-toggle">
+            <input
+              type="checkbox"
+              checked={devMode}
+              onChange={toggleDevMode}
+            />
+            <span className="toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+    </LoginContainer>
+  )
 }
 
 export default Login
