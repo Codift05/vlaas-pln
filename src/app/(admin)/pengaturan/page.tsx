@@ -476,19 +476,8 @@ function Pengaturan() {
                                                 <img src={previewImage} alt="Profile" className="profile-img" />
                                             ) : (
                                                 <div className="profile-placeholder">
-                                                    <User size={48} strokeWidth={1.5} />
+                                                    <User size={48} strokeWidth={1.5} color="#94a3b8" />
                                                 </div>
-                                            )}
-                                            {previewImage && (
-                                                <button
-                                                    type="button"
-                                                    className="btn-remove-image"
-                                                    onClick={handleRemoveImage}
-                                                    disabled={uploadingImage}
-                                                    title="Hapus foto"
-                                                >
-                                                    <X size={16} />
-                                                </button>
                                             )}
                                         </div>
                                         <div className="profile-image-actions">
@@ -499,24 +488,37 @@ function Pengaturan() {
                                                 onChange={handleImageUpload}
                                                 style={{ display: 'none' }}
                                             />
-                                            <button
-                                                type="button"
-                                                className="btn-upload-image"
-                                                onClick={() => fileInputRef.current?.click()}
-                                                disabled={uploadingImage}
-                                            >
-                                                {uploadingImage ? (
-                                                    <>
-                                                        <Upload size={18} className="uploading" />
-                                                        Uploading...
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <Camera size={18} />
-                                                        {previewImage ? 'Ganti Foto' : 'Upload Foto'}
-                                                    </>
+                                            <div className="profile-image-buttons">
+                                                <button
+                                                    type="button"
+                                                    className="btn-upload-image"
+                                                    onClick={() => fileInputRef.current?.click()}
+                                                    disabled={uploadingImage}
+                                                >
+                                                    {uploadingImage ? (
+                                                        <>
+                                                            <Upload size={18} className="uploading" />
+                                                            Uploading...
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <Camera size={18} />
+                                                            {previewImage ? 'Ganti Foto' : 'Upload Foto'}
+                                                        </>
+                                                    )}
+                                                </button>
+                                                {previewImage && (
+                                                    <button
+                                                        type="button"
+                                                        className="btn-remove-image"
+                                                        onClick={handleRemoveImage}
+                                                        disabled={uploadingImage}
+                                                    >
+                                                        <X size={18} />
+                                                        Hapus Foto
+                                                    </button>
                                                 )}
-                                            </button>
+                                            </div>
                                             <p className="upload-hint">JPG, PNG, GIF atau WebP. Maks 2MB</p>
                                         </div>
                                     </div>

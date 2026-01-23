@@ -699,6 +699,7 @@ const Header: FC<HeaderProps> = ({ onMenuClick, isExpanded = false }) => {
   const [notificationCount, setNotificationCount] = useState<number>(0)
   const [userName, setUserName] = useState<string>('Admin')
   const [userRole, setUserRole] = useState<string>('Administrator')
+  const [profileImageUrl, setProfileImageUrl] = useState<string>('')
 
   const router = useRouter()
   const pathname = usePathname()
@@ -748,6 +749,7 @@ const Header: FC<HeaderProps> = ({ onMenuClick, isExpanded = false }) => {
         if (result.success && (result as any).data) {
           setUserName((result as any).data.full_name || user.email?.split('@')[0] || 'Admin')
           setUserRole((result as any).data.role || 'User')
+          setProfileImageUrl((result as any).data.profile_image || '')
         }
       }
     } catch (error) {
@@ -932,7 +934,11 @@ const Header: FC<HeaderProps> = ({ onMenuClick, isExpanded = false }) => {
           )}
         </div>
         <div className="user-profile" onClick={toggleProfileMenu}>
-          <img src="/images/profil default instagram.jpg" alt="Admin" className="user-avatar" />
+          <img
+            src={profileImageUrl || "/images/profil default instagram.jpg"}
+            alt="Admin"
+            className="user-avatar"
+          />
           <div className="user-info">
             <span className="user-name">{userName}</span>
             <span className="user-role">{userRole}</span>
