@@ -5,6 +5,93 @@ import { supabase, handleSupabaseError, handleSupabaseSuccess } from '../lib/sup
  * Handles user profile, password, and admin operations
  */
 
+// Upload profile image to Supabase Storage
+export const uploadProfileImage = async (userId: string, file: File) => {
+    try {
+        // Validasi ukuran file (max 2MB)
+        const maxSize = 2 * 1024 * 1024; // 2MB
+        if (file.size > maxSize) {
+            return handleSupabaseError({ message: 'Ukuran file terlalu besar. Maksimal 2MB' });
+        }
+
+        // Validasi tipe file
+        const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+        if (!allowedTypes.includes(file.type)) {
+            return handleSupabaseError({ message: 'Tipe file tidak didukung. Gunakan JPG, PNG, GIF, atau WebP' });
+        }
+
+        // Generate unique filename
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${userId}-${Date.now()}.${fileExt}`;
+        const filePath = `profile-images/${fileName}`;
+
+        // Upload file ke Supabase Storage bucket 'avatars'
+        const { data: uploadData, error: uploadError } = await supabase.storage
+            .from('avatars')
+            .upload(filePath, file, {
+                cacheControl: '3600',
+                upsert: false
+            });
+
+        if (uploadError) {
+            console.error('Upload error:', uploadError);
+            return handleSupabaseError(uploadError);
+        }
+
+        // Get public URL
+        const { data: { publicUrl } } = supabase.storage
+            .from('avatars')
+            .getPublicUrl(filePath);
+
+        // Update profile dengan URL gambar
+        const { data, error } = await supabase
+            .from('profiles')
+            .update({
+                profile_image: publicUrl,
+                updated_at: new Date().toISOString()
+            })
+            .eq('id', userId)
+            .select();
+
+        if (error) {
+            console.error('Database update error:', error);
+            return handleSupabaseError(error);
+        }
+
+        return handleSupabaseSuccess({ url: publicUrl }, 'Foto profil berhasil diupload!');
+    } catch (error) {
+        console.error('Upload profile image error:', error);
+        return handleSupabaseError(error);
+    }
+};
+
+// Delete old profile image from storage
+export const deleteProfileImage = async (imageUrl: string) => {
+    try {
+        if (!imageUrl) return { success: true };
+
+        // Extract file path from URL
+        const urlParts = imageUrl.split('/avatars/');
+        if (urlParts.length < 2) return { success: true };
+
+        const filePath = urlParts[1];
+
+        const { error } = await supabase.storage
+            .from('avatars')
+            .remove([filePath]);
+
+        if (error) {
+            console.warn('Failed to delete old image:', error);
+            // Don't fail the whole operation if delete fails
+        }
+
+        return { success: true };
+    } catch (error) {
+        console.warn('Delete image error:', error);
+        return { success: true };
+    }
+};
+
 // Update user profile
 export const updateProfile = async (userId: string, profileData: any) => {
     try {
@@ -26,14 +113,21 @@ export const updateProfile = async (userId: string, profileData: any) => {
 
         // Update profile data in profiles table
         // Use upsert to avoid RLS policy recursion issues
+        const updateData: any = {
+            full_name: profileData.namaLengkap,
+            phone: profileData.telepon,
+            address: profileData.alamat,
+            updated_at: new Date().toISOString()
+        };
+
+        // Include profile_image if provided
+        if (profileData.profile_image !== undefined) {
+            updateData.profile_image = profileData.profile_image;
+        }
+
         const { data, error } = await supabase
             .from('profiles')
-            .update({
-                full_name: profileData.namaLengkap,
-                phone: profileData.telepon,
-                address: profileData.alamat,
-                updated_at: new Date().toISOString()
-            })
+            .update(updateData)
             .eq('id', userId)
             .select();
 

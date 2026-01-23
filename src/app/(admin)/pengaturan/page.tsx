@@ -1,6 +1,6 @@
 'use client'
-import { useState, useEffect } from 'react'
-import { User, Users, Settings, Mail, Search, Lock, FileText, Save, UserPlus, Ban, CheckCircle, XCircle } from 'lucide-react'
+import { useState, useEffect, useRef } from 'react'
+import { User, Users, Settings, Mail, Search, Lock, FileText, Save, UserPlus, Ban, CheckCircle, XCircle, Camera, Upload, X } from 'lucide-react'
 import './Pengaturan.css'
 import {
     updateProfile,
@@ -14,7 +14,9 @@ import {
     getAuditLogs,
     saveSystemConfig,
     getSystemConfig,
-    createAuditLog
+    createAuditLog,
+    uploadProfileImage,
+    deleteProfileImage
 } from '../../../services/userService'
 import { supabase } from '../../../lib/supabaseClient'
 
@@ -23,14 +25,18 @@ function Pengaturan() {
     const [userRole, setUserRole] = useState('Super Admin')
     const [currentUserId, setCurrentUserId] = useState('')
     const [loading, setLoading] = useState(false)
+    const fileInputRef = useRef<HTMLInputElement>(null)
 
     // State untuk Profil
     const [profileData, setProfileData] = useState({
         namaLengkap: '',
         email: '',
         telepon: '',
-        alamat: ''
+        alamat: '',
+        profileImage: ''
     })
+    const [previewImage, setPreviewImage] = useState<string>('')
+    const [uploadingImage, setUploadingImage] = useState(false)
 
     // State untuk Password
     const [passwordData, setPasswordData] = useState({
@@ -82,12 +88,15 @@ function Pengaturan() {
                 setCurrentUserId(user.id)
                 const result = await getUserProfile(user.id)
                 if (result.success && (result as any).data) {
+                    const profileImageUrl = (result as any).data.profile_image || ''
                     setProfileData({
                         namaLengkap: (result as any).data.full_name || '',
                         email: user.email || '',
                         telepon: (result as any).data.phone || '',
-                        alamat: (result as any).data.address || ''
+                        alamat: (result as any).data.address || '',
+                        profileImage: profileImageUrl
                     })
+                    setPreviewImage(profileImageUrl)
                     setUserRole((result as any).data.role || 'Admin')
                 }
             }
@@ -120,6 +129,94 @@ function Pengaturan() {
         const result = await getAuditLogs(auditFilters)
         if (result.success) {
             setAuditLogs((result as any).data)
+        }
+    }
+
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0]
+        if (!file) return
+
+        // Validasi ukuran file
+        const maxSize = 2 * 1024 * 1024 // 2MB
+        if (file.size > maxSize) {
+            alert('Ukuran file terlalu besar. Maksimal 2MB')
+            return
+        }
+
+        // Validasi tipe file
+        const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp']
+        if (!allowedTypes.includes(file.type)) {
+            alert('Tipe file tidak didukung. Gunakan JPG, PNG, GIF, atau WebP')
+            return
+        }
+
+        setUploadingImage(true)
+        try {
+            // Upload image
+            const result = await uploadProfileImage(currentUserId, file)
+
+            if (result.success) {
+                const imageUrl = (result as any).data.url
+                setProfileData(prev => ({ ...prev, profileImage: imageUrl }))
+                setPreviewImage(imageUrl)
+                alert((result as any).message)
+
+                // Dispatch event agar Header update otomatis
+                if (typeof window !== 'undefined') {
+                    window.dispatchEvent(new CustomEvent('profile-updated'))
+                }
+
+                await createAuditLog('Mengubah foto profil')
+            } else {
+                alert('Gagal upload foto: ' + (result as any).error)
+            }
+        } catch (error) {
+            console.error('Upload error:', error)
+            alert('Terjadi kesalahan saat upload foto')
+        } finally {
+            setUploadingImage(false)
+            // Reset file input
+            if (fileInputRef.current) {
+                fileInputRef.current.value = ''
+            }
+        }
+    }
+
+    const handleRemoveImage = async () => {
+        if (!profileData.profileImage) return
+
+        if (!confirm('Apakah Anda yakin ingin menghapus foto profil?')) return
+
+        setUploadingImage(true)
+        try {
+            // Delete from storage
+            await deleteProfileImage(profileData.profileImage)
+
+            // Update database
+            const result = await updateProfile(currentUserId, {
+                ...profileData,
+                profile_image: null
+            })
+
+            if (result.success) {
+                setProfileData(prev => ({ ...prev, profileImage: '' }))
+                setPreviewImage('')
+                alert('Foto profil berhasil dihapus')
+
+                // Dispatch event
+                if (typeof window !== 'undefined') {
+                    window.dispatchEvent(new CustomEvent('profile-updated'))
+                }
+
+                await createAuditLog('Menghapus foto profil')
+            } else {
+                alert('Gagal menghapus foto: ' + (result as any).error)
+            }
+        } catch (error) {
+            console.error('Remove image error:', error)
+            alert('Terjadi kesalahan saat menghapus foto')
+        } finally {
+            setUploadingImage(false)
         }
     }
 
@@ -370,6 +467,61 @@ function Pengaturan() {
                                 </div>
                             </div>
                             <form onSubmit={handleProfileUpdate} className="settings-form">
+                                {/* Profile Image Upload Section */}
+                                <div className="profile-image-section">
+                                    <label>Foto Profil</label>
+                                    <div className="profile-image-container">
+                                        <div className="profile-image-preview">
+                                            {previewImage ? (
+                                                <img src={previewImage} alt="Profile" className="profile-img" />
+                                            ) : (
+                                                <div className="profile-placeholder">
+                                                    <User size={48} strokeWidth={1.5} />
+                                                </div>
+                                            )}
+                                            {previewImage && (
+                                                <button
+                                                    type="button"
+                                                    className="btn-remove-image"
+                                                    onClick={handleRemoveImage}
+                                                    disabled={uploadingImage}
+                                                    title="Hapus foto"
+                                                >
+                                                    <X size={16} />
+                                                </button>
+                                            )}
+                                        </div>
+                                        <div className="profile-image-actions">
+                                            <input
+                                                type="file"
+                                                ref={fileInputRef}
+                                                accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+                                                onChange={handleImageUpload}
+                                                style={{ display: 'none' }}
+                                            />
+                                            <button
+                                                type="button"
+                                                className="btn-upload-image"
+                                                onClick={() => fileInputRef.current?.click()}
+                                                disabled={uploadingImage}
+                                            >
+                                                {uploadingImage ? (
+                                                    <>
+                                                        <Upload size={18} className="uploading" />
+                                                        Uploading...
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <Camera size={18} />
+                                                        {previewImage ? 'Ganti Foto' : 'Upload Foto'}
+                                                    </>
+                                                )}
+                                            </button>
+                                            <p className="upload-hint">JPG, PNG, GIF atau WebP. Maks 2MB</p>
+                                        </div>
+                                    </div>
+                                </div>
+
                                 <div className="form-row">
                                     <div className="form-group-settings">
                                         <label>Nama Lengkap</label>
