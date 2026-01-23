@@ -6,7 +6,7 @@
 
 :root {
   /* Light Mode (Default) */
-  --bg-body: linear-gradient(135deg, #b5dced 0%, #d4e7f5 50%, #e8e3f5 100%);
+  --bg-body: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
   --bg-card: #ffffff;
   --bg-input: #f8fafc;
   --bg-header: rgba(255, 255, 255, 0.85);

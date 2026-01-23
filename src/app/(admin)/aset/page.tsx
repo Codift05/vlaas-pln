@@ -1004,8 +1004,8 @@ function ManajemenAset() {
                 {/* Deadline Alert Cards */}
                 <div className="deadline-stats-container">
                     <div className="deadline-stat-card">
-                        <div className="deadline-stat-icon" style={{ background: '#fee2e2' }}>
-                            <AlertOctagon size={28} style={{ color: '#dc2626' }} />
+                        <div className="deadline-stat-icon" style={{ background: '#ffebee' }}>
+                            <AlertOctagon size={28} style={{ color: '#e74c3c' }} />
                         </div>
                         <div className="deadline-stat-content">
                             <div className="deadline-stat-number">
@@ -1017,8 +1017,8 @@ function ManajemenAset() {
                         </div>
                     </div>
                     <div className="deadline-stat-card">
-                        <div className="deadline-stat-icon" style={{ background: '#fef3c7' }}>
-                            <Clock size={28} style={{ color: '#d97706' }} />
+                        <div className="deadline-stat-icon" style={{ background: '#fff8e1' }}>
+                            <Clock size={28} style={{ color: '#f39c12' }} />
                         </div>
                         <div className="deadline-stat-content">
                             <div className="deadline-stat-number">

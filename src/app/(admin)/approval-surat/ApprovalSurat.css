@@ -52,24 +52,11 @@
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    color: white;
     transition: transform 0.25s;
 }
 
 .approval-stat-card:hover .approval-stat-icon {
     transform: scale(1.05);
-}
-
-.approval-stat-icon.pending {
-    background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
-}
-
-.approval-stat-icon.approved {
-    background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
-}
-
-.approval-stat-icon.rejected {
-    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
 }
 
 .approval-stat-info {

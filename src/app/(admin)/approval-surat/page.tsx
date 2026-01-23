@@ -121,34 +121,44 @@ export default function ApprovalSurat() {
     return (
         <div className="approval-surat-container">
             {/* Statistics */}
+            {/* Statistics */}
             <div className="approval-stats">
-                <div className="approval-stat-card">
-                    <div className="approval-stat-icon pending">
-                        <Clock size={24} />
-                    </div>
-                    <div className="approval-stat-info">
-                        <div className="stat-value">{stats.pending}</div>
-                        <div className="stat-label">Menunggu Approval</div>
-                    </div>
-                </div>
-                <div className="approval-stat-card">
-                    <div className="approval-stat-icon approved">
-                        <CheckCircle size={24} />
-                    </div>
-                    <div className="approval-stat-info">
-                        <div className="stat-value">{stats.approved}</div>
-                        <div className="stat-label">Disetujui</div>
-                    </div>
-                </div>
-                <div className="approval-stat-card">
-                    <div className="approval-stat-icon rejected">
-                        <XCircle size={24} />
-                    </div>
-                    <div className="approval-stat-info">
-                        <div className="stat-value">{stats.rejected}</div>
-                        <div className="stat-label">Ditolak</div>
-                    </div>
-                </div>
+                {[
+                    {
+                        title: 'Menunggu Approval',
+                        value: stats.pending,
+                        icon: Clock,
+                        color: '#f39c12',
+                        bgColor: '#fff8e1',
+                    },
+                    {
+                        title: 'Disetujui',
+                        value: stats.approved,
+                        icon: CheckCircle,
+                        color: '#2ecc71',
+                        bgColor: '#e8f5e9',
+                    },
+                    {
+                        title: 'Ditolak',
+                        value: stats.rejected,
+                        icon: XCircle,
+                        color: '#e74c3c',
+                        bgColor: '#ffebee',
+                    },
+                ].map((stat, index) => {
+                    const IconComponent = stat.icon;
+                    return (
+                        <div key={index} className="approval-stat-card">
+                            <div className="approval-stat-icon" style={{ background: stat.bgColor }}>
+                                <IconComponent size={28} style={{ color: stat.color }} strokeWidth={2.5} />
+                            </div>
+                            <div className="approval-stat-info">
+                                <div className="stat-value">{stat.value}</div>
+                                <div className="stat-label">{stat.title}</div>
+                            </div>
+                        </div>
+                    );
+                })}
             </div>
 
             {/* Table */}
