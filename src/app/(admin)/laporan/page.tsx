@@ -839,10 +839,12 @@ function Laporan() {
                         >
                             {/* Render grid, axes, and chart */}
                             {(() => {
-                                const maxVal = Math.max(
+                                const rawMaxVal = Math.max(
                                     ...(monthlyData as any[]).map(d => Math.max(d.total || 0, d.activeVendors || 0)),
                                     1
                                 );
+                                // Round maxVal to nearest multiple of 4 to ensure integer steps (4 intervals)
+                                const maxVal = Math.ceil(rawMaxVal / 4) * 4;
                                 const paddingLeft = 60;
                                 const paddingRight = 40;
                                 const paddingTop = 20;
