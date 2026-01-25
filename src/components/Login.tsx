@@ -618,8 +618,8 @@ const Login: FC = () => {
 
     try {
       // Validasi
-      if (!registerData.nama || !registerData.email || !registerData.password || !registerData.telepon) {
-        setError('Nama, email, password, dan telepon wajib diisi')
+      if (!registerData.companyName || !registerData.email || !registerData.password || !registerData.phone) {
+        setError('Nama perusahaan, email, password, dan telepon wajib diisi')
         setLoading(false)
         return
       }
@@ -642,6 +642,22 @@ const Login: FC = () => {
         .insert([{
           email: registerData.email,
           password: registerData.password, // In production, hash this!
+          company_name: registerData.companyName,
+          company_type: registerData.companyType,
+          address: registerData.address,
+          city: registerData.city,
+          province: registerData.province,
+          postal_code: registerData.postalCode,
+          phone: registerData.phone,
+          fax: registerData.fax,
+          pic_name: registerData.picName,
+          pic_position: registerData.picPosition,
+          pic_phone: registerData.picPhone,
+          pic_email: registerData.picEmail,
+          npwp: registerData.npwp,
+          siup: registerData.siup,
+          tdp: registerData.tdp,
+          established: registerData.established ? parseInt(registerData.established) : null,
           profile_image: null
         }])
         .select()
@@ -682,11 +698,11 @@ const Login: FC = () => {
         .insert([{
           id: newVendorId,
           user_id: newUser.id, // Link to vendor_users
-          nama: registerData.nama,
+          nama: registerData.companyName,
           email: registerData.email,
-          telepon: registerData.telepon,
-          alamat: registerData.alamat || '',
-          kontak_person: registerData.kontakPerson || '',
+          telepon: registerData.phone,
+          alamat: registerData.address || '',
+          kontak_person: registerData.picName || '',
           status: 'Aktif'
         }])
 
@@ -705,13 +721,25 @@ const Login: FC = () => {
 
       // Reset form dan kembali ke login
       setRegisterData({
-        nama: '',
+        companyName: '',
+        companyType: 'PT',
         email: '',
         password: '',
         confirmPassword: '',
-        telepon: '',
-        alamat: '',
-        kontakPerson: ''
+        phone: '',
+        address: '',
+        city: '',
+        province: '',
+        postalCode: '',
+        fax: '',
+        picName: '',
+        picPosition: '',
+        picPhone: '',
+        picEmail: '',
+        npwp: '',
+        siup: '',
+        tdp: '',
+        established: ''
       })
       setIsRegisterMode(false)
       setEmail(registerData.email)
@@ -795,15 +823,29 @@ const Login: FC = () => {
     try {
       if (devMode) {
         if (isVendorLogin) {
+          // In dev mode, still authenticate properly to get the real user ID
+          const { data: user, error: authError } = await supabase
+            .from('vendor_users')
+            .select('*')
+            .eq('email', email)
+            .eq('password', password)
+            .single()
+
+          if (authError || !user) {
+            setError('Email atau password salah')
+            setLoading(false)
+            return
+          }
+
           localStorage.setItem('vendorLoggedIn', 'true')
-          localStorage.setItem('vendorEmail', email || 'vendor@demo.com')
-          localStorage.setItem('vendorUserId', '2') // Demo vendor user ID
+          localStorage.setItem('vendorEmail', email)
+          localStorage.setItem('vendorUserId', user.id.toString()) // Use real user ID
           localStorage.setItem('vendorProfile', JSON.stringify({
-            userId: 2,
-            email: 'Vendor@gmail.com',
-            companyName: 'PT Demo Vendor',
-            picName: 'Demo User',
-            profileImage: ''
+            userId: user.id,
+            email: user.email,
+            companyName: user.company_name || '',
+            picName: user.pic_name || '',
+            profileImage: user.profile_image || ''
           }))
           router.push('/vendor-portal')
         } else {
