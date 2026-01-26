@@ -6,7 +6,7 @@
 .column-dropdown-vendor {
   background: #f8fafd;
   border-radius: 14px;
-  box-shadow: 0 2px 12px rgba(44, 62, 80, 0.10);
+  box-shadow: none;
   padding: 10px 16px 10px 16px;
   min-width: 210px;
   max-width: 260px;
@@ -398,7 +398,7 @@
   display: flex;
   align-items: center;
   gap: 20px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  box-shadow: none;
   border: 1px solid rgba(226, 232, 240, 0.6);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
@@ -409,7 +409,7 @@
 
 .stat-card-vendor:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+  box-shadow: none;
 }
 
 
@@ -484,13 +484,13 @@
   flex: 1 1 0%;
   min-width: 350px;
   max-width: 100%;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  box-shadow: none;
   transition: all 0.3s;
   border: 1px solid #e2e8f0;
 }
 
 .search-box-vendor:focus-within {
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+  box-shadow: none;
   border-color: #3b82f6;
   background: white;
 }
@@ -542,14 +542,14 @@
   font-weight: 600;
   cursor: pointer;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.3);
+  box-shadow: none;
   font-family: 'Inter', sans-serif;
 }
 
 .btn-primary-vendor:hover {
   background: #2563eb;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.35);
+  box-shadow: none;
 }
 
 .btn-primary-vendor svg {
@@ -561,7 +561,7 @@
   background: rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(10px);
   border-radius: 16px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+  box-shadow: none;
   border: 1px solid rgba(255, 255, 255, 0.6);
   overflow: hidden;
   margin-bottom: 20px;

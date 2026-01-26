@@ -101,7 +101,7 @@ textarea:focus {
   display: flex;
   align-items: center;
   gap: 20px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  box-shadow: none;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
@@ -112,7 +112,7 @@ textarea:focus {
 
 .deadline-stat-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08);
+  box-shadow: none;
   border-color: rgba(59, 130, 246, 0.2);
 }
 
@@ -214,19 +214,19 @@ textarea:focus {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  box-shadow: none;
 }
 
 .dropdown-button:hover {
   border-color: #cbd5e1;
   background: #f8fafc;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  box-shadow: none;
 }
 
 .dropdown-button:focus {
   border-color: #3b82f6;
   background: #ffffff;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+  box-shadow: none;
 }
 
 .dropdown-arrow {
@@ -324,12 +324,12 @@ textarea:focus {
   background: #ffffff !important;
   font-family: var(--font-inter);
   color: #1e293b;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  box-shadow: none;
 }
 
 .search-input-table:focus {
   border-color: #3b82f6 !important;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+  box-shadow: none;
 }
 
 .search-input-table::placeholder {
@@ -351,7 +351,7 @@ textarea:focus {
   font-weight: 600;
   cursor: pointer;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.3);
+  box-shadow: none;
   font-family: var(--font-inter);
   white-space: nowrap;
 }
@@ -359,7 +359,7 @@ textarea:focus {
 .btn-primary:hover {
   background: #2563eb;
   transform: translateY(-2px);
-  box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.4);
+  box-shadow: none;
 }
 
 .btn-primary:hover {
@@ -488,8 +488,8 @@ textarea:focus {
   background: var(--bg-header);
   backdrop-filter: blur(10px);
   border-radius: 16px;
-  box-shadow: var(--shadow-md);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: none;
+  border: 1px solid rgba(226, 232, 240, 0.6);
   overflow: hidden;
   margin-bottom: 20px;
 }
