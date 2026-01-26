@@ -807,16 +807,19 @@
   min-width: 38px;
 }
 
+
 .pagination-btn-vendor:hover:not(:disabled) {
-  border-color: #3a8fd9;
-  color: #3a8fd9;
-  background: #f8f9fa;
+  border-color: #3b82f6;
+  color: #3b82f6;
+  background: #eff6ff;
 }
 
 .pagination-btn-vendor.active {
-  background: linear-gradient(135deg, #1e5ba8 0%, #3a8fd9 100%);
+  background: #3b82f6;
   color: white;
-  border-color: transparent;
+  border-color: #3b82f6;
+  font-weight: 600;
+  box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.2);
 }
 
 .pagination-btn-vendor:disabled {
