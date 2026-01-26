@@ -137,7 +137,7 @@ const LoginContainer = styled.div`
     margin-bottom: 35px;
   }
 
-  .vlaas-logo {
+  .sakti-logo {
     height: 70px;
     width: auto;
     object-fit: contain;
@@ -765,7 +765,14 @@ const Login: FC = () => {
       const result = await requestPasswordReset(forgotPasswordData.email)
 
       if (result.success) {
-        alert(result.message + '\n\nKode reset: ' + result.data?.resetToken + '\n(Dalam produksi, kode ini akan dikirim via email)')
+        // Jika email berhasil dikirim, tidak tampilkan kode di alert
+        if (result.data?.resetToken) {
+          // Fallback: jika email gagal, kode ditampilkan
+          alert(result.message + '\n\nKode reset: ' + result.data.resetToken + '\n(Email gagal terkirim, gunakan kode ini)')
+        } else {
+          // Email berhasil dikirim
+          alert(result.message)
+        }
         setForgotPasswordStep(2)
       } else {
         setError(result.error || 'Terjadi kesalahan')
@@ -993,7 +1000,7 @@ const Login: FC = () => {
 
         <div className="login-form-wrapper">
           <div className="login-logo">
-            <img src="/images/Logo SAKTI 2.png" alt="SAKTI Logo" className="vlaas-logo" />
+            <img src="/images/Logo SAKTI 2.png" alt="SAKTI Logo" className="sakti-logo" />
           </div>
 
           <form className="login-form" onSubmit={handleLogin}>
@@ -1001,7 +1008,7 @@ const Login: FC = () => {
               {isVendorLogin ? 'Login Sebagai Vendor' : 'Login Sebagai Admin'}
             </h1>
             <p className="form-greeting">
-              Selamat Datang di <span className="highlight">VLAAS</span>
+              Selamat Datang di <span className="highlight">SAKTI</span>
             </p>
 
             {error && (
@@ -1119,7 +1126,7 @@ const Login: FC = () => {
 
             <div className="register-modal-body">
               <p className="register-modal-subtitle">
-                Selamat Datang di <span className="highlight">VLAAS</span>
+                Selamat Datang di <span className="highlight">SAKTI</span>
               </p>
 
               {error && (

@@ -18,7 +18,7 @@ Panduan untuk mengaktifkan fitur upload PDF ke Google Drive.
 1. Pergi ke "APIs & Services" > "Credentials"
 2. Klik "Create Credentials" > "OAuth client ID"
 3. Pilih application type: **Desktop app**
-4. Beri nama (contoh: "VLAAS Desktop Client")
+4. Beri nama (contoh: "SAKTI Desktop Client")
 5. Download credentials JSON
 6. Rename file menjadi `credentials.json`
 7. Pindahkan ke root folder project

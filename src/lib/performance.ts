@@ -1,5 +1,5 @@
 /**
- * Performance optimization utilities untuk VLAAS
+ * Performance optimization utilities untuk SAKTI
  */
 
 // Debounce function untuk mencegah excessive re-renders

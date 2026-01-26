@@ -75,7 +75,7 @@ async function testConnection() {
 
         const testFileMedia = {
             mimeType: 'text/plain',
-            body: 'This is a test file created by PLN VLAAS system.\nIf you see this, the connection works!\n' + new Date().toISOString(),
+            body: 'This is a test file created by PLN SAKTI system.\nIf you see this, the connection works!\n' + new Date().toISOString(),
         };
 
         const testFile = await drive.files.create({

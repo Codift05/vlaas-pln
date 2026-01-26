@@ -2,7 +2,7 @@
 
 # Script untuk setup Google Drive credentials dengan mudah
 
-echo "🚀 Setup Google Drive Upload - VLAAS"
+echo "🚀 Setup Google Drive Upload - SAKTI"
 echo "===================================="
 echo ""
 

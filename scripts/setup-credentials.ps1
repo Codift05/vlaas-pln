@@ -1,6 +1,6 @@
 # Script untuk setup Google Drive credentials dengan mudah (PowerShell)
 
-Write-Host "🚀 Setup Google Drive Upload - VLAAS" -ForegroundColor Cyan
+Write-Host "🚀 Setup Google Drive Upload - SAKTI" -ForegroundColor Cyan
 Write-Host "====================================" -ForegroundColor Cyan
 Write-Host ""
 

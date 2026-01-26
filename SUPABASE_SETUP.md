@@ -1,4 +1,4 @@
-# Supabase Setup Guide - PLN VLAAS
+# Supabase Setup Guide - PLN SAKTI
 
 ## 🚀 Langkah-langkah Setup
 

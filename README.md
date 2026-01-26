@@ -9,9 +9,9 @@
   <img src="./public/images/Logo_UNSRAT.png" alt="UNSRAT Logo" height="100"/>
 </p>
 
-# VLAAS
+# SAKTI
 
-**Vendor Letter Archive & Approval System**
+**Sistem Arsip & Kontrak Terintegrasi**
 
 [![React](https://img.shields.io/badge/React-19.2.0-61DAFB?style=for-the-badge&logo=react&logoColor=white)](https://react.dev/)
 [![Next.js](https://img.shields.io/badge/Next.js-16.1.1-000000?style=for-the-badge&logo=next.js&logoColor=white)](https://nextjs.org/)
@@ -28,7 +28,7 @@
 
 ## Deskripsi Sistem
 
-**VLAAS** adalah sistem informasi berbasis web yang dirancang khusus untuk PT. PLN Persero guna mengelola proses pengajuan, persetujuan, dan pengarsipan surat dari vendor secara digital, aman, dan terstruktur.
+**SAKTI (Sistem Arsip & Kontrak Terintegrasi)** adalah sistem informasi berbasis web yang dirancang khusus untuk PT. PLN Persero guna mengelola proses pengajuan, persetujuan, dan pengarsipan surat dari vendor secara digital, aman, dan terstruktur.
 
 ### Tujuan Sistem
 
@@ -40,7 +40,7 @@
 
 ### Masalah yang Diselesaikan
 
-| Masalah Lama | Solusi VLAAS |
+| Masalah Lama | Solusi SAKTI |
 |--------------|--------------|
 | Surat vendor tercecer (fisik/email) | Penyimpanan terpusat di cloud storage |
 | Tidak ada tracking status | Dashboard real-time dengan notifikasi |

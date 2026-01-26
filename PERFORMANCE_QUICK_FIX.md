@@ -1,4 +1,4 @@
-# 🚀 Quick Performance Fixes - VLAAS
+# 🚀 Quick Performance Fixes - SAKTI
 
 ## 🔥 MASALAH: Compile time tinggi (1000-1500ms)
 

@@ -48,18 +48,56 @@ export const requestPasswordReset = async (email: string): Promise<VendorAuthRes
             }
         }
 
-        // In production, send email here
-        // For now, we'll return the token in the response for testing
-        console.log('Reset token for', email, ':', resetToken)
+        // Kirim email dengan kode reset
+        try {
+            const emailResponse = await fetch('/api/send-reset-email', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    email: email,
+                    resetToken: resetToken,
+                    companyName: vendor.company_name
+                })
+            })
 
-        return {
-            success: true,
-            message: `Kode reset password telah dikirim ke email ${email}`,
-            data: {
-                // In production, don't send this. Email should contain the token.
-                // For testing purposes only:
-                resetToken: resetToken,
-                expiresAt: expiresAt
+            const emailResult = await emailResponse.json()
+
+            if (!emailResult.success) {
+                console.error('Failed to send email:', emailResult.error)
+                // Tetap lanjutkan meskipun email gagal dikirim
+                // Tapi beri tahu user
+                return {
+                    success: true,
+                    message: `Kode reset berhasil dibuat, tapi email gagal terkirim. Kode reset: ${resetToken}`,
+                    data: {
+                        resetToken: resetToken, // Sementara return token kalau email gagal
+                        expiresAt: expiresAt
+                    }
+                }
+            }
+
+            console.log('Reset email sent successfully to:', email)
+
+            return {
+                success: true,
+                message: `Kode reset password telah dikirim ke email ${email}. Silakan cek inbox atau folder spam Anda.`,
+                data: {
+                    expiresAt: expiresAt
+                    // TIDAK mengirim resetToken di response untuk keamanan
+                }
+            }
+        } catch (emailError) {
+            console.error('Error sending reset email:', emailError)
+            // Jika ada error saat kirim email, tetap berhasil tapi tampilkan kode
+            return {
+                success: true,
+                message: `Kode reset berhasil dibuat. Kode reset: ${resetToken} (Email gagal terkirim)`,
+                data: {
+                    resetToken: resetToken, // Fallback: tampilkan kode jika email gagal
+                    expiresAt: expiresAt
+                }
             }
         }
     } catch (error) {
