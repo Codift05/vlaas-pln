@@ -19,6 +19,16 @@ export interface SuratPengajuan {
 // Create new surat
 export const createSurat = async (data: any): Promise<SupabaseResponse> => {
     try {
+        // Get vendor info from localStorage
+        const vendorUserId = localStorage.getItem('vendorUserId')
+        const vendorEmail = localStorage.getItem('vendorEmail')
+
+        if (!vendorUserId || !vendorEmail) {
+            return handleSupabaseError({
+                message: 'Sesi login tidak ditemukan. Silakan login ulang.'
+            });
+        }
+
         const { data: result, error } = await supabase
             .from('surat_pengajuan')
             .insert([{
@@ -30,7 +40,9 @@ export const createSurat = async (data: any): Promise<SupabaseResponse> => {
                 keterangan: data.keterangan,
                 file_name: data.fileName,
                 file_url: data.fileUrl,
-                status: 'PENDING'
+                status: 'PENDING',
+                vendor_id: parseInt(vendorUserId),
+                vendor_email: vendorEmail
             }])
             .select()
             .single();
