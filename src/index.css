@@ -20,16 +20,16 @@
   --border-color: rgba(226, 232, 240, 0.6);
   --border-strong: #cbd5e1;
 
-  --primary-gradient: linear-gradient(135deg, #7eb9d9 0%, #5a9dc4 100%);
-  --sidebar-gradient: linear-gradient(180deg, #5a9dc4 0%, #7eb9d9 50%, #8ac4dd 100%);
+  --primary-gradient: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  --sidebar-gradient: linear-gradient(180deg, #2563eb 0%, #3b82f6 50%, #60a5fa 100%);
 
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
   --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
   --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.12);
 
   /* Font Families */
-  --font-inter: 'Inter', system-ui, -apple-system, sans-serif;
-  --font-outfit: 'Outfit', sans-serif;
+  --font-inter: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --font-outfit: 'Plus Jakarta Sans', sans-serif; /* Override Outfit to use Plus Jakarta */
 }
 
 /* Dark Mode Removed */
@@ -62,9 +62,21 @@ html {
   min-height: 100vh;
 }
 
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-inter);
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.025em; /* Tighter spacing for modern look */
+  margin-bottom: 0.5em;
+}
+
 h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
+  font-size: 2.5em;
+  line-height: 1.2;
+}
+
+input, button, select, textarea {
+  font-family: var(--font-inter);
 }
 
 button {

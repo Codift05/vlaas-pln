@@ -253,14 +253,15 @@
 }
 
 .btn-detail {
-    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    background: #3b82f6;
     color: white;
-    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
+    box-shadow: 0 2px 6px rgba(59, 130, 246, 0.25);
 }
 
 .btn-detail:hover {
+    background: #2563eb;
     transform: translateY(-2px);
-    box-shadow: 0 4px 16px rgba(59, 130, 246, 0.3);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.35);
 }
 
 .btn-approve:disabled,
@@ -411,11 +412,12 @@
 }
 
 .btn-file-action.view {
-    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    background: #3b82f6;
     color: white;
 }
 
 .btn-file-action.view:hover {
+    background: #2563eb;
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }

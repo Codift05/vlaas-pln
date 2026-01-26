@@ -518,7 +518,7 @@ const HeaderContainer = styled.header`
   .user-avatar {
     width: 42px;
     height: 42px;
-    background: linear-gradient(135deg, #7eb9d9 0%, #5a9dc4 100%);
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
     color: white;
     border-radius: 50%;
     display: flex;

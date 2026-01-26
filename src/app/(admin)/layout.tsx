@@ -19,7 +19,7 @@ const Header = dynamic(() => import('../../components/Header'), {
 const LayoutContainer = styled.div`
   display: flex;
   min-height: 100vh;
-  background: linear-gradient(135deg, #b5dced 0%, #d4e7f5 50%, #e8e3f5 100%);
+  background: linear-gradient(135deg, #f8faff 0%, #f2f6fa 50%, #eef2f6 100%);
   background-attachment: fixed;
   position: relative;
 
@@ -31,8 +31,8 @@ const LayoutContainer = styled.div`
     right: 0;
     bottom: 0;
     background: 
-      radial-gradient(circle at 15% 20%, rgba(181, 220, 237, 0.3), transparent 35%),
-      radial-gradient(circle at 85% 75%, rgba(232, 227, 245, 0.25), transparent 35%);
+      radial-gradient(circle at 15% 20%, rgba(181, 220, 237, 0.08), transparent 35%),
+      radial-gradient(circle at 85% 75%, rgba(232, 227, 245, 0.08), transparent 35%);
     pointer-events: none;
     z-index: 0;
   }

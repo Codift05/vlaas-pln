@@ -1,10 +1,10 @@
-import { Inter, Outfit } from 'next/font/google'
+import { Plus_Jakarta_Sans, Outfit } from 'next/font/google'
 import '../index.css'
 import StyledComponentsRegistry from '../lib/registry'
 
-const inter = Inter({
+const plusJakarta = Plus_Jakarta_Sans({
     subsets: ['latin'],
-    variable: '--font-inter',
+    variable: '--font-plus-jakarta',
     display: 'swap',
 })
 
@@ -25,7 +25,7 @@ export const metadata = {
 export default function RootLayout({ children }) {
     return (
         <html lang="id">
-            <body className={`${inter.variable} ${outfit.variable}`} suppressHydrationWarning={true}>
+            <body className={`${plusJakarta.variable} ${outfit.variable}`} suppressHydrationWarning={true}>
                 <StyledComponentsRegistry>{children}</StyledComponentsRegistry>
             </body>
         </html>
