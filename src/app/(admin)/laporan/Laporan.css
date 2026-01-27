@@ -6,7 +6,7 @@
   border-radius: 10px;
   font-size: 13px;
   font-weight: 500;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-inter);
   letter-spacing: 0.1px;
   background: #f4f6fa;
   color: #6b7685;
@@ -64,7 +64,7 @@
   font-weight: 600;
   color: #8b95a1;
   white-space: nowrap;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-inter);
   letter-spacing: 0.2px;
 }
 
@@ -73,7 +73,7 @@
   border: 1px solid rgba(200, 210, 220, 0.5);
   border-radius: 12px;
   font-size: 14px;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-inter);
   color: #2b3f50;
   cursor: pointer;
   outline: none;
@@ -99,7 +99,7 @@
   border: 1px solid rgba(200, 210, 220, 0.5);
   border-radius: 12px;
   font-size: 14px;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-inter);
   color: #2b3f50;
   background: rgba(255, 255, 255, 0.8);
   outline: none;
@@ -122,7 +122,7 @@
   border-radius: 12px;
   font-size: 14px;
   font-weight: 600;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-inter);
   cursor: pointer;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
@@ -230,7 +230,7 @@
   margin: 0 0 4px 0;
   line-height: 1;
   letter-spacing: -0.5px;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-inter);
 }
 
 .kpi-label {
@@ -239,13 +239,13 @@
   margin: 0 0 8px 0;
   font-weight: 500;
   letter-spacing: 0.2px;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-inter);
 }
 
 .kpi-trend {
   font-size: 12px;
   font-weight: 600;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-inter);
   padding: 5px 10px;
   border-radius: 8px;
   display: inline-block;
@@ -305,14 +305,14 @@
   font-weight: 700;
   color: #2b3f50;
   margin: 0 0 5px 0;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-inter);
   letter-spacing: -0.3px;
 }
 
 .chart-subtitle {
   font-size: 13px;
   color: #8b95a1;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-inter);
   font-weight: 500;
 }
 
@@ -488,7 +488,7 @@
   color: #8b95a1;
   text-align: center;
   white-space: nowrap;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-inter);
 }
 
 /* Pie Chart */
@@ -527,7 +527,7 @@
   align-items: center;
   gap: 10px;
   font-size: 14px;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-inter);
 }
 
 .legend-color {
@@ -557,7 +557,7 @@
 .legend-count {
   font-weight: 700;
   color: #2b3f50;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-inter);
 }
 
 /* Vendor Insights */
@@ -587,14 +587,14 @@
   font-weight: 700;
   color: #2b3f50;
   margin: 0 0 5px 0;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-inter);
   letter-spacing: -0.3px;
 }
 
 .insights-subtitle {
   font-size: 13px;
   color: #8b95a1;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-inter);
   font-weight: 500;
 }
 
@@ -648,7 +648,7 @@
   border-radius: 12px;
   font-weight: 700;
   font-size: 14px;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-inter);
 }
 
 .rank-badge.rank-1 {
@@ -675,7 +675,7 @@
 .vendor-name-cell {
   font-weight: 700;
   color: #2b3f50;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-inter);
 }
 
 .text-center {
@@ -685,7 +685,7 @@
 .rejected-count {
   color: #e74c3c;
   font-weight: 700;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-inter);
 }
 
 .rate-bar {
@@ -711,7 +711,7 @@
   text-align: center;
   font-size: 12px;
   font-weight: 700;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-inter);
   color: #2b3f50;
 }
 
@@ -720,7 +720,7 @@
   border-radius: 12px;
   font-size: 12px;
   font-weight: 700;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-inter);
   letter-spacing: 0.2px;
 }
 
@@ -1145,7 +1145,7 @@
   font-weight: 600;
   color: #475569;
   border-bottom: 2px solid #e2e8f0;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-inter);
 }
 
 .assets-table tbody tr {
@@ -1161,7 +1161,7 @@
   padding: 14px 16px;
   font-size: 14px;
   color: #64748b;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-inter);
 }
 
 /* Status Badge Styles */
@@ -1171,7 +1171,7 @@
   border-radius: 8px;
   font-size: 12px;
   font-weight: 600;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-inter);
   text-transform: capitalize;
 }
 

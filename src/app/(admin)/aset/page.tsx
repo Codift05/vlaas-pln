@@ -766,7 +766,7 @@ function ManajemenAset() {
                     const syncResult = await autoSyncVendor(formData.vendorName);
                     if (syncResult.success) {
                         console.log('Vendor sync on update:', syncResult.message);
-                        if (syncResult.data && !syncResult.data.exists) {
+                        if ((syncResult as any).data && !(syncResult as any).data.exists) {
                             vendorCreated = true;
                             console.log('✅ Vendor baru dibuat saat edit:', formData.vendorName);
                         }
