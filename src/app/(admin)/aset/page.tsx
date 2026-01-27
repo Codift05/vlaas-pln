@@ -4,6 +4,7 @@ import { useSearchParams } from 'next/navigation'
 import { Eye, Edit, Trash2, Search, ChevronDown, ChevronUp, Plus, Save, Upload, Calendar, Clock, ArrowRight, FileText, AlertCircle, AlertTriangle, FileCheck, History, Activity, X, CheckCircle, Info, AlertOctagon } from 'lucide-react'
 import { supabase } from '../../../lib/supabaseClient'
 import { autoSyncVendor } from '../../../services/vendorService'
+import { updateVendorContractStatus } from '../../../services/vendorAccountService'
 import './ManajemenAset.css'
 
 function ManajemenAset() {
@@ -200,6 +201,28 @@ function ManajemenAset() {
     // State untuk data aset (dari Supabase)
     const [assets, setAssets] = useState([])
 
+    // State untuk daftar vendor aktif
+    const [activeVendors, setActiveVendors] = useState([])
+
+    // Fetch active vendors for dropdown
+    const fetchActiveVendors = async () => {
+        try {
+            const { data, error } = await supabase
+                .from('vendor_users')
+                .select('company_name, status')
+                .in('status', ['Aktif', 'Dalam Kontrak'])
+                .order('company_name', { ascending: true })
+
+            if (error) throw error
+
+            // Remove duplicates and filter out null/empty names
+            const uniqueVendors = [...new Set(data.map(v => v.company_name).filter(Boolean))]
+            setActiveVendors(uniqueVendors)
+        } catch (err) {
+            console.error('Error fetching vendors:', err)
+        }
+    }
+
     // Fetch data contracts & history from Supabase
     const fetchContracts = async () => {
         try {
@@ -241,6 +264,7 @@ function ManajemenAset() {
     // Load data on mount
     useEffect(() => {
         fetchContracts()
+        fetchActiveVendors()
     }, [])
 
     // Handle URL parameter untuk auto-expand kontrak yang dipilih
@@ -824,6 +848,9 @@ function ManajemenAset() {
                     ? `Kontrak berhasil diperbarui! Vendor "${formData.vendorName}" juga telah ditambahkan ke Data Vendor.`
                     : 'Kontrak berhasil diperbarui!';
 
+                // Update vendor status based on contracts
+                await updateVendorContractStatus()
+
                 showAlert('success', 'Berhasil', updateMessage)
             } else {
                 // 1. Auto-sync vendor (create jika belum ada)
@@ -885,6 +912,9 @@ function ManajemenAset() {
                     ? `Kontrak berhasil ditambahkan! Vendor "${formData.vendorName}" juga telah ditambahkan ke Data Vendor.`
                     : 'Kontrak berhasil ditambahkan!';
 
+                // Update vendor status based on contracts
+                await updateVendorContractStatus()
+
                 showAlert('success', 'Berhasil', successMessage)
             }
 
@@ -931,6 +961,9 @@ function ManajemenAset() {
                     .eq('id', id)
 
                 if (error) throw error
+
+                // Update vendor status based on contracts
+                await updateVendorContractStatus()
 
                 showAlert('success', 'Berhasil', 'Kontrak berhasil dihapus')
                 fetchContracts() // Refresh data
@@ -1937,15 +1970,38 @@ function ManajemenAset() {
 
                                         <div className="form-group">
                                             <label htmlFor="vendorName">Nama Vendor <span className="required">*</span></label>
-                                            <input
-                                                type="text"
+                                            <select
                                                 id="vendorName"
                                                 name="vendorName"
                                                 value={formData.vendorName}
                                                 onChange={handleInputChange}
-                                                placeholder="Contoh: PT Elektrindo Jaya"
                                                 required
-                                            />
+                                                style={{
+                                                    width: '100%',
+                                                    padding: '10px 12px',
+                                                    borderRadius: '8px',
+                                                    border: '1px solid #e2e8f0',
+                                                    fontSize: '14px',
+                                                    color: '#1e293b',
+                                                    backgroundColor: 'white',
+                                                    cursor: 'pointer'
+                                                }}
+                                            >
+                                                <option value="">-- Pilih Vendor --</option>
+                                                {activeVendors.map((vendorName, index) => (
+                                                    <option key={index} value={vendorName}>
+                                                        {vendorName}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                            <small style={{
+                                                display: 'block',
+                                                marginTop: '6px',
+                                                fontSize: '12px',
+                                                color: '#64748b'
+                                            }}>
+                                                Hanya menampilkan vendor dengan status Aktif atau Dalam Kontrak
+                                            </small>
                                         </div>
 
                                         <div className="form-group">

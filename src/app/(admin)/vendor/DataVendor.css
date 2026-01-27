@@ -673,6 +673,12 @@
   color: #27ae60;
 }
 
+.status-dalam-kontrak {
+  background: rgba(245, 158, 11, 0.12);
+  color: #d97706;
+  font-weight: 600;
+}
+
 .status-inactive {
   background: rgba(231, 76, 60, 0.12);
   color: #c0392b;

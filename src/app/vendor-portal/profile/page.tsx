@@ -1,16 +1,21 @@
 'use client'
 import { useState, useEffect } from 'react'
-import { Building2, MapPin, Phone, User, Mail, Save, Edit2 } from 'lucide-react'
+import { Building2, MapPin, Phone, User, Mail, Save, Edit2, AlertTriangle } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 import { supabase } from '../../../lib/supabaseClient'
+import { deactivateVendorAccount } from '../../../services/vendorAccountService'
 import './VendorProfile.css'
 
 function VendorProfile() {
+    const router = useRouter()
     const [isEditing, setIsEditing] = useState(false)
     const [loading, setLoading] = useState(false)
     const [vendorId, setVendorId] = useState('')
     const [showIncompleteModal, setShowIncompleteModal] = useState(false)
     const [profileImage, setProfileImage] = useState('')
     const [uploadingImage, setUploadingImage] = useState(false)
+    const [showDeleteModal, setShowDeleteModal] = useState(false)
+    const [deleteLoading, setDeleteLoading] = useState(false)
     const [profileData, setProfileData] = useState({
         companyName: '',
         companyType: 'PT',
@@ -311,6 +316,39 @@ function VendorProfile() {
             profileData.phone && profileData.picName
     }
 
+    const handleDeleteAccount = async () => {
+        if (!vendorId) {
+            alert('Sesi login tidak ditemukan')
+            return
+        }
+
+        setDeleteLoading(true)
+        try {
+            const result = await deactivateVendorAccount(vendorId)
+
+            if (result.success) {
+                alert('✓ Akun Anda telah dihapus secara permanen dari sistem')
+
+                // Clear session
+                localStorage.removeItem('vendorLoggedIn')
+                localStorage.removeItem('vendorEmail')
+                localStorage.removeItem('vendorUserId')
+                localStorage.removeItem('vendorProfile')
+
+                // Redirect to login
+                router.push('/vendor-login')
+            } else {
+                alert('❌ ' + result.error)
+            }
+        } catch (error) {
+            console.error('Error deleting account:', error)
+            alert('Terjadi kesalahan saat menonaktifkan akun')
+        } finally {
+            setDeleteLoading(false)
+            setShowDeleteModal(false)
+        }
+    }
+
     return (
         <div className="vendor-profile-page">
             <div className="profile-container">
@@ -319,11 +357,43 @@ function VendorProfile() {
                         <h1>Profil Perusahaan</h1>
                         <p>Kelola informasi perusahaan dan data kontak Anda</p>
                     </div>
-                    {!isEditing && (
-                        <button className="btn-edit" onClick={() => setIsEditing(true)}>
-                            <Edit2 size={18} /> Edit Profil
-                        </button>
-                    )}
+                    <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                        {!isEditing && (
+                            <button className="btn-edit" onClick={() => setIsEditing(true)}>
+                                <Edit2 size={18} /> Edit Profil
+                            </button>
+                        )}
+                        {!isEditing && (
+                            <button
+                                className="btn-delete-account"
+                                onClick={() => setShowDeleteModal(true)}
+                                style={{
+                                    background: '#fee2e2',
+                                    color: '#dc2626',
+                                    border: '1px solid #fecaca',
+                                    padding: '10px 20px',
+                                    borderRadius: '8px',
+                                    fontSize: '14px',
+                                    fontWeight: 600,
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '8px',
+                                    transition: 'all 0.2s'
+                                }}
+                                onMouseOver={(e) => {
+                                    e.currentTarget.style.background = '#fecaca'
+                                    e.currentTarget.style.borderColor = '#fca5a5'
+                                }}
+                                onMouseOut={(e) => {
+                                    e.currentTarget.style.background = '#fee2e2'
+                                    e.currentTarget.style.borderColor = '#fecaca'
+                                }}
+                            >
+                                <AlertTriangle size={18} /> Hapus Akun
+                            </button>
+                        )}
+                    </div>
                 </div>
 
                 {/* Incomplete Profile Modal */}
@@ -707,6 +777,87 @@ function VendorProfile() {
                         </div>
                     )}
                 </form>
+
+                {/* Delete Account Confirmation Modal */}
+                {showDeleteModal && (
+                    <div className="modal-overlay" onClick={() => !deleteLoading && setShowDeleteModal(false)}>
+                        <div
+                            className="incomplete-modal"
+                            onClick={(e) => e.stopPropagation()}
+                            style={{ maxWidth: '500px' }}
+                        >
+                            <div className="modal-icon" style={{ background: '#fee2e2' }}>
+                                <AlertTriangle size={48} style={{ color: '#dc2626' }} />
+                            </div>
+                            <h3 style={{ color: '#dc2626' }}>Konfirmasi Hapus Akun</h3>
+                            <p style={{ marginBottom: '16px', lineHeight: '1.6' }}>
+                                Apakah Anda yakin ingin menonaktifkan akun ini?
+                            </p>
+                            <div style={{
+                                background: '#fef3c7',
+                                border: '1px solid #fbbf24',
+                                padding: '12px 16px',
+                                borderRadius: '8px',
+                                marginBottom: '24px',
+                                textAlign: 'left'
+                            }}>
+                                <p style={{
+                                    margin: 0,
+                                    fontSize: '14px',
+                                    color: '#92400e',
+                                    lineHeight: '1.5'
+                                }}>
+                                    <strong>Perhatian:</strong><br />
+                                    • Akun Anda akan dinonaktifkan<br />
+                                    • Status akun menjadi "Tidak Aktif"<br />
+                                    • Anda tidak dapat login kembali<br />
+                                    • Data profil akan tetap tersimpan
+                                </p>
+                            </div>
+                            <div className="modal-buttons" style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+                                <button
+                                    className="btn-secondary"
+                                    onClick={() => setShowDeleteModal(false)}
+                                    disabled={deleteLoading}
+                                    style={{ padding: '12px 24px' }}
+                                >
+                                    Batal
+                                </button>
+                                <button
+                                    className="btn-delete"
+                                    onClick={handleDeleteAccount}
+                                    disabled={deleteLoading}
+                                    style={{
+                                        background: '#dc2626',
+                                        color: 'white',
+                                        border: 'none',
+                                        padding: '12px 24px',
+                                        borderRadius: '8px',
+                                        fontSize: '14px',
+                                        fontWeight: 600,
+                                        cursor: deleteLoading ? 'not-allowed' : 'pointer',
+                                        opacity: deleteLoading ? 0.6 : 1,
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '8px'
+                                    }}
+                                >
+                                    {deleteLoading ? (
+                                        <>
+                                            <span className="loading-spinner"></span>
+                                            Memproses...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <AlertTriangle size={18} />
+                                            Ya, Hapus Akun
+                                        </>
+                                    )}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div >
         </div >
     )

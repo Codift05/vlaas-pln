@@ -8,6 +8,196 @@ export interface VendorAuthResult {
     message?: string
 }
 
+// Temporary storage for verification codes (in production, use database)
+interface VerificationEntry {
+    code: string
+    email: string
+    expiresAt: Date
+    attempts: number
+}
+
+// In-memory storage (will be reset on server restart)
+// For production, consider using database table or Redis
+const verificationCodes = new Map<string, VerificationEntry>()
+
+/**
+ * Request email verification code for registration
+ * Sends 6-digit code to email
+ */
+export const requestEmailVerification = async (email: string, companyName?: string): Promise<VendorAuthResult> => {
+    try {
+        // Validate email format
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+        if (!emailRegex.test(email)) {
+            return {
+                success: false,
+                error: 'Format email tidak valid'
+            }
+        }
+
+        // Check if email already registered
+        const { data: existingVendor } = await supabase
+            .from('vendor_users')
+            .select('id')
+            .eq('email', email)
+            .single()
+
+        if (existingVendor) {
+            return {
+                success: false,
+                error: 'Email sudah terdaftar. Silakan gunakan email lain atau login.'
+            }
+        }
+
+        // Generate 6-digit verification code
+        const verificationCode = Math.floor(100000 + Math.random() * 900000).toString()
+        const expiresAt = new Date(Date.now() + 15 * 60 * 1000) // 15 minutes
+
+        // Store verification code
+        verificationCodes.set(email, {
+            code: verificationCode,
+            email: email,
+            expiresAt: expiresAt,
+            attempts: 0
+        })
+
+        console.log('🔐 Generated verification code for', email, ':', verificationCode)
+
+        // Send verification email
+        try {
+            const emailResponse = await fetch('/api/send-verification-email', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    email: email,
+                    verificationCode: verificationCode,
+                    companyName: companyName || 'Vendor'
+                })
+            })
+
+            const emailResult = await emailResponse.json()
+
+            if (!emailResult.success) {
+                console.error('Failed to send verification email:', emailResult.error)
+                // Tetap return success dengan kode untuk fallback
+                return {
+                    success: true,
+                    message: `Email gagal terkirim. Gunakan kode ini: ${verificationCode}`,
+                    data: {
+                        verificationCode: verificationCode, // Fallback: tampilkan kode
+                        expiresAt: expiresAt,
+                        emailFailed: true
+                    }
+                }
+            }
+
+            console.log('✅ Verification email sent successfully to:', email)
+
+            return {
+                success: true,
+                message: `Kode verifikasi telah dikirim ke ${email}. Silakan cek inbox atau folder spam.`,
+                data: {
+                    expiresAt: expiresAt
+                    // TIDAK mengirim code untuk keamanan (kecuali email gagal)
+                }
+            }
+        } catch (emailError) {
+            console.error('Error sending verification email:', emailError)
+            return {
+                success: true,
+                message: `Email gagal terkirim. Gunakan kode ini: ${verificationCode}`,
+                data: {
+                    verificationCode: verificationCode,
+                    expiresAt: expiresAt,
+                    emailFailed: true
+                }
+            }
+        }
+    } catch (error) {
+        console.error('Request email verification error:', error)
+        return {
+            success: false,
+            error: 'Terjadi kesalahan. Silakan coba lagi.'
+        }
+    }
+}
+
+/**
+ * Verify email verification code
+ * Returns true if code is valid
+ */
+export const verifyEmailCode = async (email: string, code: string): Promise<VendorAuthResult> => {
+    try {
+        const verification = verificationCodes.get(email)
+
+        if (!verification) {
+            return {
+                success: false,
+                error: 'Kode verifikasi tidak ditemukan. Silakan kirim ulang kode.'
+            }
+        }
+
+        // Check if expired
+        if (new Date() > verification.expiresAt) {
+            verificationCodes.delete(email)
+            return {
+                success: false,
+                error: 'Kode verifikasi sudah kadaluarsa. Silakan kirim ulang kode.'
+            }
+        }
+
+        // Check attempts (max 5 attempts)
+        if (verification.attempts >= 5) {
+            verificationCodes.delete(email)
+            return {
+                success: false,
+                error: 'Terlalu banyak percobaan gagal. Silakan kirim ulang kode.'
+            }
+        }
+
+        // Verify code
+        if (verification.code !== code.trim()) {
+            verification.attempts++
+            verificationCodes.set(email, verification)
+
+            const remainingAttempts = 5 - verification.attempts
+            return {
+                success: false,
+                error: `Kode verifikasi salah. Sisa percobaan: ${remainingAttempts}`
+            }
+        }
+
+        // Code is correct - keep it for a bit longer (for registration process)
+        // Will be deleted after successful registration
+        console.log('✅ Email verified successfully:', email)
+
+        return {
+            success: true,
+            message: 'Email berhasil diverifikasi!',
+            data: {
+                email: email,
+                verified: true
+            }
+        }
+    } catch (error) {
+        console.error('Verify email code error:', error)
+        return {
+            success: false,
+            error: 'Terjadi kesalahan. Silakan coba lagi.'
+        }
+    }
+}
+
+/**
+ * Clear verification code after successful registration
+ */
+export const clearVerificationCode = (email: string): void => {
+    verificationCodes.delete(email)
+    console.log('🗑️ Cleared verification code for:', email)
+}
+
 /**
  * Request password reset - sends email with reset token
  */
@@ -183,6 +373,7 @@ export const resetPassword = async (
 
 /**
  * Register new vendor with complete profile data
+ * Requires email to be verified first
  */
 export const registerVendor = async (vendorData: {
     email: string
@@ -256,6 +447,7 @@ export const registerVendor = async (vendorData: {
                 siup: vendorData.siup,
                 tdp: vendorData.tdp,
                 established: vendorData.established,
+                status: 'Aktif', // Set default status
                 created_at: new Date().toISOString()
             }])
             .select()
@@ -268,6 +460,9 @@ export const registerVendor = async (vendorData: {
                 error: 'Gagal mendaftar. Silakan coba lagi.'
             }
         }
+
+        // Clear verification code after successful registration
+        clearVerificationCode(vendorData.email)
 
         return {
             success: true,
