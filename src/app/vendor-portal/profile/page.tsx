@@ -327,7 +327,7 @@ function VendorProfile() {
             const result = await deactivateVendorAccount(vendorId)
 
             if (result.success) {
-                alert('✓ Akun Anda telah dihapus secara permanen dari sistem')
+                alert('✓ Akun Anda telah dinonaktifkan. Anda dapat mengaktifkan kembali dengan mengakses halaman reaktivasi.')
 
                 // Clear session
                 localStorage.removeItem('vendorLoggedIn')
@@ -390,7 +390,7 @@ function VendorProfile() {
                                     e.currentTarget.style.borderColor = '#fecaca'
                                 }}
                             >
-                                <AlertTriangle size={18} /> Hapus Akun
+                                <AlertTriangle size={18} /> Non-Aktifkan Akun
                             </button>
                         )}
                     </div>
@@ -789,9 +789,9 @@ function VendorProfile() {
                             <div className="modal-icon" style={{ background: '#fee2e2' }}>
                                 <AlertTriangle size={48} style={{ color: '#dc2626' }} />
                             </div>
-                            <h3 style={{ color: '#dc2626' }}>Konfirmasi Hapus Akun</h3>
+                            <h3 style={{ color: '#dc2626' }}>Konfirmasi Non-Aktifkan Akun</h3>
                             <p style={{ marginBottom: '16px', lineHeight: '1.6' }}>
-                                Apakah Anda yakin ingin menonaktifkan akun ini?
+                                Apakah Anda yakin ingin menonaktifkan akun Anda?
                             </p>
                             <div style={{
                                 background: '#fef3c7',
@@ -850,7 +850,7 @@ function VendorProfile() {
                                     ) : (
                                         <>
                                             <AlertTriangle size={18} />
-                                            Ya, Hapus Akun
+                                            Ya, Non-Aktifkan Akun
                                         </>
                                     )}
                                 </button>

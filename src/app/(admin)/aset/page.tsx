@@ -210,7 +210,7 @@ function ManajemenAset() {
             const { data, error } = await supabase
                 .from('vendor_users')
                 .select('company_name, status')
-                .in('status', ['Aktif', 'Dalam Kontrak'])
+                .in('status', ['Aktif', 'Berkontrak'])
                 .order('company_name', { ascending: true })
 
             if (error) throw error
@@ -864,7 +864,7 @@ function ManajemenAset() {
                             console.log('✅ Vendor baru dibuat:', formData.vendorName);
                         }
                     } else {
-                        console.warn('Vendor sync warning:', syncResult.message);
+                        console.warn('Vendor sync warning:', (syncResult as any).error || 'Unknown error');
                     }
                 }
 
@@ -2000,7 +2000,7 @@ function ManajemenAset() {
                                                 fontSize: '12px',
                                                 color: '#64748b'
                                             }}>
-                                                Hanya menampilkan vendor dengan status Aktif atau Dalam Kontrak
+                                                Hanya menampilkan vendor dengan status Aktif atau Berkontrak
                                             </small>
                                         </div>
 

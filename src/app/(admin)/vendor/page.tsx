@@ -146,7 +146,7 @@ function DataVendor() {
 
     const getStatusClass = (status) => {
         if (status === 'Aktif') return 'status-active'
-        if (status === 'Dalam Kontrak') return 'status-dalam-kontrak'
+        if (status === 'Berkontrak') return 'status-dalam-kontrak'
         return 'status-inactive'
     }
 
@@ -390,8 +390,8 @@ function DataVendor() {
                         bgColor: '#e8f5e9',
                     },
                     {
-                        title: 'Vendor Dalam Kontrak',
-                        value: vendorsData.filter(v => v.status === 'Dalam Kontrak').length,
+                        title: 'Vendor Berkontrak',
+                        value: vendorsData.filter(v => v.status === 'Berkontrak').length,
                         icon: Briefcase,
                         color: '#f59e0b',
                         bgColor: '#fef3c7',
@@ -646,7 +646,7 @@ function DataVendor() {
                                         required
                                     >
                                         <option value="Aktif">Aktif</option>
-                                        <option value="Dalam Kontrak">Dalam Kontrak</option>
+                                        <option value="Berkontrak">Berkontrak</option>
                                         <option value="Tidak Aktif">Tidak Aktif</option>
                                     </select>
                                     <small style={{ color: '#6b7280', fontSize: '12px', marginTop: '4px', display: 'block' }}>
@@ -710,17 +710,6 @@ function DataVendor() {
                                         value={formData.kontakPerson}
                                         onChange={handleInputChange}
                                         placeholder="Contoh: John Doe"
-                                        required
-                                    />
-                                </div>
-                                <div className="form-group-vendor">
-                                    <label htmlFor="tanggalRegistrasi">Tanggal Registrasi <span className="required-vendor">*</span></label>
-                                    <input
-                                        type="date"
-                                        id="tanggalRegistrasi"
-                                        name="tanggalRegistrasi"
-                                        value={formData.tanggalRegistrasi}
-                                        onChange={handleInputChange}
                                         required
                                     />
                                 </div>

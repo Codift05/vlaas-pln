@@ -9,6 +9,10 @@ import {
   requestEmailVerification,
   verifyEmailCode
 } from '../services/vendorAuthService'
+import {
+  sendReactivationCode,
+  verifyReactivationCode
+} from '../services/vendorAccountService'
 import { supabase } from '../lib/supabaseClient'
 import styled from 'styled-components'
 
@@ -277,6 +281,58 @@ const LoginContainer = styled.div`
   .login-button:disabled {
     opacity: 0.6;
     cursor: not-allowed;
+  }
+
+  .submit-btn {
+    min-width: 180px;
+    width: auto;
+    padding: 12px 28px;
+    background: #1e88e5;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 15px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    letter-spacing: 1px;
+    margin-right: 18px;
+    display: inline-block;
+    vertical-align: middle;
+    text-align: center;
+  }
+  .submit-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(30, 136, 229, 0.3);
+    background: #1565c0;
+  }
+  .submit-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+  .back-btn {
+    min-width: 180px;
+    width: auto;
+    padding: 12px 28px;
+    background: #fff;
+    color: #1e88e5;
+    border: 2px solid #1e88e5;
+    border-radius: 6px;
+    font-size: 15px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: transform 0.2s, background 0.2s, color 0.2s, box-shadow 0.2s;
+    letter-spacing: 1px;
+    display: inline-block;
+    vertical-align: middle;
+    margin-left: 0;
+    text-align: center;
+  }
+  .back-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    background: #e3f2fd;
+    color: #1565c0;
+    box-shadow: 0 4px 12px rgba(30, 136, 229, 0.15);
   }
 
   /* Error Message */
@@ -611,23 +667,113 @@ const LoginContainer = styled.div`
 
   /* Verification UI Elements */
   .verification-intro {
-    background: #f0f8ff;
-    border-left: 4px solid #1e88e5;
-    padding: 20px;
+    background: #fffbf0;
+    border: 1px solid #ffd966;
+    border-left: 4px solid #f9a825;
+    padding: 14px 16px;
     margin: 20px 0;
-    border-radius: 8px;
+    border-radius: 6px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
   }
 
-  .verification-intro p {
-    margin: 8px 0;
-    color: #555;
+  .verification-intro .warning-icon {
+    color: #f9a825;
+    font-size: 20px;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .verification-intro .warning-content {
+    flex: 1;
+  }
+
+  .verification-intro .warning-title {
+    margin: 0 0 4px 0;
+    color: #333;
     font-size: 14px;
-    line-height: 1.6;
+    font-weight: 600;
+  }
+
+  .verification-intro .warning-text {
+    margin: 0;
+    color: #666;
+    font-size: 13px;
+    line-height: 1.5;
   }
 
   .verification-intro strong {
-    color: #1e88e5;
+    color: #1565c0;
     font-weight: 600;
+  }
+
+  /* Step Progress for Modal */
+  .step-progress-container {
+    margin: 25px 0 30px;
+  }
+
+  .step-progress {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 100px;
+    position: relative;
+  }
+
+  .step-progress .step-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    z-index: 2;
+  }
+
+  .step-progress .step-circle {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: #e8e8e8;
+    color: #999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 18px;
+    margin-bottom: 12px;
+    transition: all 0.3s;
+    border: 3px solid #fff;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+
+  .step-progress .step-item.active .step-circle {
+    background: #1e88e5;
+    color: white;
+    box-shadow: 0 3px 12px rgba(30, 136, 229, 0.4);
+  }
+
+  .step-progress .step-item span {
+    font-size: 13px;
+    color: #666;
+    font-weight: 500;
+    text-align: center;
+    letter-spacing: 0.3px;
+  }
+
+  .step-progress .step-item.active span {
+    color: #1e3c72;
+    font-weight: 600;
+  }
+
+  .step-progress .step-line {
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 200px;
+    height: 2px;
+    background: #e0e0e0;
+    z-index: 1;
   }
 
   .verification-success {
@@ -749,12 +895,18 @@ const Login: FC = () => {
   const [error, setError] = useState<string>('')
   const [isRegisterMode, setIsRegisterMode] = useState<boolean>(false)
   const [isForgotPasswordMode, setIsForgotPasswordMode] = useState<boolean>(false)
+  const [isReactivateMode, setIsReactivateMode] = useState<boolean>(false)
   const [forgotPasswordStep, setForgotPasswordStep] = useState<number>(1)
+  const [reactivateStep, setReactivateStep] = useState<number>(1) // 1: Email, 2: Verify Code
   const [forgotPasswordData, setForgotPasswordData] = useState({
     email: '',
     resetToken: '',
     newPassword: '',
     confirmPassword: ''
+  })
+  const [reactivateData, setReactivateData] = useState({
+    email: '',
+    code: ''
   })
 
   // Email verification state for registration
@@ -1073,6 +1225,51 @@ const Login: FC = () => {
     }
   }
 
+  const handleSendReactivationCode = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
+    e.preventDefault()
+    setError('')
+    setLoading(true)
+
+    try {
+      const result = await sendReactivationCode(reactivateData.email)
+
+      if (result.success) {
+        alert('✅ ' + result.message)
+        setReactivateStep(2)
+      } else {
+        setError(result.error || 'Gagal mengirim kode reaktivasi')
+      }
+    } catch (err) {
+      setError('Terjadi kesalahan. Silakan coba lagi.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleVerifyReactivationCode = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
+    e.preventDefault()
+    setError('')
+    setLoading(true)
+
+    try {
+      const result = await verifyReactivationCode(reactivateData.email, reactivateData.code)
+
+      if (result.success) {
+        alert('✅ ' + result.message)
+        setIsReactivateMode(false)
+        setReactivateStep(1)
+        setReactivateData({ email: '', code: '' })
+        // User can now login
+      } else {
+        setError(result.error || 'Kode verifikasi salah')
+      }
+    } catch (err) {
+      setError('Terjadi kesalahan. Silakan coba lagi.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const handleLogin = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault()
     setError('')
@@ -1132,6 +1329,13 @@ const Login: FC = () => {
 
         if (authError || !user) {
           setError('Email atau password salah')
+          setLoading(false)
+          return
+        }
+
+        // Check if account is deactivated
+        if (user.status === 'Tidak Aktif') {
+          setError('Akun Anda telah dinonaktifkan. Silakan aktifkan kembali akun Anda melalui halaman reaktivasi.')
           setLoading(false)
           return
         }
@@ -1337,9 +1541,14 @@ const Login: FC = () => {
             </button>
 
             {isVendorLogin ? (
-              <p className="register-text">
-                Belum punya akun vendor? <a href="#" className="register-link" onClick={(e) => { e.preventDefault(); setIsRegisterMode(true); setError(''); }}>Daftar Sekarang</a>
-              </p>
+              <>
+                <p className="register-text">
+                  Belum punya akun vendor? <a href="#" className="register-link" onClick={(e) => { e.preventDefault(); setIsRegisterMode(true); setError(''); }}>Daftar Sekarang</a>
+                </p>
+                <p className="register-text" style={{ marginTop: '10px' }}>
+                  Akun dinonaktifkan? <a href="#" className="register-link" onClick={(e) => { e.preventDefault(); setIsReactivateMode(true); setError(''); }}>Aktifkan Kembali</a>
+                </p>
+              </>
             ) : (
               <p className="register-text">
                 Login sebagai vendor? <a href="/vendor-login" className="register-link">Klik di sini</a>
@@ -1411,8 +1620,17 @@ const Login: FC = () => {
               {registerStep === 1 && (
                 <form onSubmit={handleRequestVerificationCode}>
                   <div className="verification-intro">
-                    <p>📧 <strong>Verifikasi Email Diperlukan</strong></p>
-                    <p>Masukkan email perusahaan Anda. Kami akan mengirimkan <strong>kode verifikasi 6 digit</strong> ke email tersebut untuk memastikan email valid.</p>
+                    <span className="warning-icon">
+                      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 9V13M12 17H12.01M10.29 3.86L1.82 18C1.64537 18.3024 1.55296 18.6453 1.55199 18.9945C1.55101 19.3437 1.64151 19.6871 1.81445 19.9905C1.98738 20.2939 2.23675 20.5467 2.53773 20.7239C2.83871 20.901 3.18082 20.9962 3.53 21H20.47C20.8192 20.9962 21.1613 20.901 21.4623 20.7239C21.7633 20.5467 22.0126 20.2939 22.1856 19.9905C22.3585 19.6871 22.449 19.3437 22.448 18.9945C22.447 18.6453 22.3546 18.3024 22.18 18L13.71 3.86C13.5317 3.56611 13.2807 3.32312 12.9812 3.15448C12.6817 2.98585 12.3437 2.89725 12 2.89725C11.6563 2.89725 11.3183 2.98585 11.0188 3.15448C10.7193 3.32312 10.4683 3.56611 10.29 3.86Z" stroke="#f59e0b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    </span>
+                    <div className="warning-content">
+                      <div className="warning-title">Verifikasi Email Diperlukan</div>
+                      <div className="warning-text">
+                        Masukkan email perusahaan Anda. Kami akan mengirimkan <strong>kode verifikasi 6 digit</strong> ke email tersebut untuk memastikan email valid.
+                      </div>
+                    </div>
                   </div>
 
                   <div className="input-group">
@@ -1447,22 +1665,23 @@ const Login: FC = () => {
                     </small>
                   </div>
 
-                  <button type="submit" className="submit-btn" disabled={loading} style={{ marginTop: '20px' }}>
-                    {loading ? 'Mengirim...' : '📤 Kirim Kode Verifikasi'}
-                  </button>
+                  <div style={{ display: 'flex', gap: '12px', marginTop: '20px' }}>
+                    <button type="submit" className="submit-btn" disabled={loading}>
+                      {loading ? 'Mengirim...' : 'Kirim Kode Verifikasi'}
+                    </button>
 
-                  <button
-                    type="button"
-                    className="cancel-btn"
-                    onClick={() => {
-                      setIsRegisterMode(false);
-                      setRegisterStep(1);
-                      setError('');
-                    }}
-                    style={{ marginTop: '10px' }}
-                  >
-                    Batal
-                  </button>
+                    <button
+                      type="button"
+                      className="back-btn"
+                      onClick={() => {
+                        setIsRegisterMode(false);
+                        setRegisterStep(1);
+                        setError('');
+                      }}
+                    >
+                      Batal
+                    </button>
+                  </div>
                 </form>
               )}
 
@@ -1516,13 +1735,12 @@ const Login: FC = () => {
 
                   <button
                     type="button"
-                    className="cancel-btn"
+                    className="back-btn"
                     onClick={() => {
                       setIsRegisterMode(false);
                       setRegisterStep(1);
                       setError('');
                     }}
-                    style={{ marginTop: '10px' }}
                   >
                     Batal
                   </button>
@@ -1678,7 +1896,8 @@ const Login: FC = () => {
                     </div>
 
                     <div className="input-group">
-                      <label className="input-label">Kode Pos</label>
+                      <label className="input-label">
+                        Kode Pos</label>
                       <input
                         type="text"
                         placeholder="12345"
@@ -1843,7 +2062,7 @@ const Login: FC = () => {
                     </div>
 
                     <button type="submit" className="login-button" disabled={loading} style={{ marginTop: '20px' }}>
-                      {loading ? 'Memproses...' : '✓ DAFTAR'}
+                      {loading ? 'Memproses...' : 'DAFTAR'}
                     </button>
 
                     <p className="register-text">
@@ -1968,6 +2187,129 @@ const Login: FC = () => {
 
                   <p className="register-text" style={{ marginTop: '15px' }}>
                     <a href="#" className="register-link" onClick={(e) => { e.preventDefault(); setForgotPasswordStep(1); setError(''); }}>Kembali</a>
+                  </p>
+                </form>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Reactivate Account Modal */}
+      {isReactivateMode && (
+        <div className="register-modal-overlay" onClick={() => { setIsReactivateMode(false); setError(''); setReactivateStep(1); }}>
+          <div className="register-modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '500px' }}>
+            <div className="register-modal-header">
+              <h2 className="register-modal-title">Reaktivasi Akun Vendor</h2>
+              <button className="register-modal-close" onClick={() => { setIsReactivateMode(false); setError(''); setReactivateStep(1); }}>
+                ×
+              </button>
+            </div>
+
+            <div className="register-modal-body">
+              {error && (
+                <div className="error-message">
+                  <span className="error-icon">⚠️</span>
+                  <span>{error}</span>
+                </div>
+              )}
+
+              {/* Step Progress Indicator */}
+              <div className="step-progress-container" style={{ marginBottom: '24px' }}>
+                <div className="step-progress">
+                  <div className={`step-item ${reactivateStep >= 1 ? 'active' : ''}`}>
+                    <div className="step-circle">1</div>
+                    <span>Email</span>
+                  </div>
+                  <div className="step-line"></div>
+                  <div className={`step-item ${reactivateStep >= 2 ? 'active' : ''}`}>
+                    <div className="step-circle">2</div>
+                    <span>Verifikasi</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Step 1: Input Email */}
+              {reactivateStep === 1 && (
+                <form onSubmit={handleSendReactivationCode}>
+                  <div className="verification-intro">
+                    <span className="warning-icon">
+                      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 9V13M12 17H12.01M10.29 3.86L1.82 18C1.64537 18.3024 1.55296 18.6453 1.55199 18.9945C1.55101 19.3437 1.64151 19.6871 1.81445 19.9905C1.98738 20.2939 2.23675 20.5467 2.53773 20.7239C2.83871 20.901 3.18082 20.9962 3.53 21H20.47C20.8192 20.9962 21.1613 20.901 21.4623 20.7239C21.7633 20.5467 22.0126 20.2939 22.1856 19.9905C22.3585 19.6871 22.449 19.3437 22.448 18.9945C22.447 18.6453 22.3546 18.3024 22.18 18L13.71 3.86C13.5317 3.56611 13.2807 3.32312 12.9812 3.15448C12.6817 2.98585 12.3437 2.89725 12 2.89725C11.6563 2.89725 11.3183 2.98585 11.0188 3.15448C10.7193 3.32312 10.4683 3.56611 10.29 3.86Z" stroke="#f59e0b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    </span>
+                    <div className="warning-content">
+                      <strong>Aktifkan Kembali Akun Anda</strong>
+                      <p>Masukkan email akun yang dinonaktifkan. Kami akan mengirimkan kode verifikasi 6 digit untuk mengaktifkan kembali akun Anda.</p>
+                    </div>
+                  </div>
+
+                  <div className="input-group">
+                    <label className="input-label">
+                      Email Akun yang Dinonaktifkan <span className="required">*</span>
+                    </label>
+                    <input
+                      type="email"
+                      placeholder="vendor@example.com"
+                      value={reactivateData.email}
+                      onChange={(e) => setReactivateData({ ...reactivateData, email: e.target.value })}
+                      className="input-field"
+                      required
+                      disabled={loading}
+                    />
+                  </div>
+
+                  <button type="submit" className="submit-btn" disabled={loading} style={{ marginTop: '20px', width: '100%' }}>
+                    {loading ? 'Mengirim...' : 'Kirim Kode Verifikasi'}
+                  </button>
+
+                  <p className="register-text" style={{ marginTop: '15px' }}>
+                    Sudah punya kode? <a href="#" className="register-link" onClick={(e) => { e.preventDefault(); setReactivateStep(2); setError(''); }}>Masukkan Kode</a>
+                  </p>
+                </form>
+              )}
+
+              {/* Step 2: Verify Code */}
+              {reactivateStep === 2 && (
+                <form onSubmit={handleVerifyReactivationCode}>
+                  <div className="verification-intro">
+                    <span className="warning-icon">
+                      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 9V13M12 17H12.01M10.29 3.86L1.82 18C1.64537 18.3024 1.55296 18.6453 1.55199 18.9945C1.55101 19.3437 1.64151 19.6871 1.81445 19.9905C1.98738 20.2939 2.23675 20.5467 2.53773 20.7239C2.83871 20.901 3.18082 20.9962 3.53 21H20.47C20.8192 20.9962 21.1613 20.901 21.4623 20.7239C21.7633 20.5467 22.0126 20.2939 22.1856 19.9905C22.3585 19.6871 22.449 19.3437 22.448 18.9945C22.447 18.6453 22.3546 18.3024 22.18 18L13.71 3.86C13.5317 3.56611 13.2807 3.32312 12.9812 3.15448C12.6817 2.98585 12.3437 2.89725 12 2.89725C11.6563 2.89725 11.3183 2.98585 11.0188 3.15448C10.7193 3.32312 10.4683 3.56611 10.29 3.86Z" stroke="#f59e0b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    </span>
+                    <div className="warning-content">
+                      <strong>Kode Verifikasi Telah Dikirim</strong>
+                      <p>Masukkan kode verifikasi 6 digit yang telah dikirim ke <strong>{reactivateData.email}</strong></p>
+                    </div>
+                  </div>
+
+                  <div className="input-group">
+                    <label className="input-label">
+                      Kode Verifikasi (6 Digit) <span className="required">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="123456"
+                      value={reactivateData.code}
+                      onChange={(e) => setReactivateData({ ...reactivateData, code: e.target.value.replace(/\D/g, '') })}
+                      maxLength={6}
+                      className="input-field"
+                      style={{ textAlign: 'center', fontSize: '20px', letterSpacing: '4px' }}
+                      required
+                      disabled={loading}
+                    />
+                    <small style={{ display: 'block', marginTop: '6px', color: '#666', fontSize: '12px' }}>
+                      Masukkan kode 6 digit yang dikirim ke email Anda
+                    </small>
+                  </div>
+
+                  <button type="submit" className="submit-btn" disabled={loading || reactivateData.code.length !== 6} style={{ marginTop: '20px', width: '100%' }}>
+                    {loading ? 'Memverifikasi...' : 'Aktifkan Akun'}
+                  </button>
+
+                  <p className="register-text" style={{ marginTop: '15px' }}>
+                    Tidak menerima kode? <a href="#" className="register-link" onClick={(e) => { e.preventDefault(); setReactivateStep(1); setError(''); }}>Kirim Ulang</a>
                   </p>
                 </form>
               )}
