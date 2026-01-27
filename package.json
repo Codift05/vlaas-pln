@@ -17,6 +17,7 @@
     },
     "dependencies": {
         "@supabase/supabase-js": "^2.0.0",
+        "critters": "^0.0.23",
         "googleapis": "^129.0.0",
         "jspdf": "^3.0.4",
         "jspdf-autotable": "^5.0.2",

@@ -1,8 +1,9 @@
 "use client"
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { Users, CheckCircle, Search, Eye, Edit, Trash2, PauseCircle, ClipboardList, Plus, Save, X } from 'lucide-react'
+import { Users, CheckCircle, Search, Eye, Edit, Trash2, PauseCircle, ClipboardList, Plus, Save, X, Briefcase } from 'lucide-react'
 import { supabase } from '../../../lib/supabaseClient'
+import { updateVendorContractStatus } from '../../../services/vendorAccountService'
 import './DataVendor.css'
 
 function DataVendor() {
@@ -72,6 +73,10 @@ function DataVendor() {
     const fetchVendors = useCallback(async () => {
         try {
             setLoading(true)
+
+            // Update vendor contract status first
+            await updateVendorContractStatus()
+
             const { data, error } = await supabase
                 .from('vendors')
                 .select('*')
@@ -140,7 +145,9 @@ function DataVendor() {
     }
 
     const getStatusClass = (status) => {
-        return status === 'Aktif' ? 'status-active' : 'status-inactive'
+        if (status === 'Aktif') return 'status-active'
+        if (status === 'Dalam Kontrak') return 'status-dalam-kontrak'
+        return 'status-inactive'
     }
 
     const handleSearch = (e) => {
@@ -187,7 +194,11 @@ function DataVendor() {
                     .eq('id', editId)
 
                 if (error) throw error
-                // If ID was changed, we might want to warn or handle it, but for now we try to update it.
+
+                // Auto-update status based on contracts after save
+                // This ensures status is synced with actual contracts
+                await updateVendorContractStatus()
+
                 alert('Vendor berhasil diperbarui!')
             } else {
                 // Insert new vendor
@@ -196,6 +207,10 @@ function DataVendor() {
                     .insert([payload])
 
                 if (error) throw error
+
+                // Auto-update status based on contracts after save
+                await updateVendorContractStatus()
+
                 alert('Vendor berhasil ditambahkan!')
             }
 
@@ -373,6 +388,13 @@ function DataVendor() {
                         icon: CheckCircle,
                         color: '#2ecc71',
                         bgColor: '#e8f5e9',
+                    },
+                    {
+                        title: 'Vendor Dalam Kontrak',
+                        value: vendorsData.filter(v => v.status === 'Dalam Kontrak').length,
+                        icon: Briefcase,
+                        color: '#f59e0b',
+                        bgColor: '#fef3c7',
                     },
                     {
                         title: 'Vendor Tidak Aktif',
@@ -624,8 +646,12 @@ function DataVendor() {
                                         required
                                     >
                                         <option value="Aktif">Aktif</option>
+                                        <option value="Dalam Kontrak">Dalam Kontrak</option>
                                         <option value="Tidak Aktif">Tidak Aktif</option>
                                     </select>
+                                    <small style={{ color: '#6b7280', fontSize: '12px', marginTop: '4px', display: 'block' }}>
+                                        💡 Status akan otomatis disesuaikan dengan kontrak aktif setelah disimpan
+                                    </small>
                                 </div>
                                 <div className="form-group-vendor full-width">
                                     <label htmlFor="nama">Nama Vendor <span className="required-vendor">*</span></label>

@@ -668,6 +668,12 @@
   border: 1px solid rgba(22, 163, 74, 0.1);
 }
 
+.status-dalam-kontrak {
+  background: rgba(245, 158, 11, 0.12);
+  color: #d97706;
+  font-weight: 600;
+}
+
 .status-inactive {
   background: #fee2e2;
   color: #dc2626;
