@@ -13,7 +13,7 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-inter);
 }
 .column-dropdown-header-vendor {
   font-size: 16px;
@@ -69,7 +69,7 @@
   padding: 0;
   display: flex;
   flex-direction: column;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-inter);
   margin: 0 auto;
 }
 
@@ -86,7 +86,7 @@
   font-weight: 700;
   color: #222f3e;
   margin: 0;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-inter);
 }
 .modal-close-vendor {
   background: none;
@@ -111,7 +111,7 @@
   display: flex;
   flex-direction: column;
   gap: 0;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-inter);
 }
 .detail-grid-vendor {
   display: grid;
@@ -133,7 +133,7 @@
   margin-bottom: 6px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-inter);
 }
 .detail-value-vendor {
   background: #f9fafb;
@@ -144,7 +144,7 @@
   font-size: 14px;
   color: #1f2937;
   word-break: break-word;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-inter);
   line-height: 1.5;
 }
 .form-grid-vendor {
@@ -161,7 +161,7 @@
   font-weight: 600;
   color: #222f3e;
   margin-bottom: 6px;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-inter);
   display: block;
 }
 .required-vendor {
@@ -177,7 +177,7 @@
   font-size: 15px;
   transition: all 0.3s;
   outline: none;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-inter);
   background: #f8fafc;
   width: 100%;
   box-sizing: border-box;
@@ -209,7 +209,7 @@
   border-top: 1px solid #e9ecef;
   background: #fff;
   border-radius: 0 0 20px 20px;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-inter);
 }
 .btn-cancel-vendor {
   padding: 12px 24px;
@@ -221,7 +221,7 @@
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-inter);
 }
 .btn-cancel-vendor:hover {
   background: #e9ecef;
@@ -241,7 +241,7 @@
   cursor: pointer;
   transition: all 0.3s;
   box-shadow: 0 2px 8px rgba(30, 91, 168, 0.3);
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-inter);
 }
 .btn-submit-vendor:hover {
   transform: translateY(-2px);
@@ -270,7 +270,7 @@
   font-weight: 500;
   cursor: pointer;
   transition: all 0.18s;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-inter);
   outline: none;
   display: inline-block;
 }
@@ -281,7 +281,7 @@
 .file-upload-name-vendor {
   font-size: 13px;
   color: #5a6d7f;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-inter);
   min-width: 120px;
   max-width: 220px;
   overflow: hidden;
@@ -299,7 +299,7 @@
   font-weight: 600;
   cursor: pointer;
   transition: all 0.18s;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-inter);
   outline: none;
   display: inline-block;
 }
@@ -326,7 +326,7 @@
   cursor: pointer;
   transition: all 0.2s;
   box-shadow: 0 2px 8px rgba(126, 185, 217, 0.10);
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-inter);
 }
 
 .column-selector-btn-vendor {
@@ -343,7 +343,7 @@
   cursor: pointer;
   transition: all 0.18s;
   box-shadow: none;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-inter);
   outline: none;
 }
 .column-selector-btn-vendor:hover, .column-selector-btn-vendor:focus {
@@ -356,7 +356,7 @@
   font-weight: 700;
   color: #2b3f50;
   margin-bottom: 10px;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-inter);
 }
 
 .column-options-vendor {
@@ -370,7 +370,7 @@
   align-items: center;
   gap: 7px;
   font-size: 14px;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-inter);
   color: #2b3f50;
   font-weight: 500;
   cursor: pointer;
@@ -453,7 +453,7 @@
   margin: 0;
   font-weight: 500;
   letter-spacing: 0.2px;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-inter);
 }
 
 /* Action Bar */
@@ -512,7 +512,7 @@
   font-size: 14px;
   color: #2b3f50;
   background: transparent;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-inter);
   font-weight: 500;
 }
 
@@ -525,7 +525,7 @@
   font-size: 13px;
   color: #8b95a1;
   white-space: nowrap;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-inter);
   font-weight: 500;
 }
 
@@ -543,7 +543,7 @@
   cursor: pointer;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: none;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-inter);
 }
 
 .btn-primary-vendor:hover {
@@ -587,7 +587,7 @@
   text-transform: uppercase;
   letter-spacing: 0.5px;
   border-bottom: 1px solid #e2e8f0;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-inter);
   background: #f8fafc;
 }
 
@@ -607,7 +607,7 @@
   font-size: 14px;
   color: #334155;
   vertical-align: middle;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-inter);
 }
 
 .vendor-id {
@@ -646,7 +646,7 @@
   border-radius: 12px;
   font-size: 12px;
   font-weight: 600;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-inter);
 }
 
 /* Status Badges - Pill Shape */
@@ -657,7 +657,7 @@
   border-radius: 9999px;
   font-size: 12px;
   font-weight: 600;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-inter);
   letter-spacing: 0.3px;
   line-height: 1;
 }
@@ -1067,7 +1067,7 @@
   margin: 0 0 2px 0;
   line-height: 1;
   letter-spacing: -0.8px;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-inter);
 }
 
 .stat-title {
@@ -1076,7 +1076,7 @@
   margin: 0 0 8px 0;
   font-weight: 500;
   letter-spacing: 0.2px;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-inter);
 }
 
 .stats-grid {
@@ -1223,7 +1223,7 @@
   border-radius: 14px 14px 0 0;
   padding: 13px 20px 10px 20px;
   margin-bottom: 8px;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-inter);
   letter-spacing: 0.2px;
 }
 
@@ -1247,7 +1247,7 @@
   font-weight: 500;
   cursor: pointer;
   transition: all 0.25s;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-inter);
   outline: none;
   box-shadow: 0 1px 3px rgba(0,0,0,0.04);
 }

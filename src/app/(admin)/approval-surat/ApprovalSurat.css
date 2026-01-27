@@ -67,7 +67,7 @@
     color: #8b95a1;
     font-weight: 500;
     letter-spacing: 0.2px;
-    font-family: 'Inter', sans-serif;
+    font-family: var(--font-inter);
 }
 
 /* Table Container - Flat */
@@ -94,7 +94,7 @@
     font-weight: 700;
     color: #2b3f50;
     margin: 0;
-    font-family: 'Inter', sans-serif;
+    font-family: var(--font-inter);
     letter-spacing: -0.3px;
 }
 
@@ -109,7 +109,7 @@
     border: 1px solid rgba(200, 210, 220, 0.5);
     border-radius: 12px;
     font-size: 14px;
-    font-family: 'Inter', sans-serif;
+    font-family: var(--font-inter);
     color: #2b3f50;
     background: rgba(255, 255, 255, 0.8);
     cursor: pointer;
@@ -152,7 +152,7 @@
     border-bottom: 1px solid rgba(226, 232, 240, 0.4);
     color: #2b3f50;
     font-size: 14px;
-    font-family: 'Inter', sans-serif;
+    font-family: var(--font-inter);
 }
 
 .approval-table tbody tr {
@@ -174,7 +174,7 @@
     border-radius: 12px;
     font-size: 13px;
     font-weight: 600;
-    font-family: 'Inter', sans-serif;
+    font-family: var(--font-inter);
     letter-spacing: 0.2px;
 }
 
@@ -207,7 +207,7 @@
     border-radius: 10px;
     font-size: 13px;
     font-weight: 600;
-    font-family: 'Inter', sans-serif;
+    font-family: var(--font-inter);
     cursor: pointer;
     transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     display: inline-flex;
@@ -335,14 +335,14 @@
     font-weight: 700;
     color: #2b3f50;
     margin-bottom: 6px;
-    font-family: 'Inter', sans-serif;
+    font-family: var(--font-inter);
     letter-spacing: -0.3px;
 }
 
 .modal-header p {
     font-size: 14px;
     color: #8b95a1;
-    font-family: 'Inter', sans-serif;
+    font-family: var(--font-inter);
 }
 
 .modal-body {
@@ -364,7 +364,7 @@
     color: #8b95a1;
     min-width: 160px;
     font-size: 14px;
-    font-family: 'Inter', sans-serif;
+    font-family: var(--font-inter);
     letter-spacing: 0.2px;
 }
 
@@ -372,7 +372,7 @@
     color: #2b3f50;
     font-size: 14px;
     flex: 1;
-    font-family: 'Inter', sans-serif;
+    font-family: var(--font-inter);
 }
 
 /* File Attachment Styles */
@@ -444,7 +444,7 @@
     font-weight: 600;
     color: #2b3f50;
     margin-bottom: 10px;
-    font-family: 'Inter', sans-serif;
+    font-family: var(--font-inter);
     letter-spacing: 0.2px;
 }
 
@@ -454,7 +454,7 @@
     border: 1px solid rgba(200, 210, 220, 0.5);
     border-radius: 12px;
     font-size: 14px;
-    font-family: 'Inter', sans-serif;
+    font-family: var(--font-inter);
     color: #2b3f50;
     background: rgba(255, 255, 255, 0.8);
     resize: vertical;
@@ -483,7 +483,7 @@
     border-radius: 12px;
     font-size: 14px;
     font-weight: 600;
-    font-family: 'Inter', sans-serif;
+    font-family: var(--font-inter);
     cursor: pointer;
     transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -546,13 +546,13 @@
     font-weight: 600;
     color: #64748b;
     margin-bottom: 8px;
-    font-family: 'Inter', sans-serif;
+    font-family: var(--font-inter);
 }
 
 .empty-state p {
     font-size: 14px;
     color: #94a3b8;
-    font-family: 'Inter', sans-serif;
+    font-family: var(--font-inter);
 }
 
 /* Pagination */
@@ -573,7 +573,7 @@
     border-radius: 12px;
     font-size: 14px;
     font-weight: 600;
-    font-family: 'Inter', sans-serif;
+    font-family: var(--font-inter);
     cursor: pointer;
     transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -594,7 +594,7 @@
     font-size: 14px;
     color: #64748b;
     font-weight: 500;
-    font-family: 'Inter', sans-serif;
+    font-family: var(--font-inter);
     opacity: 0.5;
 }
 

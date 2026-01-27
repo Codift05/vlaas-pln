@@ -820,13 +820,13 @@ textarea:focus {
   font-weight: 600;
   color: #5a6d7f;
   margin: 0;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-inter);
 }
 
 .no-data-message small {
   font-size: 13px;
   color: #8b95a1;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-inter);
 }
 
 /* Responsive Design */
@@ -1109,7 +1109,7 @@ textarea:focus {
   font-weight: 600;
   cursor: pointer;
   transition: all 0.25s;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-inter);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
   min-width: unset;
   height: 44px;

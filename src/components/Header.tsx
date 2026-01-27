@@ -93,80 +93,6 @@ const HeaderContainer = styled.header`
     flex-shrink: 0;
   }
 
-  .search-box {
-    display: flex;
-    align-items: center;
-    background: #f8fafc;
-    padding: 0.5rem 1rem;
-    border-radius: 1.875rem;
-    gap: 0.5rem;
-    min-width: clamp(10rem, 12rem, 15rem);
-    max-width: 20rem;
-    border: 1px solid #e2e8f0;
-    transition: all 0.25s;
-    flex-shrink: 1;
-  }
-
-  .search-box:focus-within {
-    background: #ffffff;
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 0.25rem rgba(59, 130, 246, 0.1);
-  }
-
-  /* Zoom 110-125% adjustments */
-  @media (max-width: 1536px) {
-    padding: 0 clamp(0.75rem, 1rem, 1.5rem);
-    
-    .search-box {
-      min-width: 10rem;
-      max-width: 12rem;
-      padding: 0.45rem 0.875rem;
-    }
-
-    .header-right {
-      gap: 0.5rem;
-    }
-  }
-
-  @media (max-width: 1400px) {
-    padding: 0 0.75rem;
-    
-    .search-box {
-      min-width: 8rem;
-      max-width: 10rem;
-      padding: 0.4rem 0.75rem;
-    }
-
-    .header-title {
-      font-size: 1.125rem;
-    }
-  }
-
-  @media (max-width: 1200px) {
-    .search-box {
-      display: none;
-    }
-  }
-
-  .search-icon-svg {
-    color: #94a3b8;
-    flex-shrink: 0;
-  }
-
-  .search-input {
-    flex: 1;
-    border: none;
-    background: transparent;
-    outline: none;
-    font-size: 14px;
-    color: #334155;
-    font-family: var(--font-inter);
-  }
-
-  .search-input::placeholder {
-    color: var(--text-muted);
-    font-weight: 400;
-  }
 
   .notification-icon {
     position: relative;
@@ -619,7 +545,7 @@ const LogoGroup = styled.div`
 
   /* PLN Logo - Standard Size */
   .logo-pln {
-    height: 42px;
+    height: 55px;
     width: auto;
     object-fit: contain;
     transition: transform 0.2s;
@@ -627,7 +553,7 @@ const LogoGroup = styled.div`
 
   /* Danantara Logo - Maximize for 80px Header */
   .logo-danantara {
-    height: 28px;
+    height: 40px;
     width: auto;
     object-fit: contain;
     transition: transform 0.2s;

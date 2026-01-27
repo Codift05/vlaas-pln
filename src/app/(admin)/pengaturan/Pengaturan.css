@@ -19,7 +19,7 @@
   border-radius: 12px;
   font-size: 14px;
   font-weight: 600;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-inter);
   color: #64748b;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -88,7 +88,7 @@
 .section-title {
   font-size: 20px;
   font-weight: 700;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-inter);
   color: #2b3f50;
   margin: 0 0 20px 0;
   letter-spacing: -0.3px;
@@ -97,7 +97,7 @@
 .section-description {
   color: #8b95a1;
   font-size: 14px;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-inter);
   margin-bottom: 20px;
   font-weight: 500;
 }
@@ -131,7 +131,7 @@
 .form-group-settings label {
   font-size: 13px;
   font-weight: 700;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-inter);
   color: #2b3f50;
   letter-spacing: 0.2px;
 }
@@ -143,7 +143,7 @@
   border: 1px solid rgba(200, 210, 220, 0.5);
   border-radius: 12px;
   font-size: 14px;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-inter);
   color: #2b3f50;
   background: rgba(255, 255, 255, 0.8);
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
@@ -165,7 +165,7 @@
 
 .form-group-settings small {
   font-size: 12px;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-inter);
   color: #8b95a1;
   font-weight: 500;
 }
@@ -179,7 +179,7 @@
   border-radius: 12px;
   font-size: 14px;
   font-weight: 700;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-inter);
   cursor: pointer;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
@@ -206,7 +206,7 @@
 
 .recovery-text {
   font-size: 14px;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-inter);
   color: #8b95a1;
   margin: 0 0 12px 0;
   font-weight: 500;
@@ -220,7 +220,7 @@
   border-radius: 12px;
   font-size: 14px;
   font-weight: 700;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-inter);
   cursor: pointer;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   display: inline-flex;
@@ -243,7 +243,7 @@
   border-radius: 12px;
   font-size: 14px;
   font-weight: 700;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-inter);
   cursor: pointer;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   display: inline-flex;
@@ -277,7 +277,7 @@
   text-align: left;
   font-size: 13px;
   font-weight: 700;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-inter);
   color: #2b3f50;
   border-bottom: 2px solid rgba(233, 236, 239, 0.5);
   letter-spacing: 0.2px;
@@ -286,7 +286,7 @@
 .users-table td {
   padding: 16px 14px;
   font-size: 14px;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-inter);
   color: #5a9dc4;
   border-bottom: 1px solid rgba(233, 236, 239, 0.3);
 }
@@ -298,7 +298,7 @@
 .user-name {
   font-weight: 700;
   color: #2b3f50;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-inter);
 }
 
 .role-badge {
@@ -306,7 +306,7 @@
   border-radius: 12px;
   font-size: 12px;
   font-weight: 700;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-inter);
   letter-spacing: 0.2px;
 }
 
@@ -325,7 +325,7 @@
   border-radius: 12px;
   font-size: 12px;
   font-weight: 700;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-inter);
   letter-spacing: 0.2px;
 }
 
@@ -341,7 +341,7 @@
 
 .last-login {
   font-size: 13px;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-inter);
   color: #8b95a1;
   font-weight: 500;
 }
@@ -354,7 +354,7 @@
   border-radius: 10px;
   font-size: 13px;
   font-weight: 700;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-inter);
   cursor: pointer;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   display: inline-flex;
@@ -382,7 +382,7 @@
   border-radius: 10px;
   font-size: 13px;
   font-weight: 700;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-inter);
   cursor: pointer;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   display: inline-flex;
@@ -433,7 +433,7 @@
 .toggle-text {
   font-size: 14px;
   font-weight: 700;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-inter);
   color: #2b3f50;
   letter-spacing: 0.2px;
 }
@@ -451,7 +451,7 @@
   border: 1px solid rgba(200, 210, 220, 0.5);
   border-radius: 12px;
   font-size: 14px;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-inter);
   color: #2b3f50;
   background: rgba(255, 255, 255, 0.8);
   outline: none;
@@ -473,7 +473,7 @@
   border-radius: 12px;
   font-size: 14px;
   font-weight: 700;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-inter);
   cursor: pointer;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   display: inline-flex;
@@ -507,7 +507,7 @@
   text-align: left;
   font-size: 13px;
   font-weight: 700;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-inter);
   color: #2b3f50;
   border-bottom: 2px solid rgba(233, 236, 239, 0.5);
   letter-spacing: 0.2px;
@@ -516,7 +516,7 @@
 .audit-table td {
   padding: 14px;
   font-size: 13px;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-inter);
   color: #5a9dc4;
   border-bottom: 1px solid rgba(233, 236, 239, 0.3);
 }
@@ -526,7 +526,7 @@
 }
 
 .timestamp {
-  font-family: 'Inter', monospace;
+  font-family: var(--font-inter);
   color: #8b95a1;
   white-space: nowrap;
   font-weight: 500;
@@ -535,16 +535,16 @@
 .user-audit {
   font-weight: 700;
   color: #2b3f50;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-inter);
 }
 
 .action {
   color: #5a9dc4;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-inter);
 }
 
 .ip-address {
-  font-family: 'Inter', monospace;
+  font-family: var(--font-inter);
   color: #8b95a1;
   font-weight: 500;
 }
@@ -606,7 +606,7 @@
 .modal-header-settings h3 {
   font-size: 20px;
   font-weight: 700;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-inter);
   color: #2b3f50;
   margin: 0;
   letter-spacing: -0.3px;
@@ -652,7 +652,7 @@
   border-radius: 12px;
   font-size: 14px;
   font-weight: 700;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-inter);
   cursor: pointer;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   letter-spacing: 0.2px;
@@ -671,7 +671,7 @@
   border-radius: 12px;
   font-size: 14px;
   font-weight: 700;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-inter);
   cursor: pointer;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   display: inline-flex;
@@ -701,7 +701,7 @@
   display: block;
   font-size: 15px;
   font-weight: 600;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-inter);
   color: #2b3f50;
   margin-bottom: 16px;
 }
@@ -760,7 +760,7 @@
   border-radius: 12px;
   font-size: 14px;
   font-weight: 600;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-inter);
   cursor: pointer;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
@@ -793,7 +793,7 @@
   border-radius: 12px;
   font-size: 14px;
   font-weight: 600;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-inter);
   cursor: pointer;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
@@ -827,7 +827,7 @@
   font-size: 13px;
   color: #94a3b8;
   margin: 0;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-inter);
 }
 
 /* Responsive Design */

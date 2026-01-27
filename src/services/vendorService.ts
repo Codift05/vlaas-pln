@@ -161,7 +161,7 @@ export const autoSyncVendor = async (vendorName) => {
   try {
     // Skip jika nama vendor kosong
     if (!vendorName || vendorName.trim() === '') {
-      return { success: true, message: 'Vendor name is empty, skipping sync' };
+      return { success: true, data: null, message: 'Vendor name is empty, skipping sync' };
     }
 
     // 1. Cek apakah vendor sudah ada berdasarkan nama (case-insensitive)
@@ -224,6 +224,6 @@ export const autoSyncVendor = async (vendorName) => {
 
   } catch (error) {
     console.warn('Error in autoSyncVendor - continuing without vendor sync');
-    return { success: false, message: 'Vendor sync failed, but continuing' };
+    return { success: false, data: null, message: 'Vendor sync failed, but continuing' };
   }
 };
