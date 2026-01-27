@@ -1,7 +1,7 @@
 'use client'
 import React, { useState, useEffect } from 'react';
 import { Download, Calendar, Clock, CheckCircle, XCircle } from 'lucide-react';
-import { getAllSurat } from '@/services/suratService';
+import { getRiwayatSuratPengajuan } from '@/services/suratPengajuanService';
 import './VendorDashboard.css';
 
 export default function VendorDashboard() {
@@ -14,7 +14,7 @@ export default function VendorDashboard() {
     useEffect(() => {
         const loadSubmissions = async () => {
             setIsLoading(true);
-            const result = await getAllSurat();
+            const result = await getRiwayatSuratPengajuan();
 
             if (result.success && result.data) {
                 // Transform data to match component structure

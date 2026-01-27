@@ -24,7 +24,7 @@ Error: "Service Accounts do not have storage quota"
    - Klik CREATE
    
    **App Information:**
-   - App name: `PLN VLAAS Upload System`
+   - App name: `PLN SAKTI Upload System`
    - User support email: (email Anda)
    - Developer contact: (email Anda)
    - Klik SAVE AND CONTINUE
@@ -43,7 +43,7 @@ Error: "Service Accounts do not have storage quota"
    - Menu: APIs & Services > Credentials
    - CREATE CREDENTIALS > OAuth client ID
    - Application type: **Desktop app**
-   - Name: `PLN VLAAS Desktop Client`
+   - Name: `PLN SAKTI Desktop Client`
    - Klik CREATE
    
    **Download JSON:**

@@ -1,4 +1,4 @@
-# 🚀 Performance Optimization Guide - VLAAS PLN SAKTI
+# 🚀 Performance Optimization Guide - SAKTI PLN
 
 ## ✅ Optimasi yang Sudah Diterapkan
 

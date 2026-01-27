@@ -82,7 +82,7 @@ Cek apakah file-file ini sudah ada:
 ## File Structure
 
 ```
-VLAAS/
+SAKTI/
 ├── credentials.json          ← OAuth client credentials (jangan di-commit!)
 ├── token.json               ← Access token (jangan di-commit!)
 ├── GOOGLE_DRIVE_SETUP.md    ← Dokumentasi lengkap

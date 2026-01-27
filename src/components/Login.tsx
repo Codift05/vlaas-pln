@@ -2,6 +2,7 @@
 import React, { FC, useState, useEffect, FormEvent, ChangeEvent } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { login as loginService } from '../services/authService'
+import { requestPasswordReset, resetPassword, registerVendor } from '../services/vendorAuthService'
 import { supabase } from '../lib/supabaseClient'
 import styled from 'styled-components'
 
@@ -136,7 +137,7 @@ const LoginContainer = styled.div`
     margin-bottom: 35px;
   }
 
-  .vlaas-logo {
+  .sakti-logo {
     height: 70px;
     width: auto;
     object-fit: contain;
@@ -467,7 +468,7 @@ const LoginContainer = styled.div`
     border-radius: 16px;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
     width: 100%;
-    max-width: 600px;
+    max-width: 900px;
     max-height: 90vh;
     overflow-y: auto;
     position: relative;
@@ -527,6 +528,8 @@ const LoginContainer = styled.div`
 
   .register-modal-body {
     padding: 30px;
+    max-height: calc(90vh - 80px);
+    overflow-y: auto;
   }
 
   .register-modal-subtitle {
@@ -569,16 +572,36 @@ const Login: FC = () => {
   const [loading, setLoading] = useState<boolean>(false)
   const [error, setError] = useState<string>('')
   const [isRegisterMode, setIsRegisterMode] = useState<boolean>(false)
+  const [isForgotPasswordMode, setIsForgotPasswordMode] = useState<boolean>(false)
+  const [forgotPasswordStep, setForgotPasswordStep] = useState<number>(1)
+  const [forgotPasswordData, setForgotPasswordData] = useState({
+    email: '',
+    resetToken: '',
+    newPassword: '',
+    confirmPassword: ''
+  })
 
-  // Register form fields
+  // Register form fields - updated to match vendor profile
   const [registerData, setRegisterData] = useState({
-    nama: '',
+    companyName: '',
+    companyType: 'PT',
     email: '',
     password: '',
     confirmPassword: '',
-    telepon: '',
-    alamat: '',
-    kontakPerson: ''
+    phone: '',
+    address: '',
+    city: '',
+    province: '',
+    postalCode: '',
+    fax: '',
+    picName: '',
+    picPosition: '',
+    picPhone: '',
+    picEmail: '',
+    npwp: '',
+    siup: '',
+    tdp: '',
+    established: ''
   })
 
   useEffect(() => {
@@ -595,8 +618,8 @@ const Login: FC = () => {
 
     try {
       // Validasi
-      if (!registerData.nama || !registerData.email || !registerData.password || !registerData.telepon) {
-        setError('Nama, email, password, dan telepon wajib diisi')
+      if (!registerData.companyName || !registerData.email || !registerData.password || !registerData.phone) {
+        setError('Nama perusahaan, email, password, dan telepon wajib diisi')
         setLoading(false)
         return
       }
@@ -619,6 +642,22 @@ const Login: FC = () => {
         .insert([{
           email: registerData.email,
           password: registerData.password, // In production, hash this!
+          company_name: registerData.companyName,
+          company_type: registerData.companyType,
+          address: registerData.address,
+          city: registerData.city,
+          province: registerData.province,
+          postal_code: registerData.postalCode,
+          phone: registerData.phone,
+          fax: registerData.fax,
+          pic_name: registerData.picName,
+          pic_position: registerData.picPosition,
+          pic_phone: registerData.picPhone,
+          pic_email: registerData.picEmail,
+          npwp: registerData.npwp,
+          siup: registerData.siup,
+          tdp: registerData.tdp,
+          established: registerData.established ? parseInt(registerData.established) : null,
           profile_image: null
         }])
         .select()
@@ -659,11 +698,11 @@ const Login: FC = () => {
         .insert([{
           id: newVendorId,
           user_id: newUser.id, // Link to vendor_users
-          nama: registerData.nama,
+          nama: registerData.companyName,
           email: registerData.email,
-          telepon: registerData.telepon,
-          alamat: registerData.alamat || '',
-          kontak_person: registerData.kontakPerson || '',
+          telepon: registerData.phone,
+          alamat: registerData.address || '',
+          kontak_person: registerData.picName || '',
           status: 'Aktif'
         }])
 
@@ -682,13 +721,25 @@ const Login: FC = () => {
 
       // Reset form dan kembali ke login
       setRegisterData({
-        nama: '',
+        companyName: '',
+        companyType: 'PT',
         email: '',
         password: '',
         confirmPassword: '',
-        telepon: '',
-        alamat: '',
-        kontakPerson: ''
+        phone: '',
+        address: '',
+        city: '',
+        province: '',
+        postalCode: '',
+        fax: '',
+        picName: '',
+        picPosition: '',
+        picPhone: '',
+        picEmail: '',
+        npwp: '',
+        siup: '',
+        tdp: '',
+        established: ''
       })
       setIsRegisterMode(false)
       setEmail(registerData.email)
@@ -703,6 +754,74 @@ const Login: FC = () => {
       setLoading(false)
     }
   }
+
+  // Forgot Password Handlers
+  const handleForgotPasswordRequest = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
+    e.preventDefault()
+    setError('')
+    setLoading(true)
+
+    try {
+      const result = await requestPasswordReset(forgotPasswordData.email)
+
+      if (result.success) {
+        // Jika email berhasil dikirim, tidak tampilkan kode di alert
+        if (result.data?.resetToken) {
+          // Fallback: jika email gagal, kode ditampilkan
+          alert(result.message + '\n\nKode reset: ' + result.data.resetToken + '\n(Email gagal terkirim, gunakan kode ini)')
+        } else {
+          // Email berhasil dikirim
+          alert(result.message)
+        }
+        setForgotPasswordStep(2)
+      } else {
+        setError(result.error || 'Terjadi kesalahan')
+      }
+    } catch (err) {
+      setError('Terjadi kesalahan. Silakan coba lagi.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handlePasswordReset = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
+    e.preventDefault()
+    setError('')
+    setLoading(true)
+
+    try {
+      if (forgotPasswordData.newPassword !== forgotPasswordData.confirmPassword) {
+        setError('Password tidak cocok')
+        setLoading(false)
+        return
+      }
+
+      const result = await resetPassword(
+        forgotPasswordData.email,
+        forgotPasswordData.resetToken,
+        forgotPasswordData.newPassword
+      )
+
+      if (result.success) {
+        alert(result.message)
+        setIsForgotPasswordMode(false)
+        setForgotPasswordStep(1)
+        setForgotPasswordData({
+          email: '',
+          resetToken: '',
+          newPassword: '',
+          confirmPassword: ''
+        })
+      } else {
+        setError(result.error || 'Terjadi kesalahan')
+      }
+    } catch (err) {
+      setError('Terjadi kesalahan. Silakan coba lagi.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const handleLogin = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault()
     setError('')
@@ -711,15 +830,29 @@ const Login: FC = () => {
     try {
       if (devMode) {
         if (isVendorLogin) {
+          // In dev mode, still authenticate properly to get the real user ID
+          const { data: user, error: authError } = await supabase
+            .from('vendor_users')
+            .select('*')
+            .eq('email', email)
+            .eq('password', password)
+            .single()
+
+          if (authError || !user) {
+            setError('Email atau password salah')
+            setLoading(false)
+            return
+          }
+
           localStorage.setItem('vendorLoggedIn', 'true')
-          localStorage.setItem('vendorEmail', email || 'vendor@demo.com')
-          localStorage.setItem('vendorUserId', '2') // Demo vendor user ID
+          localStorage.setItem('vendorEmail', email)
+          localStorage.setItem('vendorUserId', user.id.toString()) // Use real user ID
           localStorage.setItem('vendorProfile', JSON.stringify({
-            userId: 2,
-            email: 'Vendor@gmail.com',
-            companyName: 'PT Demo Vendor',
-            picName: 'Demo User',
-            profileImage: ''
+            userId: user.id,
+            email: user.email,
+            companyName: user.company_name || '',
+            picName: user.pic_name || '',
+            profileImage: user.profile_image || ''
           }))
           router.push('/vendor-portal')
         } else {
@@ -867,7 +1000,7 @@ const Login: FC = () => {
 
         <div className="login-form-wrapper">
           <div className="login-logo">
-            <img src="/images/Logo SAKTI 2.png" alt="SAKTI Logo" className="vlaas-logo" />
+            <img src="/images/Logo SAKTI 2.png" alt="SAKTI Logo" className="sakti-logo" />
           </div>
 
           <form className="login-form" onSubmit={handleLogin}>
@@ -875,7 +1008,7 @@ const Login: FC = () => {
               {isVendorLogin ? 'Login Sebagai Vendor' : 'Login Sebagai Admin'}
             </h1>
             <p className="form-greeting">
-              Selamat Datang di <span className="highlight">VLAAS</span>
+              Selamat Datang di <span className="highlight">SAKTI</span>
             </p>
 
             {error && (
@@ -935,7 +1068,17 @@ const Login: FC = () => {
                 />
                 <span>Ingat Saya</span>
               </label>
-              <a href="#" className="forgot-password">Lupa Password</a>
+              <a
+                href="#"
+                className="forgot-password"
+                onClick={(e) => {
+                  e.preventDefault();
+                  setIsForgotPasswordMode(true);
+                  setError('');
+                }}
+              >
+                Lupa Password
+              </a>
             </div>
 
             <button type="submit" className="login-button" disabled={loading}>
@@ -983,7 +1126,7 @@ const Login: FC = () => {
 
             <div className="register-modal-body">
               <p className="register-modal-subtitle">
-                Selamat Datang di <span className="highlight">VLAAS</span>
+                Selamat Datang di <span className="highlight">SAKTI</span>
               </p>
 
               {error && (
@@ -994,15 +1137,20 @@ const Login: FC = () => {
               )}
 
               <form onSubmit={handleRegister}>
+                {/* Informasi Perusahaan */}
+                <h3 className="section-title" style={{ fontSize: '16px', fontWeight: '600', color: '#1e3c72', marginTop: '20px', marginBottom: '15px', borderBottom: '2px solid #1e88e5', paddingBottom: '8px' }}>
+                  Informasi Perusahaan
+                </h3>
+
                 <div className="input-group">
                   <label className="input-label">
-                    Nama Vendor <span className="required">*</span>
+                    Nama Perusahaan <span className="required">*</span>
                   </label>
                   <input
                     type="text"
-                    placeholder="PT Nama Vendor"
-                    value={registerData.nama}
-                    onChange={(e) => setRegisterData({ ...registerData, nama: e.target.value })}
+                    placeholder="PT Nama Perusahaan"
+                    value={registerData.companyName}
+                    onChange={(e) => setRegisterData({ ...registerData, companyName: e.target.value })}
                     className="input-field"
                     required
                     disabled={loading}
@@ -1011,11 +1159,176 @@ const Login: FC = () => {
 
                 <div className="input-group">
                   <label className="input-label">
-                    Email <span className="required">*</span>
+                    Jenis Badan Usaha <span className="required">*</span>
+                  </label>
+                  <select
+                    value={registerData.companyType}
+                    onChange={(e) => setRegisterData({ ...registerData, companyType: e.target.value })}
+                    className="input-field"
+                    required
+                    disabled={loading}
+                    style={{ cursor: 'pointer' }}
+                  >
+                    <option value="PT">PT (Perseroan Terbatas)</option>
+                    <option value="CV">CV (Commanditaire Vennootschap)</option>
+                    <option value="UD">UD (Usaha Dagang)</option>
+                    <option value="Koperasi">Koperasi</option>
+                    <option value="Yayasan">Yayasan</option>
+                  </select>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+                  <div className="input-group">
+                    <label className="input-label">NPWP</label>
+                    <input
+                      type="text"
+                      placeholder="00.000.000.0-000.000"
+                      value={registerData.npwp}
+                      onChange={(e) => setRegisterData({ ...registerData, npwp: e.target.value })}
+                      className="input-field"
+                      disabled={loading}
+                    />
+                  </div>
+
+                  <div className="input-group">
+                    <label className="input-label">Tahun Berdiri</label>
+                    <input
+                      type="number"
+                      placeholder="2020"
+                      value={registerData.established}
+                      onChange={(e) => setRegisterData({ ...registerData, established: e.target.value })}
+                      className="input-field"
+                      disabled={loading}
+                    />
+                  </div>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+                  <div className="input-group">
+                    <label className="input-label">No. SIUP</label>
+                    <input
+                      type="text"
+                      placeholder="Nomor SIUP"
+                      value={registerData.siup}
+                      onChange={(e) => setRegisterData({ ...registerData, siup: e.target.value })}
+                      className="input-field"
+                      disabled={loading}
+                    />
+                  </div>
+
+                  <div className="input-group">
+                    <label className="input-label">TDP</label>
+                    <input
+                      type="text"
+                      placeholder="Nomor TDP"
+                      value={registerData.tdp}
+                      onChange={(e) => setRegisterData({ ...registerData, tdp: e.target.value })}
+                      className="input-field"
+                      disabled={loading}
+                    />
+                  </div>
+                </div>
+
+                {/* Alamat Perusahaan */}
+                <h3 className="section-title" style={{ fontSize: '16px', fontWeight: '600', color: '#1e3c72', marginTop: '20px', marginBottom: '15px', borderBottom: '2px solid #1e88e5', paddingBottom: '8px' }}>
+                  Alamat Perusahaan
+                </h3>
+
+                <div className="input-group">
+                  <label className="input-label">
+                    Alamat Lengkap <span className="required">*</span>
+                  </label>
+                  <textarea
+                    placeholder="Jalan, Nomor, RT/RW, Kelurahan, Kecamatan"
+                    value={registerData.address}
+                    onChange={(e) => setRegisterData({ ...registerData, address: e.target.value })}
+                    className="input-field"
+                    required
+                    disabled={loading}
+                    rows={3}
+                    style={{ resize: 'vertical', fontFamily: 'inherit' }}
+                  />
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+                  <div className="input-group">
+                    <label className="input-label">Kota/Kabupaten</label>
+                    <input
+                      type="text"
+                      placeholder="Jakarta"
+                      value={registerData.city}
+                      onChange={(e) => setRegisterData({ ...registerData, city: e.target.value })}
+                      className="input-field"
+                      disabled={loading}
+                    />
+                  </div>
+
+                  <div className="input-group">
+                    <label className="input-label">Provinsi</label>
+                    <input
+                      type="text"
+                      placeholder="DKI Jakarta"
+                      value={registerData.province}
+                      onChange={(e) => setRegisterData({ ...registerData, province: e.target.value })}
+                      className="input-field"
+                      disabled={loading}
+                    />
+                  </div>
+                </div>
+
+                <div className="input-group">
+                  <label className="input-label">Kode Pos</label>
+                  <input
+                    type="text"
+                    placeholder="12345"
+                    value={registerData.postalCode}
+                    onChange={(e) => setRegisterData({ ...registerData, postalCode: e.target.value })}
+                    className="input-field"
+                    disabled={loading}
+                  />
+                </div>
+
+                {/* Kontak Perusahaan */}
+                <h3 className="section-title" style={{ fontSize: '16px', fontWeight: '600', color: '#1e3c72', marginTop: '20px', marginBottom: '15px', borderBottom: '2px solid #1e88e5', paddingBottom: '8px' }}>
+                  Kontak Perusahaan
+                </h3>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+                  <div className="input-group">
+                    <label className="input-label">
+                      Telepon <span className="required">*</span>
+                    </label>
+                    <input
+                      type="tel"
+                      placeholder="021-12345678"
+                      value={registerData.phone}
+                      onChange={(e) => setRegisterData({ ...registerData, phone: e.target.value })}
+                      className="input-field"
+                      required
+                      disabled={loading}
+                    />
+                  </div>
+
+                  <div className="input-group">
+                    <label className="input-label">Fax</label>
+                    <input
+                      type="tel"
+                      placeholder="021-12345679"
+                      value={registerData.fax}
+                      onChange={(e) => setRegisterData({ ...registerData, fax: e.target.value })}
+                      className="input-field"
+                      disabled={loading}
+                    />
+                  </div>
+                </div>
+
+                <div className="input-group">
+                  <label className="input-label">
+                    Email Perusahaan <span className="required">*</span>
                   </label>
                   <input
                     type="email"
-                    placeholder="vendor@example.com"
+                    placeholder="info@perusahaan.com"
                     value={registerData.email}
                     onChange={(e) => setRegisterData({ ...registerData, email: e.target.value })}
                     className="input-field"
@@ -1024,48 +1337,67 @@ const Login: FC = () => {
                   />
                 </div>
 
-                <div className="input-group">
-                  <label className="input-label">
-                    Telepon <span className="required">*</span>
-                  </label>
-                  <input
-                    type="tel"
-                    placeholder="081234567890"
-                    value={registerData.telepon}
-                    onChange={(e) => setRegisterData({ ...registerData, telepon: e.target.value })}
-                    className="input-field"
-                    required
-                    disabled={loading}
-                  />
+                {/* Penanggung Jawab */}
+                <h3 className="section-title" style={{ fontSize: '16px', fontWeight: '600', color: '#1e3c72', marginTop: '20px', marginBottom: '15px', borderBottom: '2px solid #1e88e5', paddingBottom: '8px' }}>
+                  Penanggung Jawab
+                </h3>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+                  <div className="input-group">
+                    <label className="input-label">Nama Lengkap</label>
+                    <input
+                      type="text"
+                      placeholder="Budi Santoso"
+                      value={registerData.picName}
+                      onChange={(e) => setRegisterData({ ...registerData, picName: e.target.value })}
+                      className="input-field"
+                      disabled={loading}
+                    />
+                  </div>
+
+                  <div className="input-group">
+                    <label className="input-label">Jabatan</label>
+                    <input
+                      type="text"
+                      placeholder="Direktur"
+                      value={registerData.picPosition}
+                      onChange={(e) => setRegisterData({ ...registerData, picPosition: e.target.value })}
+                      className="input-field"
+                      disabled={loading}
+                    />
+                  </div>
                 </div>
 
-                <div className="input-group">
-                  <label className="input-label">
-                    Alamat
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="Alamat lengkap vendor"
-                    value={registerData.alamat}
-                    onChange={(e) => setRegisterData({ ...registerData, alamat: e.target.value })}
-                    className="input-field"
-                    disabled={loading}
-                  />
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+                  <div className="input-group">
+                    <label className="input-label">No. Telepon</label>
+                    <input
+                      type="tel"
+                      placeholder="0812-3456-7890"
+                      value={registerData.picPhone}
+                      onChange={(e) => setRegisterData({ ...registerData, picPhone: e.target.value })}
+                      className="input-field"
+                      disabled={loading}
+                    />
+                  </div>
+
+                  <div className="input-group">
+                    <label className="input-label">Email</label>
+                    <input
+                      type="email"
+                      placeholder="budi@perusahaan.com"
+                      value={registerData.picEmail}
+                      onChange={(e) => setRegisterData({ ...registerData, picEmail: e.target.value })}
+                      className="input-field"
+                      disabled={loading}
+                    />
+                  </div>
                 </div>
 
-                <div className="input-group">
-                  <label className="input-label">
-                    Kontak Person
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="Nama kontak person"
-                    value={registerData.kontakPerson}
-                    onChange={(e) => setRegisterData({ ...registerData, kontakPerson: e.target.value })}
-                    className="input-field"
-                    disabled={loading}
-                  />
-                </div>
+                {/* Keamanan */}
+                <h3 className="section-title" style={{ fontSize: '16px', fontWeight: '600', color: '#1e3c72', marginTop: '20px', marginBottom: '15px', borderBottom: '2px solid #1e88e5', paddingBottom: '8px' }}>
+                  Keamanan
+                </h3>
 
                 <div className="input-group">
                   <label className="input-label">
@@ -1114,6 +1446,120 @@ const Login: FC = () => {
                   Sudah punya akun? <a href="#" className="register-link" onClick={(e) => { e.preventDefault(); setIsRegisterMode(false); setError(''); }}>Login di sini</a>
                 </p>
               </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Forgot Password Modal */}
+      {isForgotPasswordMode && (
+        <div className="register-modal-overlay" onClick={() => { setIsForgotPasswordMode(false); setError(''); setForgotPasswordStep(1); }}>
+          <div className="register-modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '500px' }}>
+            <div className="register-modal-header">
+              <h2 className="register-modal-title">Lupa Password</h2>
+              <button className="register-modal-close" onClick={() => { setIsForgotPasswordMode(false); setError(''); setForgotPasswordStep(1); }}>
+                ×
+              </button>
+            </div>
+
+            <div className="register-modal-body">
+              {error && (
+                <div className="error-message">
+                  <span className="error-icon">⚠️</span>
+                  <span>{error}</span>
+                </div>
+              )}
+
+              {forgotPasswordStep === 1 ? (
+                <form onSubmit={handleForgotPasswordRequest}>
+                  <p style={{ marginBottom: '20px', color: '#666', fontSize: '14px' }}>
+                    Masukkan email yang terdaftar untuk menerima kode reset password.
+                  </p>
+
+                  <div className="input-group">
+                    <label className="input-label">
+                      Email Terdaftar <span className="required">*</span>
+                    </label>
+                    <input
+                      type="email"
+                      placeholder="vendor@example.com"
+                      value={forgotPasswordData.email}
+                      onChange={(e) => setForgotPasswordData({ ...forgotPasswordData, email: e.target.value })}
+                      className="input-field"
+                      required
+                      disabled={loading}
+                    />
+                  </div>
+
+                  <button type="submit" className="login-button" disabled={loading} style={{ marginTop: '20px', width: '100%' }}>
+                    {loading ? 'Mengirim...' : 'Kirim Kode Reset'}
+                  </button>
+
+                  <p className="register-text" style={{ marginTop: '15px' }}>
+                    Ingat password? <a href="#" className="register-link" onClick={(e) => { e.preventDefault(); setIsForgotPasswordMode(false); setError(''); }}>Login di sini</a>
+                  </p>
+                </form>
+              ) : (
+                <form onSubmit={handlePasswordReset}>
+                  <p style={{ marginBottom: '20px', color: '#666', fontSize: '14px' }}>
+                    Masukkan kode reset yang telah dikirim ke email Anda.
+                  </p>
+
+                  <div className="input-group">
+                    <label className="input-label">
+                      Kode Reset (6 digit) <span className="required">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="123456"
+                      value={forgotPasswordData.resetToken}
+                      onChange={(e) => setForgotPasswordData({ ...forgotPasswordData, resetToken: e.target.value })}
+                      className="input-field"
+                      maxLength={6}
+                      required
+                      disabled={loading}
+                    />
+                  </div>
+
+                  <div className="input-group">
+                    <label className="input-label">
+                      Password Baru <span className="required">*</span>
+                    </label>
+                    <input
+                      type="password"
+                      placeholder="Minimal 6 karakter"
+                      value={forgotPasswordData.newPassword}
+                      onChange={(e) => setForgotPasswordData({ ...forgotPasswordData, newPassword: e.target.value })}
+                      className="input-field"
+                      required
+                      disabled={loading}
+                    />
+                  </div>
+
+                  <div className="input-group">
+                    <label className="input-label">
+                      Konfirmasi Password <span className="required">*</span>
+                    </label>
+                    <input
+                      type="password"
+                      placeholder="Ulangi password baru"
+                      value={forgotPasswordData.confirmPassword}
+                      onChange={(e) => setForgotPasswordData({ ...forgotPasswordData, confirmPassword: e.target.value })}
+                      className="input-field"
+                      required
+                      disabled={loading}
+                    />
+                  </div>
+
+                  <button type="submit" className="login-button" disabled={loading} style={{ marginTop: '20px', width: '100%' }}>
+                    {loading ? 'Mengubah Password...' : 'Reset Password'}
+                  </button>
+
+                  <p className="register-text" style={{ marginTop: '15px' }}>
+                    <a href="#" className="register-link" onClick={(e) => { e.preventDefault(); setForgotPasswordStep(1); setError(''); }}>Kembali</a>
+                  </p>
+                </form>
+              )}
             </div>
           </div>
         </div>

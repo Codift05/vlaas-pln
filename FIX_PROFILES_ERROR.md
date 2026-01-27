@@ -11,7 +11,7 @@ Gagal memperbarui profil: Could not find the table 'public.profiles' in the sche
 ### Langkah 1: Buka Supabase Dashboard
 
 1. Buka <https://supabase.com>
-2. Login dan pilih project **pln-vlaas** Anda
+2. Login dan pilih project **pln-sakti** Anda
 3. Klik menu **SQL Editor** di sidebar kiri
 
 ### Langkah 2: Jalankan Database Schema
