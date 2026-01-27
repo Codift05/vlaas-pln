@@ -173,7 +173,7 @@
 .btn-save {
   align-self: flex-start;
   padding: 12px 28px;
-  background: linear-gradient(135deg, #7eb9d9 0%, #5a9dc4 100%);
+  background: #3b82f6;
   color: white;
   border: none;
   border-radius: 12px;
@@ -190,8 +190,9 @@
 }
 
 .btn-save:hover {
+  background: #2563eb;
   transform: translateY(-2px);
-  box-shadow: 0 4px 16px rgba(126, 185, 217, 0.4);
+  box-shadow: 0 4px 16px rgba(59, 130, 246, 0.4);
 }
 
 /* Recovery Section */
@@ -466,7 +467,7 @@
 
 .btn-filter-audit {
   padding: 10px 24px;
-  background: linear-gradient(135deg, #7eb9d9 0%, #5a9dc4 100%);
+  background: #3b82f6;
   color: white;
   border: none;
   border-radius: 12px;
@@ -482,8 +483,9 @@
 }
 
 .btn-filter-audit:hover {
+  background: #2563eb;
   transform: translateY(-2px);
-  box-shadow: 0 4px 16px rgba(126, 185, 217, 0.4);
+  box-shadow: 0 4px 16px rgba(59, 130, 246, 0.4);
 }
 
 .audit-table-container {

@@ -10,49 +10,38 @@
 }
 
 .approval-stat-card {
-    background: rgba(255, 255, 255, 0.65);
-    backdrop-filter: blur(8px);
-    padding: 26px 24px;
-    border-radius: 24px;
-    box-shadow: 0 2px 16px rgba(0, 0, 0, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.6);
+    background: #ffffff;
+    padding: 24px;
+    border-radius: 20px;
+    box-shadow: none;
+    border: 1px solid rgba(226, 232, 240, 0.6);
     display: flex;
     align-items: center;
     gap: 18px;
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
     overflow: hidden;
 }
 
-.approval-stat-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 0;
-    height: 100%;
-    background: linear-gradient(90deg, rgba(126, 185, 217, 0.08) 0%, transparent 100%);
-    transition: width 0.3s;
-}
+
 
 .approval-stat-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
-}
-
-.approval-stat-card:hover::before {
-    width: 100%;
+    transform: translateY(-4px);
+    box-shadow: none;
+    border-color: rgba(59, 130, 246, 0.2);
 }
 
 .approval-stat-icon {
     width: 56px;
     height: 56px;
-    border-radius: 18px;
+    border-radius: 16px;
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    transition: transform 0.25s;
+    transition: transform 0.3s;
+    background: #eff6ff;
+    color: #3b82f6;
 }
 
 .approval-stat-card:hover .approval-stat-icon {
@@ -64,13 +53,13 @@
 }
 
 .approval-stat-info .stat-value {
-    font-size: 34px;
+    font-size: 28px;
     font-weight: 700;
-    color: #2b3f50;
+    color: #1e293b;
     line-height: 1;
     margin-bottom: 4px;
-    letter-spacing: -0.8px;
-    font-family: 'Inter', sans-serif;
+    letter-spacing: -0.5px;
+    font-family: var(--font-inter);
 }
 
 .approval-stat-info .stat-label {
@@ -81,21 +70,15 @@
     font-family: 'Inter', sans-serif;
 }
 
-/* Table Container - mengikuti style chart-card dari Laporan */
+/* Table Container - Flat */
 .approval-table-container {
-    background: rgba(255, 255, 255, 0.65);
-    backdrop-filter: blur(8px);
-    border-radius: 24px;
-    box-shadow: 0 2px 16px rgba(0, 0, 0, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.6);
+    background: #ffffff;
+    border-radius: 20px;
+    box-shadow: none;
+    border: 1px solid rgba(226, 232, 240, 0.6);
     overflow: hidden;
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     min-height: 600px;
-}
-
-.approval-table-container:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
 }
 
 .approval-table-header {
@@ -137,7 +120,7 @@
 
 .filter-select:hover,
 .filter-select:focus {
-    border-color: #7eb9d9;
+    border-color: #3b82f6;
     background: white;
 }
 
@@ -152,15 +135,16 @@
 }
 
 .approval-table th {
-    padding: 16px 24px;
+    padding: 18px 24px;
     text-align: left;
-    font-size: 13px;
-    font-weight: 600;
-    color: #8b95a1;
+    font-size: 12px;
+    font-weight: 700;
+    color: #64748b;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    border-bottom: 1px solid rgba(226, 232, 240, 0.6);
-    font-family: 'Inter', sans-serif;
+    border-bottom: 1px solid #e2e8f0;
+    font-family: var(--font-inter);
+    background: #f8fafc;
 }
 
 .approval-table td {
@@ -172,11 +156,13 @@
 }
 
 .approval-table tbody tr {
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    border-bottom: 1px solid #f1f5f9;
+    transition: all 0.2s ease;
 }
 
 .approval-table tbody tr:hover {
-    background: rgba(248, 250, 252, 0.5);
+    background: #f8fafc;
+    transform: translateY(-1px);
 }
 
 /* Status Badge */
@@ -231,36 +217,48 @@
 }
 
 .btn-approve {
-    background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
-    color: white;
-    box-shadow: 0 2px 8px rgba(46, 204, 113, 0.2);
+    background: #dcfce7;
+    color: #16a34a;
+    border: 1px solid #bbf7d0;
+    box-shadow: none;
 }
 
 .btn-approve:hover {
+    background: #22c55e;
+    color: white;
+    border-color: #22c55e;
     transform: translateY(-2px);
-    box-shadow: 0 4px 16px rgba(46, 204, 113, 0.3);
+    box-shadow: none;
 }
 
 .btn-reject {
-    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
-    color: white;
-    box-shadow: 0 2px 8px rgba(231, 76, 60, 0.2);
+    background: #fee2e2;
+    color: #dc2626;
+    border: 1px solid #fecaca;
+    box-shadow: none;
 }
 
 .btn-reject:hover {
+    background: #ef4444;
+    color: white;
+    border-color: #ef4444;
     transform: translateY(-2px);
-    box-shadow: 0 4px 16px rgba(231, 76, 60, 0.3);
+    box-shadow: none;
 }
 
 .btn-detail {
-    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-    color: white;
-    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
+    background: #eff6ff;
+    color: #3b82f6;
+    border: 1px solid #bfdbfe;
+    box-shadow: none;
 }
 
 .btn-detail:hover {
+    background: #3b82f6;
+    color: white;
+    border-color: #3b82f6;
     transform: translateY(-2px);
-    box-shadow: 0 4px 16px rgba(59, 130, 246, 0.3);
+    box-shadow: none;
 }
 
 .btn-approve:disabled,
@@ -297,17 +295,22 @@
     }
 }
 
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
 .modal-content {
-    background: rgba(255, 255, 255, 0.98);
-    backdrop-filter: blur(12px);
-    border-radius: 24px;
+    background: #ffffff;
+    border-radius: 20px;
     padding: 32px;
     max-width: 540px;
     width: 100%;
     max-height: 85vh;
     overflow-y: auto;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
-    border: 1px solid rgba(255, 255, 255, 0.6);
+    box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e2e8f0;
     animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     position: relative;
 }
@@ -411,11 +414,12 @@
 }
 
 .btn-file-action.view {
-    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    background: #3b82f6;
     color: white;
 }
 
 .btn-file-action.view:hover {
+    background: #2563eb;
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
@@ -493,30 +497,33 @@
 
 .btn-confirm {
     padding: 11px 24px;
-    border: none;
-    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    border: 1px solid #3b82f6;
+    background: #3b82f6;
     color: white;
     border-radius: 12px;
     font-size: 14px;
     font-weight: 600;
-    font-family: 'Inter', sans-serif;
+    font-family: var(--font-inter);
     cursor: pointer;
     transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
+    box-shadow: none;
 }
 
 .btn-confirm:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 16px rgba(59, 130, 246, 0.3);
+    background: #2563eb;
+    box-shadow: none;
 }
 
 .btn-confirm.danger {
-    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
-    box-shadow: 0 2px 8px rgba(231, 76, 60, 0.2);
+    background: #ef4444;
+    border-color: #ef4444;
+    box-shadow: none;
 }
 
 .btn-confirm.danger:hover {
-    box-shadow: 0 4px 16px rgba(231, 76, 60, 0.3);
+    background: #dc2626;
+    box-shadow: none;
 }
 
 /* Empty State */
@@ -524,7 +531,6 @@
     text-align: center;
     padding: 80px 40px;
     color: #8b95a1;
-}
 }
 
 .empty-state-icon {
@@ -574,8 +580,8 @@
 
 .pagination-btn:hover:not(:disabled) {
     background: white;
-    border-color: #7eb9d9;
-    color: #2b3f50;
+    border-color: #3b82f6;
+    color: #3b82f6;
     transform: translateY(-1px);
 }
 

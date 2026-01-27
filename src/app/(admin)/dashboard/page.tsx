@@ -608,8 +608,9 @@ export default function DashboardPage() {
                                                 y1="0"
                                                 x2="950"
                                                 y2="0"
-                                                stroke="#e2e8f0"
+                                                stroke="#f1f5f9"
                                                 strokeWidth="1"
+                                                strokeDasharray="4 4"
                                             />
                                         )
                                     }
@@ -637,8 +638,9 @@ export default function DashboardPage() {
                                             y1={i * gridSpacing}
                                             x2="950"
                                             y2={i * gridSpacing}
-                                            stroke="#e2e8f0"
+                                            stroke="#f1f5f9"
                                             strokeWidth="1"
+                                            strokeDasharray="4 4"
                                         />
                                     ))
                                 })()}
@@ -691,7 +693,7 @@ export default function DashboardPage() {
                                                 points={dalamProsesPoints}
                                                 fill="none"
                                                 stroke="#f59e0b"
-                                                strokeWidth="3"
+                                                strokeWidth="2"
                                                 strokeLinecap="round"
                                                 strokeLinejoin="round"
                                             />
@@ -705,7 +707,7 @@ export default function DashboardPage() {
                                                 points={terbayarPoints}
                                                 fill="none"
                                                 stroke="#10b981"
-                                                strokeWidth="3"
+                                                strokeWidth="2"
                                                 strokeLinecap="round"
                                                 strokeLinejoin="round"
                                             />

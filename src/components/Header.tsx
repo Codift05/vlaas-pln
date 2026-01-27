@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect, FC, MouseEvent } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
-import { Search, Bell, Settings, LogOut, ChevronDown, ChevronUp, FileText, UserPlus, Clock, LucideIcon } from 'lucide-react'
+import { Search, Settings, LogOut, ChevronDown, ChevronUp } from 'lucide-react'
 import styled from 'styled-components'
 import { supabase } from '../lib/supabaseClient'
 import { getUserProfile } from '../services/userService'
@@ -11,14 +11,7 @@ interface HeaderProps {
   isExpanded?: boolean
 }
 
-interface Notification {
-  id: string
-  type: 'contract' | 'vendor' | 'amendment'
-  title: string
-  description: string
-  time: string
-  icon: LucideIcon
-}
+
 
 const HeaderContainer = styled.header`
   height: 80px;
@@ -518,7 +511,7 @@ const HeaderContainer = styled.header`
   .user-avatar {
     width: 42px;
     height: 42px;
-    background: linear-gradient(135deg, #7eb9d9 0%, #5a9dc4 100%);
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
     color: white;
     border-radius: 50%;
     display: flex;
@@ -694,9 +687,6 @@ const LogoGroup = styled.div`
 
 const Header: FC<HeaderProps> = ({ onMenuClick, isExpanded = false }) => {
   const [showProfileMenu, setShowProfileMenu] = useState<boolean>(false)
-  const [showNotifications, setShowNotifications] = useState<boolean>(false)
-  const [notifications, setNotifications] = useState<Notification[]>([])
-  const [notificationCount, setNotificationCount] = useState<number>(0)
   const [userName, setUserName] = useState<string>('Admin')
   const [userRole, setUserRole] = useState<string>('Administrator')
   const [profileImageUrl, setProfileImageUrl] = useState<string>('')
@@ -704,25 +694,23 @@ const Header: FC<HeaderProps> = ({ onMenuClick, isExpanded = false }) => {
   const router = useRouter()
   const pathname = usePathname()
 
-  // Ambil daftar notifikasi yang sudah dibaca dari localStorage
-  const getReadNotifIds = (): string[] => {
-    if (typeof window === 'undefined') return []
+  const fetchUserProfile = async () => {
     try {
-      return JSON.parse(localStorage.getItem('readNotifIds') || '[]')
-    } catch {
-      return []
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        const result = await getUserProfile(user.id)
+        if (result.success && (result as any).data) {
+          setUserName((result as any).data.full_name || user.email?.split('@')[0] || 'Admin')
+          setUserRole((result as any).data.role || 'User')
+          setProfileImageUrl((result as any).data.profile_image || '')
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching user profile:', error)
     }
   }
 
-  // Simpan daftar notifikasi yang sudah dibaca ke localStorage
-  const setReadNotifIds = (ids: string[]): void => {
-    if (typeof window === 'undefined') return
-    localStorage.setItem('readNotifIds', JSON.stringify(ids))
-  }
-
-  // Fetch notifications and user profile
   useEffect(() => {
-    fetchNotifications()
     fetchUserProfile()
 
     // Listen for profile updates
@@ -741,97 +729,6 @@ const Header: FC<HeaderProps> = ({ onMenuClick, isExpanded = false }) => {
     }
   }, [])
 
-  const fetchUserProfile = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (user) {
-        const result = await getUserProfile(user.id)
-        if (result.success && (result as any).data) {
-          setUserName((result as any).data.full_name || user.email?.split('@')[0] || 'Admin')
-          setUserRole((result as any).data.role || 'User')
-          setProfileImageUrl((result as any).data.profile_image || '')
-        }
-      }
-    } catch (error) {
-      console.error('Error fetching user profile:', error)
-    }
-  }
-
-  const fetchNotifications = async (): Promise<void> => {
-    try {
-      // Fetch contract history for recent amendments
-      const { data: contractHistory } = await supabase
-        .from('contract_history')
-        .select('*, contracts(name)')
-        .order('created_at', { ascending: false })
-        .limit(5)
-
-      // Fetch recent vendors
-      const { data: vendors } = await supabase
-        .from('vendors')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(3)
-
-      const notifs: Notification[] = []
-
-      // Add contract history notifications
-      if (contractHistory) {
-        contractHistory.forEach((history: any) => {
-          notifs.push({
-            id: `contract-${history.id}`,
-            type: history.action.includes('Amandemen') ? 'amendment' : 'contract',
-            title: history.action,
-            description: `${history.contracts?.name || 'Kontrak'} - ${history.details?.substring(0, 50)}...`,
-            time: getRelativeTime(history.created_at),
-            icon: FileText
-          })
-        })
-      }
-
-      // Add vendor notifications
-      if (vendors) {
-        vendors.forEach((vendor: any) => {
-          notifs.push({
-            id: `vendor-${vendor.id}`,
-            type: 'vendor',
-            title: 'Vendor Baru Ditambahkan',
-            description: `${vendor.nama || vendor.name} telah terdaftar di sistem`,
-            time: getRelativeTime(vendor.created_at),
-            icon: UserPlus
-          })
-        })
-      }
-
-      // Filter notifikasi yang sudah dibaca
-      const readIds = getReadNotifIds()
-      const filteredNotifs = notifs.filter(n => !readIds.includes(n.id))
-
-      // Sort by time and limit
-      filteredNotifs.sort((a, b) => b.id.localeCompare(a.id))
-      setNotifications(filteredNotifs.slice(0, 8))
-      setNotificationCount(filteredNotifs.length)
-    } catch (err) {
-      console.error('Error fetching notifications:', err)
-    }
-  }
-
-  const getRelativeTime = (dateString: string): string => {
-    if (!dateString) return 'Baru saja'
-    const date = new Date(dateString)
-    const now = new Date()
-    const diffMs = now.getTime() - date.getTime()
-    const diffMins = Math.floor(diffMs / 60000)
-    const diffHours = Math.floor(diffMs / 3600000)
-    const diffDays = Math.floor(diffMs / 86400000)
-
-    if (diffMins < 1) return 'Baru saja'
-    if (diffMins < 60) return `${diffMins} menit yang lalu`
-    if (diffHours < 24) return `${diffHours} jam yang lalu`
-    if (diffDays < 7) return `${diffDays} hari yang lalu`
-    return date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
-  }
-
   const getPageTitle = (): string => {
     switch (pathname) {
       case '/dashboard':
@@ -846,6 +743,8 @@ const Header: FC<HeaderProps> = ({ onMenuClick, isExpanded = false }) => {
         return 'Laporan & Analitik'
       case '/pengaturan':
         return 'Pengaturan'
+      case '/riwayat':
+        return 'Riwayat Aktivitas'
       default:
         return 'Dashboard'
     }
@@ -864,13 +763,6 @@ const Header: FC<HeaderProps> = ({ onMenuClick, isExpanded = false }) => {
   const goToSettings = (): void => {
     router.push('/pengaturan')
     setShowProfileMenu(false)
-  }
-
-  const handleMarkAllRead = (): void => {
-    const ids = notifications.map(n => n.id)
-    setReadNotifIds([...getReadNotifIds(), ...ids])
-    setNotifications([])
-    setNotificationCount(0)
   }
 
   return (
@@ -892,47 +784,7 @@ const Header: FC<HeaderProps> = ({ onMenuClick, isExpanded = false }) => {
             <span>UPT Manado</span>
           </div>
         </LogoGroup>
-        <div className="notification-icon" onClick={() => setShowNotifications(!showNotifications)}>
-          <Bell size={22} strokeWidth={2} />
-          {notificationCount > 0 && <span className="notification-badge">{notificationCount}</span>}
-          {showNotifications && (
-            <div className="notification-dropdown" onClick={(e) => e.stopPropagation()}>
-              <div className="notification-header">
-                <h3>Notifikasi</h3>
-                <span className="mark-read" onClick={handleMarkAllRead}>
-                  Tandai sudah dibaca
-                </span>
-              </div>
-              <div className="notification-list">
-                {notifications.length > 0 ? (
-                  notifications.map(notif => {
-                    const IconComponent = notif.icon
-                    return (
-                      <div key={notif.id} className="notification-item">
-                        <div className={`notification-icon-wrapper ${notif.type}`}>
-                          <IconComponent size={18} strokeWidth={2} />
-                        </div>
-                        <div className="notification-content">
-                          <div className="notification-title">{notif.title}</div>
-                          <div className="notification-desc">{notif.description}</div>
-                          <div className="notification-time">
-                            <Clock size={11} />
-                            {notif.time}
-                          </div>
-                        </div>
-                      </div>
-                    )
-                  })
-                ) : (
-                  <div className="notification-empty">
-                    <Bell className="notification-empty-icon" size={48} strokeWidth={1.5} />
-                    <p>Tidak ada notifikasi</p>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-        </div>
+
         <div className="user-profile" onClick={toggleProfileMenu}>
           <img
             src={profileImageUrl || "/images/profil default instagram.jpg"}
