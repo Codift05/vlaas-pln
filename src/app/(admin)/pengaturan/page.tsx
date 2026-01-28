@@ -463,12 +463,7 @@ function Pengaturan() {
                         >
                             <Settings size={18} /> Konfigurasi Sistem
                         </button>
-                        <button
-                            className={`tab-btn ${activeTab === 'audit' ? 'active' : ''}`}
-                            onClick={() => setActiveTab('audit')}
-                        >
-                            <FileText size={18} /> Log Audit
-                        </button>
+
                     </>
                 )}
             </div>
@@ -854,81 +849,7 @@ function Pengaturan() {
                     </div>
                 )}
 
-                {/* Log Audit Tab */}
-                {activeTab === 'audit' && userRole === 'Super Admin' && (
-                    <div className="tab-panel">
-                        <div className="settings-section">
-                            <div className="section-header">
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                    <div style={{
-                                        padding: '8px',
-                                        borderRadius: '8px',
-                                        background: 'rgba(100, 116, 139, 0.1)',
-                                        color: '#64748b',
-                                        display: 'flex',
-                                        boxShadow: '0 2px 4px rgba(100, 116, 139, 0.1)'
-                                    }}>
-                                        <FileText size={20} strokeWidth={2.5} />
-                                    </div>
-                                    <h3 className="section-title" style={{ marginBottom: 0 }}>Riwayat Aktivitas Sistem</h3>
-                                </div>
-                            </div>
-                            <p className="section-description">
-                                Log aktivitas ini tidak dapat diubah atau dihapus untuk menjaga integritas audit trail
-                            </p>
 
-                            <div className="audit-filters">
-                                <input
-                                    type="date"
-                                    className="filter-input-audit"
-                                    placeholder="Dari tanggal"
-                                    value={auditFilters.startDate}
-                                    onChange={(e) => setAuditFilters({ ...auditFilters, startDate: e.target.value })}
-                                />
-                                <input
-                                    type="date"
-                                    className="filter-input-audit"
-                                    placeholder="Sampai tanggal"
-                                    value={auditFilters.endDate}
-                                    onChange={(e) => setAuditFilters({ ...auditFilters, endDate: e.target.value })}
-                                />
-                                <input
-                                    type="text"
-                                    className="filter-input-audit"
-                                    placeholder="Cari user atau aktivitas..."
-                                    value={auditFilters.search}
-                                    onChange={(e) => setAuditFilters({ ...auditFilters, search: e.target.value })}
-                                />
-                                <button className="btn-filter-audit" onClick={handleAuditFilter} disabled={loading}>
-                                    <Search size={18} /> {loading ? 'Memfilter...' : 'Filter'}
-                                </button>
-                            </div>
-
-                            <div className="audit-table-container">
-                                <table className="audit-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Timestamp</th>
-                                            <th>User</th>
-                                            <th>Aktivitas</th>
-                                            <th>IP Address</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {auditLogs.map((log) => (
-                                            <tr key={log.id}>
-                                                <td className="timestamp">{new Date(log.created_at).toLocaleString('id-ID')}</td>
-                                                <td className="user-audit">{log.profiles?.full_name || 'System'}</td>
-                                                <td className="action">{log.action}</td>
-                                                <td className="ip-address">{log.ip_address}</td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                )}
             </div>
             {/* Modal Tambah User */}
             {showAddUserModal && (
