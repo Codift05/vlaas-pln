@@ -16,6 +16,7 @@ export default function ApprovalSurat() {
     const [currentPage, setCurrentPage] = useState(1)
     const [isLoading, setIsLoading] = useState(false)
     const [lastUpdate, setLastUpdate] = useState(Date.now()) // For triggering re-fetch
+    const [timeRemaining, setTimeRemaining] = useState<string>('')
     const itemsPerPage = 10
 
     // Load data from Supabase
@@ -39,6 +40,32 @@ export default function ApprovalSurat() {
         };
         runCleanup();
     }, []);
+
+    // Timer effect for detail modal
+    useEffect(() => {
+        let interval: NodeJS.Timeout;
+        if (showDetailModal && selectedSurat) {
+            const calculateTime = () => {
+                const created = new Date(selectedSurat.created_at);
+                const deadline = new Date(created.getTime() + 7 * 24 * 60 * 60 * 1000); // 7 days
+                const now = new Date();
+                const diff = deadline.getTime() - now.getTime();
+
+                if (diff <= 0) {
+                    setTimeRemaining('Expired');
+                } else {
+                    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+                    setTimeRemaining(`${days}h ${hours}j ${minutes}m ${seconds}s`);
+                }
+            };
+            calculateTime(); // Initial call
+            interval = setInterval(calculateTime, 1000);
+        }
+        return () => clearInterval(interval);
+    }, [showDetailModal, selectedSurat]);
 
     const loadData = async () => {
         setIsLoading(true)
@@ -304,6 +331,35 @@ export default function ApprovalSurat() {
                             <div className="detail-row">
                                 <div className="detail-label">Tanggal Surat</div>
                                 <div className="detail-value">{new Date(selectedSurat.tanggal_surat).toLocaleDateString()}</div>
+                            </div>
+                            <div className="detail-row">
+                                <div className="detail-label">Jatuh Tempo File</div>
+                                <div className="detail-value">
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                        <span>{new Date(new Date(selectedSurat.created_at).getTime() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString()}</span>
+                                        {selectedSurat.file_url !== 'EXPIRED' && timeRemaining !== 'Expired' && (
+                                            <span style={{
+                                                fontSize: '0.75rem',
+                                                padding: '2px 8px',
+                                                borderRadius: '12px',
+                                                background: '#fee2e2',
+                                                color: '#dc2626',
+                                                fontWeight: 600,
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '4px'
+                                            }}>
+                                                <Clock size={12} />
+                                                Sisa: {timeRemaining}
+                                            </span>
+                                        )}
+                                        {selectedSurat.file_url === 'EXPIRED' && (
+                                            <span style={{ fontSize: '0.75rem', padding: '2px 8px', borderRadius: '12px', background: '#f1f5f9', color: '#64748b', fontWeight: 600 }}>
+                                                Sudah Kadaluarsa
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
                             </div>
                             {selectedSurat.nama_pekerjaan && (
                                 <div className="detail-row">
