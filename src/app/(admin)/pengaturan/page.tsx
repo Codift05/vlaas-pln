@@ -1,6 +1,8 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
 import { User, Users, Settings, Mail, Search, Lock, FileText, Save, UserPlus, Ban, CheckCircle, XCircle, Camera, Upload, X } from 'lucide-react'
+import NotificationModal from '../../../components/NotificationModal'
+import ConfirmModal from '../../../components/ConfirmModal'
 import './Pengaturan.css'
 import {
     updateProfile,
@@ -25,6 +27,8 @@ function Pengaturan() {
     const [userRole, setUserRole] = useState('Super Admin')
     const [currentUserId, setCurrentUserId] = useState('')
     const [loading, setLoading] = useState(false)
+    const [notification, setNotification] = useState({ show: false, type: 'success' as 'success' | 'error' | 'warning' | 'info', message: '' })
+    const [confirmModal, setConfirmModal] = useState({ show: false, title: '', message: '', onConfirm: () => { } })
     const fileInputRef = useRef<HTMLInputElement>(null)
 
     // State untuk Profil
@@ -139,14 +143,14 @@ function Pengaturan() {
         // Validasi ukuran file
         const maxSize = 2 * 1024 * 1024 // 2MB
         if (file.size > maxSize) {
-            alert('Ukuran file terlalu besar. Maksimal 2MB')
+            setNotification({ show: true, type: 'error', message: 'Ukuran file terlalu besar. Maksimal 2MB' })
             return
         }
 
         // Validasi tipe file
         const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp']
         if (!allowedTypes.includes(file.type)) {
-            alert('Tipe file tidak didukung. Gunakan JPG, PNG, GIF, atau WebP')
+            setNotification({ show: true, type: 'error', message: 'Tipe file tidak didukung. Gunakan JPG, PNG, GIF, atau WebP' })
             return
         }
 
@@ -159,7 +163,7 @@ function Pengaturan() {
                 const imageUrl = (result as any).data.url
                 setProfileData(prev => ({ ...prev, profileImage: imageUrl }))
                 setPreviewImage(imageUrl)
-                alert((result as any).message)
+                setNotification({ show: true, type: 'success', message: (result as any).message })
 
                 // Dispatch event agar Header update otomatis
                 if (typeof window !== 'undefined') {
@@ -168,11 +172,11 @@ function Pengaturan() {
 
                 await createAuditLog('Mengubah foto profil')
             } else {
-                alert('Gagal upload foto: ' + (result as any).error)
+                setNotification({ show: true, type: 'error', message: 'Gagal upload foto: ' + (result as any).error })
             }
         } catch (error) {
             console.error('Upload error:', error)
-            alert('Terjadi kesalahan saat upload foto')
+            setNotification({ show: true, type: 'error', message: 'Terjadi kesalahan saat upload foto' })
         } finally {
             setUploadingImage(false)
             // Reset file input
@@ -185,39 +189,45 @@ function Pengaturan() {
     const handleRemoveImage = async () => {
         if (!profileData.profileImage) return
 
-        if (!confirm('Apakah Anda yakin ingin menghapus foto profil?')) return
+        setConfirmModal({
+            show: true,
+            title: 'Hapus Foto Profil',
+            message: 'Apakah Anda yakin ingin menghapus foto profil? Data yang dihapus tidak dapat dikembalikan.',
+            onConfirm: async () => {
+                setConfirmModal({ ...confirmModal, show: false })
+                setUploadingImage(true)
+                try {
+                    // Delete from storage
+                    await deleteProfileImage(profileData.profileImage)
 
-        setUploadingImage(true)
-        try {
-            // Delete from storage
-            await deleteProfileImage(profileData.profileImage)
+                    // Update database
+                    const result = await updateProfile(currentUserId, {
+                        ...profileData,
+                        profile_image: null
+                    })
 
-            // Update database
-            const result = await updateProfile(currentUserId, {
-                ...profileData,
-                profile_image: null
-            })
+                    if (result.success) {
+                        setProfileData(prev => ({ ...prev, profileImage: '' }))
+                        setPreviewImage('')
+                        setNotification({ show: true, type: 'success', message: 'Foto profil berhasil dihapus' })
 
-            if (result.success) {
-                setProfileData(prev => ({ ...prev, profileImage: '' }))
-                setPreviewImage('')
-                alert('Foto profil berhasil dihapus')
+                        // Dispatch event
+                        if (typeof window !== 'undefined') {
+                            window.dispatchEvent(new CustomEvent('profile-updated'))
+                        }
 
-                // Dispatch event
-                if (typeof window !== 'undefined') {
-                    window.dispatchEvent(new CustomEvent('profile-updated'))
+                        await createAuditLog('Menghapus foto profil')
+                    } else {
+                        setNotification({ show: true, type: 'error', message: 'Gagal menghapus foto: ' + (result as any).error })
+                    }
+                } catch (error) {
+                    console.error('Remove image error:', error)
+                    setNotification({ show: true, type: 'error', message: 'Terjadi kesalahan saat menghapus foto' })
+                } finally {
+                    setUploadingImage(false)
                 }
-
-                await createAuditLog('Menghapus foto profil')
-            } else {
-                alert('Gagal menghapus foto: ' + (result as any).error)
             }
-        } catch (error) {
-            console.error('Remove image error:', error)
-            alert('Terjadi kesalahan saat menghapus foto')
-        } finally {
-            setUploadingImage(false)
-        }
+        })
     }
 
     const handleProfileUpdate = async (e: any) => {
@@ -239,7 +249,7 @@ function Pengaturan() {
         }
 
         if (!userIdToUse) {
-            alert('Sesi anda telah berakhir atau data tidak valid. Mohon login ulang.')
+            setNotification({ show: true, type: 'error', message: 'Sesi anda telah berakhir atau data tidak valid. Mohon login ulang.' })
             return
         }
 
@@ -257,7 +267,7 @@ function Pengaturan() {
                     }
                 }
 
-                alert((result as any).message)
+                setNotification({ show: true, type: 'success', message: (result as any).message })
 
                 // Dispatch event agar Header update otomatis
                 if (typeof window !== 'undefined') {
@@ -266,10 +276,10 @@ function Pengaturan() {
 
                 await createAuditLog('Memperbarui profil pengguna')
             } else {
-                alert('Gagal memperbarui profil: ' + (result as any).error)
+                setNotification({ show: true, type: 'error', message: 'Gagal memperbarui profil: ' + (result as any).error })
             }
         } catch (error) {
-            alert('Terjadi kesalahan saat memperbarui profil')
+            setNotification({ show: true, type: 'error', message: 'Terjadi kesalahan saat memperbarui profil' })
         } finally {
             setLoading(false)
         }
@@ -278,25 +288,25 @@ function Pengaturan() {
     const handlePasswordChange = async (e: any) => {
         e.preventDefault()
         if (passwordData.newPassword !== passwordData.confirmPassword) {
-            alert('Password baru dan konfirmasi tidak cocok!')
+            setNotification({ show: true, type: 'warning', message: 'Password baru dan konfirmasi tidak cocok!' })
             return
         }
         if (passwordData.newPassword.length < 6) {
-            alert('Password minimal 6 karakter!')
+            setNotification({ show: true, type: 'warning', message: 'Password minimal 6 karakter!' })
             return
         }
         setLoading(true)
         try {
             const result = await changePassword(passwordData.oldPassword, passwordData.newPassword)
             if (result.success) {
-                alert((result as any).message)
+                setNotification({ show: true, type: 'success', message: (result as any).message })
                 setPasswordData({ oldPassword: '', newPassword: '', confirmPassword: '' })
                 await createAuditLog('Mengubah password')
             } else {
-                alert('Gagal mengubah password: ' + (result as any).error)
+                setNotification({ show: true, type: 'error', message: 'Gagal mengubah password: ' + (result as any).error })
             }
         } catch (error) {
-            alert('Terjadi kesalahan saat mengubah password')
+            setNotification({ show: true, type: 'error', message: 'Terjadi kesalahan saat mengubah password' })
         } finally {
             setLoading(false)
         }
@@ -304,19 +314,19 @@ function Pengaturan() {
 
     const handlePasswordReset = async () => {
         if (!profileData.email) {
-            alert('Email tidak tersedia')
+            setNotification({ show: true, type: 'error', message: 'Email tidak tersedia' })
             return
         }
         setLoading(true)
         try {
             const result = await sendPasswordResetEmail(profileData.email)
             if (result.success) {
-                alert((result as any).message)
+                setNotification({ show: true, type: 'success', message: (result as any).message })
             } else {
-                alert('Gagal mengirim email reset: ' + (result as any).error)
+                setNotification({ show: true, type: 'error', message: 'Gagal mengirim email reset: ' + (result as any).error })
             }
         } catch (error) {
-            alert('Terjadi kesalahan')
+            setNotification({ show: true, type: 'error', message: 'Terjadi kesalahan' })
         } finally {
             setLoading(false)
         }
@@ -328,40 +338,45 @@ function Pengaturan() {
         try {
             const result = await createAdminUser(newUserData)
             if (result.success) {
-                alert((result as any).message)
+                setNotification({ show: true, type: 'success', message: (result as any).message })
                 setShowAddUserModal(false)
                 setNewUserData({ email: '', namaLengkap: '', role: 'Verifikator' })
                 await loadAdminUsers()
                 await createAuditLog(`Menambah user baru: ${newUserData.namaLengkap}`)
             } else {
-                alert('Gagal menambah user: ' + (result as any).error)
+                setNotification({ show: true, type: 'error', message: 'Gagal menambah user: ' + (result as any).error })
             }
         } catch (error) {
-            alert('Terjadi kesalahan saat menambah user')
+            setNotification({ show: true, type: 'error', message: 'Terjadi kesalahan saat menambah user' })
         } finally {
             setLoading(false)
         }
     }
 
     const handleDeactivateUser = async (userId: string, userName: string) => {
-        if (!window.confirm(`Apakah Anda yakin ingin menonaktifkan akses ${userName}?`)) {
-            return
-        }
-        setLoading(true)
-        try {
-            const result = await deactivateUser(userId)
-            if (result.success) {
-                alert((result as any).message)
-                await loadAdminUsers()
-                await createAuditLog(`Menonaktifkan user: ${userName}`)
-            } else {
-                alert('Gagal menonaktifkan user: ' + (result as any).error)
+        setConfirmModal({
+            show: true,
+            title: 'Nonaktifkan User',
+            message: `Apakah Anda yakin ingin menonaktifkan akses "${userName}"? User tidak akan bisa login ke sistem.`,
+            onConfirm: async () => {
+                setConfirmModal({ ...confirmModal, show: false })
+                setLoading(true)
+                try {
+                    const result = await deactivateUser(userId)
+                    if (result.success) {
+                        setNotification({ show: true, type: 'success', message: (result as any).message })
+                        await loadAdminUsers()
+                        await createAuditLog(`Menonaktifkan user: ${userName}`)
+                    } else {
+                        setNotification({ show: true, type: 'error', message: 'Gagal menonaktifkan user: ' + (result as any).error })
+                    }
+                } catch (error) {
+                    setNotification({ show: true, type: 'error', message: 'Terjadi kesalahan' })
+                } finally {
+                    setLoading(false)
+                }
             }
-        } catch (error) {
-            alert('Terjadi kesalahan')
-        } finally {
-            setLoading(false)
-        }
+        })
     }
 
     const handleActivateUser = async (userId: string, userName: string) => {
@@ -369,14 +384,14 @@ function Pengaturan() {
         try {
             const result = await activateUser(userId)
             if (result.success) {
-                alert((result as any).message)
+                setNotification({ show: true, type: 'success', message: (result as any).message })
                 await loadAdminUsers()
                 await createAuditLog(`Mengaktifkan user: ${userName}`)
             } else {
-                alert('Gagal mengaktifkan user: ' + (result as any).error)
+                setNotification({ show: true, type: 'error', message: 'Gagal mengaktifkan user: ' + (result as any).error })
             }
         } catch (error) {
-            alert('Terjadi kesalahan')
+            setNotification({ show: true, type: 'error', message: 'Terjadi kesalahan' })
         } finally {
             setLoading(false)
         }
@@ -387,12 +402,12 @@ function Pengaturan() {
         try {
             const result = await saveSystemConfig(systemConfig)
             if (result.success) {
-                alert((result as any).message)
+                setNotification({ show: true, type: 'success', message: (result as any).message })
             } else {
-                alert('Gagal menyimpan konfigurasi: ' + (result as any).error)
+                setNotification({ show: true, type: 'error', message: 'Gagal menyimpan konfigurasi: ' + (result as any).error })
             }
         } catch (error) {
-            alert('Terjadi kesalahan')
+            setNotification({ show: true, type: 'error', message: 'Terjadi kesalahan' })
         } finally {
             setLoading(false)
         }
@@ -952,6 +967,24 @@ function Pengaturan() {
                     </div>
                 </div>
             )}
+
+            {/* Notification Modal */}
+            <NotificationModal
+                show={notification.show}
+                type={notification.type}
+                message={notification.message}
+                onClose={() => setNotification({ ...notification, show: false })}
+            />
+
+            {/* Confirm Modal */}
+            <ConfirmModal
+                show={confirmModal.show}
+                type="delete"
+                title={confirmModal.title}
+                message={confirmModal.message}
+                onConfirm={confirmModal.onConfirm}
+                onCancel={() => setConfirmModal({ ...confirmModal, show: false })}
+            />
         </>
     )
 }

@@ -3,6 +3,8 @@ import { useState, useEffect } from 'react'
 import { CheckCircle, XCircle, Clock, Eye, FileText, Download, ExternalLink } from 'lucide-react'
 import { downloadFileFromSupabase } from '@/services/fileUploadService'
 import { getAllSurat, updateSuratStatus, SuratPengajuan } from '@/services/suratService'
+import NotificationModal from '@/components/NotificationModal'
+import ConfirmModal from '@/components/ConfirmModal'
 import './ApprovalSurat.css'
 
 export default function ApprovalSurat() {
@@ -16,6 +18,8 @@ export default function ApprovalSurat() {
     const [currentPage, setCurrentPage] = useState(1)
     const [isLoading, setIsLoading] = useState(false)
     const [lastUpdate, setLastUpdate] = useState(Date.now()) // For triggering re-fetch
+    const [notification, setNotification] = useState({ show: false, type: 'success' as 'success' | 'error' | 'warning' | 'info', message: '' })
+    const [confirmModal, setConfirmModal] = useState({ show: false, title: '', message: '', onConfirm: () => { } })
     const itemsPerPage = 10
 
     // Load data from Supabase
@@ -49,15 +53,23 @@ export default function ApprovalSurat() {
     }
 
     const handleApprove = async (id: string) => {
-        if (confirm('Apakah Anda yakin ingin menyetujui surat ini?')) {
-            const result = await updateSuratStatus(id, 'APPROVED')
-            if (result.success) {
-                alert('Surat berhasil disetujui')
-                setLastUpdate(Date.now()) // Trigger reload
-            } else {
-                alert('Gagal menyetujui surat: ' + (result as any).error)
+        const surat = suratList.find(s => s.id === id)
+
+        setConfirmModal({
+            show: true,
+            title: 'Setujui Surat',
+            message: `Apakah Anda yakin ingin menyetujui surat "${surat?.nomor_surat}"? Tindakan ini tidak dapat dibatalkan.`,
+            onConfirm: async () => {
+                setConfirmModal({ ...confirmModal, show: false })
+                const result = await updateSuratStatus(id, 'APPROVED')
+                if (result.success) {
+                    setNotification({ show: true, type: 'success', message: 'Surat berhasil disetujui' })
+                    setLastUpdate(Date.now()) // Trigger reload
+                } else {
+                    setNotification({ show: true, type: 'error', message: 'Gagal menyetujui surat: ' + (result as any).error })
+                }
             }
-        }
+        })
     }
 
     const handleReject = (surat: SuratPengajuan) => {
@@ -68,20 +80,20 @@ export default function ApprovalSurat() {
 
     const confirmReject = async () => {
         if (!rejectReason.trim()) {
-            alert('Alasan penolakan wajib diisi')
+            setNotification({ show: true, type: 'warning', message: 'Alasan penolakan wajib diisi' })
             return
         }
 
         if (selectedSurat) {
             const result = await updateSuratStatus(selectedSurat.id, 'REJECTED', rejectReason)
             if (result.success) {
-                alert('Surat berhasil ditolak')
+                setNotification({ show: true, type: 'success', message: 'Surat berhasil ditolak' })
                 setShowRejectModal(false)
                 setSelectedSurat(null)
                 setRejectReason('')
                 setLastUpdate(Date.now()) // Trigger reload
             } else {
-                alert('Gagal menolak surat: ' + (result as any).error)
+                setNotification({ show: true, type: 'error', message: 'Gagal menolak surat: ' + (result as any).error })
             }
         }
     }
@@ -339,7 +351,7 @@ export default function ApprovalSurat() {
                                                                     selectedSurat.file_name!
                                                                 )
                                                             } catch (error) {
-                                                                alert('Gagal mendownload file')
+                                                                setNotification({ show: true, type: 'error', message: 'Gagal mendownload file' })
                                                             }
                                                         }}
                                                         title="Download File"
@@ -404,6 +416,25 @@ export default function ApprovalSurat() {
                     </div>
                 </div>
             )}
+
+            {/* Notification Modal */}
+            <NotificationModal
+                show={notification.show}
+                type={notification.type}
+                message={notification.message}
+                onClose={() => setNotification({ ...notification, show: false })}
+            />
+
+            {/* Confirm Modal */}
+            <ConfirmModal
+                show={confirmModal.show}
+                type="question"
+                title={confirmModal.title}
+                message={confirmModal.message}
+                confirmText="Ya, Setujui"
+                onConfirm={confirmModal.onConfirm}
+                onCancel={() => setConfirmModal({ ...confirmModal, show: false })}
+            />
         </div>
     )
 }

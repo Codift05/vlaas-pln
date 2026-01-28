@@ -14,6 +14,7 @@ import {
   verifyReactivationCode
 } from '../services/vendorAccountService'
 import { supabase } from '../lib/supabaseClient'
+import NotificationModal from './NotificationModal'
 import styled from 'styled-components'
 
 interface Platform {
@@ -893,6 +894,7 @@ const Login: FC = () => {
   const [devMode, setDevMode] = useState<boolean>(false)
   const [loading, setLoading] = useState<boolean>(false)
   const [error, setError] = useState<string>('')
+  const [notification, setNotification] = useState({ show: false, type: 'success' as 'success' | 'error' | 'warning' | 'info', message: '' })
   const [isRegisterMode, setIsRegisterMode] = useState<boolean>(false)
   const [isForgotPasswordMode, setIsForgotPasswordMode] = useState<boolean>(false)
   const [isReactivateMode, setIsReactivateMode] = useState<boolean>(false)
@@ -961,7 +963,7 @@ const Login: FC = () => {
       )
 
       if (result.success) {
-        alert('✅ ' + result.message)
+        setNotification({ show: true, type: 'success', message: result.message })
 
         // If email failed, show code in console
         if (result.data?.emailFailed && result.data?.verificationCode) {
@@ -988,7 +990,7 @@ const Login: FC = () => {
       const result = await verifyEmailCode(verificationData.email, verificationData.code)
 
       if (result.success) {
-        alert('✅ ' + result.message)
+        setNotification({ show: true, type: 'success', message: result.message })
 
         // Pre-fill email in registration form
         setRegisterData({
@@ -1120,7 +1122,7 @@ const Login: FC = () => {
       }
 
       // Registrasi berhasil
-      alert(`Registrasi berhasil! ID Vendor Anda: ${newVendorId}\n\nSilakan login dengan email dan password yang sudah didaftarkan.`)
+      setNotification({ show: true, type: 'success', message: `Registrasi berhasil! ID Vendor Anda: ${newVendorId}\n\nSilakan login dengan email dan password yang sudah didaftarkan.` })
 
       // Reset form dan kembali ke login
       setRegisterData({
@@ -1171,10 +1173,10 @@ const Login: FC = () => {
         // Jika email berhasil dikirim, tidak tampilkan kode di alert
         if (result.data?.resetToken) {
           // Fallback: jika email gagal, kode ditampilkan
-          alert(result.message + '\n\nKode reset: ' + result.data.resetToken + '\n(Email gagal terkirim, gunakan kode ini)')
+          setNotification({ show: true, type: 'warning', message: result.message + '\n\nKode reset: ' + result.data.resetToken + '\n(Email gagal terkirim, gunakan kode ini)' })
         } else {
           // Email berhasil dikirim
-          alert(result.message)
+          setNotification({ show: true, type: 'success', message: result.message })
         }
         setForgotPasswordStep(2)
       } else {
@@ -1206,7 +1208,7 @@ const Login: FC = () => {
       )
 
       if (result.success) {
-        alert(result.message)
+        setNotification({ show: true, type: 'success', message: result.message })
         setIsForgotPasswordMode(false)
         setForgotPasswordStep(1)
         setForgotPasswordData({
@@ -1234,7 +1236,7 @@ const Login: FC = () => {
       const result = await sendReactivationCode(reactivateData.email)
 
       if (result.success) {
-        alert('✅ ' + result.message)
+        setNotification({ show: true, type: 'success', message: result.message })
         setReactivateStep(2)
       } else {
         setError(result.error || 'Gagal mengirim kode reaktivasi')
@@ -1255,7 +1257,7 @@ const Login: FC = () => {
       const result = await verifyReactivationCode(reactivateData.email, reactivateData.code)
 
       if (result.success) {
-        alert('✅ ' + result.message)
+        setNotification({ show: true, type: 'success', message: result.message })
         setIsReactivateMode(false)
         setReactivateStep(1)
         setReactivateData({ email: '', code: '' })
@@ -2317,6 +2319,14 @@ const Login: FC = () => {
           </div>
         </div>
       )}
+
+      {/* Notification Modal */}
+      <NotificationModal
+        show={notification.show}
+        type={notification.type}
+        message={notification.message}
+        onClose={() => setNotification({ ...notification, show: false })}
+      />
     </LoginContainer>
   )
 }

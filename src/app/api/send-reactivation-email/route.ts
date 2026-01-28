@@ -21,103 +21,117 @@ export async function POST(request: Request) {
             }
         })
 
-        // Email content
+        // Email content - Style disesuaikan dengan email verifikasi registrasi
         const mailOptions = {
-            from: `"VLAAS PLN" <${process.env.EMAIL_USER}>`,
+            from: `"SAKTI PLN - Verifikasi Email" <${process.env.EMAIL_USER}>`,
             to: email,
-            subject: 'Kode Reaktivasi Akun VLAAS PLN',
+            subject: 'Kode Verifikasi Reaktivasi Vendor - SAKTI PLN',
             html: `
                 <!DOCTYPE html>
                 <html>
                 <head>
+                    <meta charset="UTF-8">
                     <style>
                         body {
-                            font-family: Arial, sans-serif;
+                            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
                             line-height: 1.6;
                             color: #333;
-                        }
-                        .container {
                             max-width: 600px;
                             margin: 0 auto;
                             padding: 20px;
                         }
                         .header {
-                            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                            background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
                             color: white;
                             padding: 30px;
-                            text-align: center;
                             border-radius: 10px 10px 0 0;
-                        }
-                        .content {
-                            background: #f9fafb;
-                            padding: 30px;
-                            border-radius: 0 0 10px 10px;
-                        }
-                        .code-box {
-                            background: white;
-                            border: 2px dashed #667eea;
-                            border-radius: 8px;
-                            padding: 20px;
                             text-align: center;
-                            margin: 20px 0;
                         }
-                        .code {
+                        .logo {
                             font-size: 32px;
                             font-weight: bold;
-                            color: #667eea;
-                            letter-spacing: 5px;
+                            margin-bottom: 10px;
                         }
-                        .warning {
+                        .content {
+                            background: #ffffff;
+                            padding: 40px;
+                            border: 1px solid #e5e7eb;
+                            border-top: none;
+                        }
+                        .verification-box {
+                            background: #f0f9ff;
+                            border: 2px dashed #0284c7;
+                            border-radius: 8px;
+                            padding: 30px;
+                            text-align: center;
+                            margin: 30px 0;
+                        }
+                        .verification-code {
+                            font-size: 42px;
+                            font-weight: bold;
+                            color: #0284c7;
+                            letter-spacing: 8px;
+                            margin: 20px 0;
+                            font-family: 'Courier New', monospace;
+                        }
+                        .info-box {
                             background: #fef3c7;
                             border-left: 4px solid #f59e0b;
-                            padding: 12px;
+                            padding: 15px;
                             margin: 20px 0;
                             border-radius: 4px;
                         }
                         .footer {
+                            background: #f9fafb;
+                            padding: 20px;
                             text-align: center;
-                            margin-top: 20px;
-                            color: #6b7280;
                             font-size: 12px;
+                            color: #6b7280;
+                            border-radius: 0 0 10px 10px;
+                        }
+                        .warning {
+                            color: #dc2626;
+                            font-weight: bold;
                         }
                     </style>
                 </head>
                 <body>
-                    <div class="container">
-                        <div class="header">
-                            <h1>🔓 Reaktivasi Akun</h1>
-                            <p>VLAAS PLN - Vendor Portal</p>
+                    <div class="header">
+                        <div class="logo">⚡ SAKTI PLN</div>
+                        <p>Sistem Arsip & Kontrak Terintegrasi</p>
+                    </div>
+                    
+                    <div class="content">
+                        <h2>Halo, ${companyName || 'PT SEHAT SELALU PART 2'}!</h2>
+                        
+                        <p>Anda telah meminta untuk mengaktifkan kembali akun vendor Anda di sistem SAKTI PLN.</p>
+                        
+                        <p>Untuk melanjutkan proses reaktivasi, silakan gunakan kode verifikasi berikut:</p>
+                        
+                        <div class="verification-box">
+                            <p style="margin: 0; color: #6b7280;">Kode Verifikasi Anda:</p>
+                            <div class="verification-code">${code}</div>
+                            <p style="margin: 0; color: #6b7280; font-size: 14px;">Masukkan kode ini di halaman reaktivasi</p>
                         </div>
-                        <div class="content">
-                            <p>Halo <strong>${companyName}</strong>,</p>
-                            
-                            <p>Anda telah meminta untuk mengaktifkan kembali akun vendor Anda. Gunakan kode berikut untuk melanjutkan proses reaktivasi:</p>
-                            
-                            <div class="code-box">
-                                <div class="code">${code}</div>
-                                <p style="margin-top: 10px; color: #6b7280;">Kode Reaktivasi</p>
-                            </div>
-                            
-                            <div class="warning">
-                                <strong>⚠️ Penting:</strong>
-                                <ul style="margin: 10px 0; padding-left: 20px;">
-                                    <li>Kode ini berlaku selama <strong>15 menit</strong></li>
-                                    <li>Jangan bagikan kode ini kepada siapapun</li>
-                                    <li>Jika Anda tidak meminta reaktivasi, abaikan email ini</li>
-                                </ul>
-                            </div>
-                            
-                            <p>Setelah akun diaktifkan kembali, Anda dapat login seperti biasa menggunakan email dan password Anda.</p>
-                            
-                            <p style="margin-top: 30px;">
-                                Terima kasih,<br>
-                                <strong>Tim VLAAS PLN</strong>
-                            </p>
+                        
+                        <div class="info-box">
+                            <strong>⏰ Penting:</strong>
+                            <ul style="margin: 10px 0;">
+                                <li>Kode ini berlaku selama <strong>15 menit</strong></li>
+                                <li>Jangan bagikan kode ini kepada siapa pun</li>
+                                <li>Jika Anda tidak meminta reaktivasi, abaikan email ini</li>
+                            </ul>
                         </div>
-                        <div class="footer">
-                            <p>Email ini dikirim secara otomatis. Mohon tidak membalas email ini.</p>
-                            <p>&copy; 2026 VLAAS PLN. All rights reserved.</p>
-                        </div>
+                        
+                        <p>Setelah akun diaktifkan kembali, Anda dapat login seperti biasa menggunakan email dan password Anda.</p>
+                        
+                        <p class="warning">⚠️ Jika Anda tidak melakukan permintaan reaktivasi ini, harap abaikan email ini.</p>
+                    </div>
+                    
+                    <div class="footer">
+                        <p><strong>PLN SAKTI - Vendor Portal</strong></p>
+                        <p>Email ini dikirim secara otomatis. Mohon tidak membalas email ini.</p>
+                        <p>© ${new Date().getFullYear()} PT PLN (Persero). All rights reserved.</p>
                     </div>
                 </body>
                 </html>
