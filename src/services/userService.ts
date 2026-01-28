@@ -328,7 +328,7 @@ export const getAuditLogs = async (filters?: any) => {
         // Check if table exists first
         const { data: tableCheck, error: tableError } = await supabase
             .from('audit_logs')
-            .select('count')
+            .select('id')
             .limit(1);
 
         // If table doesn't exist, return empty array
