@@ -1,6 +1,6 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
-import { User, Users, Settings, Mail, Search, Lock, FileText, Save, UserPlus, Ban, CheckCircle, XCircle, Camera, Upload, X, Eye, EyeOff } from 'lucide-react'
+import { User, Users, Mail, Search, Lock, FileText, Save, UserPlus, Ban, CheckCircle, XCircle, Camera, Upload, X, Eye, EyeOff } from 'lucide-react'
 import './Pengaturan.css'
 import {
     updateProfile,
@@ -12,8 +12,7 @@ import {
     deactivateUser,
     activateUser,
     getAuditLogs,
-    saveSystemConfig,
-    getSystemConfig,
+
     createAuditLog,
     uploadProfileImage,
     deleteProfileImage
@@ -58,14 +57,7 @@ function Pengaturan() {
     const [showNewUserPassword, setShowNewUserPassword] = useState(false)
     const [adminUsers, setAdminUsers] = useState<any[]>([])
 
-    // State untuk Konfigurasi Sistem
-    const [systemConfig, setSystemConfig] = useState({
-        retentionEnabled: true,
-        retentionMonths: 12,
-        emailNotifEnabled: true,
-        approvedTemplate: '',
-        rejectedTemplate: ''
-    })
+
 
     // State untuk Audit Log
     const [auditLogs, setAuditLogs] = useState<any[]>([])
@@ -80,7 +72,7 @@ function Pengaturan() {
         loadUserData()
         if (userRole === 'Super Admin') {
             loadAdminUsers()
-            loadSystemConfig()
+            loadAdminUsers()
             loadAuditLogs()
         }
     }, [userRole])
@@ -116,18 +108,7 @@ function Pengaturan() {
         }
     }
 
-    const loadSystemConfig = async () => {
-        const result = await getSystemConfig()
-        if (result.success && (result as any).data) {
-            setSystemConfig({
-                retentionEnabled: (result as any).data.retention_enabled,
-                retentionMonths: (result as any).data.retention_months,
-                emailNotifEnabled: (result as any).data.email_notif_enabled,
-                approvedTemplate: (result as any).data.approved_template,
-                rejectedTemplate: (result as any).data.rejected_template
-            })
-        }
-    }
+
 
     const loadAuditLogs = async () => {
         const result = await getAuditLogs(auditFilters)
@@ -413,21 +394,7 @@ function Pengaturan() {
         }
     }
 
-    const handleSystemConfigSave = async () => {
-        setLoading(true)
-        try {
-            const result = await saveSystemConfig(systemConfig)
-            if (result.success) {
-                alert((result as any).message)
-            } else {
-                alert('Gagal menyimpan konfigurasi: ' + (result as any).error)
-            }
-        } catch (error) {
-            alert('Terjadi kesalahan')
-        } finally {
-            setLoading(false)
-        }
-    }
+
 
     const handleAuditFilter = async () => {
         await loadAuditLogs()
@@ -457,12 +424,7 @@ function Pengaturan() {
                         >
                             <Users size={18} /> Manajemen User
                         </button>
-                        <button
-                            className={`tab-btn ${activeTab === 'system' ? 'active' : ''}`}
-                            onClick={() => setActiveTab('system')}
-                        >
-                            <Settings size={18} /> Konfigurasi Sistem
-                        </button>
+
 
                     </>
                 )}
@@ -745,57 +707,7 @@ function Pengaturan() {
                 )}
 
                 {/* Konfigurasi Sistem Tab */}
-                {activeTab === 'system' && userRole === 'Super Admin' && (
-                    <div className="tab-panel">
-                        <div className="settings-section">
-                            <div className="section-header" style={{ marginBottom: '16px' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                    <div style={{
-                                        padding: '8px',
-                                        borderRadius: '8px',
-                                        background: 'rgba(124, 58, 237, 0.1)',
-                                        color: '#7c3aed',
-                                        display: 'flex',
-                                        boxShadow: '0 2px 4px rgba(124, 58, 237, 0.1)'
-                                    }}>
-                                        <Settings size={20} strokeWidth={2.5} />
-                                    </div>
-                                    <h3 className="section-title" style={{ marginBottom: 0 }}>Kebijakan Retensi Data</h3>
-                                </div>
-                            </div>
-                            <div className="config-group">
-                                <div className="toggle-group">
-                                    <label className="toggle-label">
-                                        <input
-                                            type="checkbox"
-                                            checked={systemConfig.retentionEnabled}
-                                            onChange={(e) => setSystemConfig({ ...systemConfig, retentionEnabled: e.target.checked })}
-                                        />
-                                        <span className="toggle-text">Aktifkan penghapusan otomatis dokumen yang ditolak</span>
-                                    </label>
-                                </div>
-                                {systemConfig.retentionEnabled && (
-                                    <div className="form-group-settings">
-                                        <label>Hapus setelah (bulan)</label>
-                                        <input
-                                            type="number"
-                                            value={systemConfig.retentionMonths}
-                                            onChange={(e) => setSystemConfig({ ...systemConfig, retentionMonths: parseInt(e.target.value) || 0 })}
-                                            min="1"
-                                            max="36"
-                                            placeholder="Masukkan jumlah bulan"
-                                        />
-                                        <small>Dokumen dengan status "Rejected" akan dihapus otomatis setelah periode ini</small>
-                                    </div>
-                                )}
-                            </div>
-                            <button className="btn-save" onClick={handleSystemConfigSave} disabled={loading}>
-                                <Save size={18} /> {loading ? 'Menyimpan...' : 'Simpan Konfigurasi'}
-                            </button>
-                        </div>
 
-                    </div>
-                )}
 
 
             </div >
