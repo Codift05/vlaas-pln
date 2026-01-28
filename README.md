@@ -140,6 +140,8 @@ SAKTI dikembangkan menggunakan *best-in-class technologies* untuk menjamin keber
 
 Seluruh dokumentasi teknis, panduan instalasi, dan troubleshooting tersimpan rapi dalam direktori `documentation/`.
 
+👉 **[Lihat Indeks Dokumentasi Lengkap (44 Dokumen)](documentation/INDEX.md)**
+
 ### Panduan Utama
 *   [**Quick Start Guide**](documentation/QUICK_START.md) - Panduan instalasi dan menjalankan aplikasi.
 *   [**Supabase Setup**](documentation/SUPABASE_SETUP.md) - Konfigurasi database dan autentikasi.
