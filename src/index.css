@@ -28,8 +28,8 @@
   --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.12);
 
   /* Font Families */
-  --font-inter: var(--font-plus-jakarta), system-ui, -apple-system, sans-serif;
-  --font-outfit: var(--font-plus-jakarta), sans-serif; /* Override Outfit to use Plus Jakarta */
+  --font-inter: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --font-outfit: 'Plus Jakarta Sans', sans-serif; /* Override Outfit to use Plus Jakarta */
 }
 
 /* Dark Mode Removed */
