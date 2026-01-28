@@ -789,163 +789,113 @@ function Pengaturan() {
                                     </div>
                                 )}
                             </div>
-                        </div>
-
-                        <div className="settings-section">
-                            <div className="section-header" style={{ marginBottom: '16px' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                    <div style={{
-                                        padding: '8px',
-                                        borderRadius: '8px',
-                                        background: 'rgba(236, 72, 153, 0.1)',
-                                        color: '#ec4899',
-                                        display: 'flex',
-                                        boxShadow: '0 2px 4px rgba(236, 72, 153, 0.1)'
-                                    }}>
-                                        <Mail size={20} strokeWidth={2.5} />
-                                    </div>
-                                    <h3 className="section-title" style={{ marginBottom: 0 }}>Pengaturan Notifikasi Email</h3>
-                                </div>
-                            </div>
-                            <div className="config-group">
-                                <div className="toggle-group">
-                                    <label className="toggle-label">
-                                        <input
-                                            type="checkbox"
-                                            checked={systemConfig.emailNotifEnabled}
-                                            onChange={(e) => setSystemConfig({ ...systemConfig, emailNotifEnabled: e.target.checked })}
-                                        />
-                                        <span className="toggle-text">Aktifkan notifikasi email ke vendor</span>
-                                    </label>
-                                </div>
-
-                                {systemConfig.emailNotifEnabled && (
-                                    <>
-                                        <div className="form-group-settings">
-                                            <label>Template Email - Approved</label>
-                                            <textarea
-                                                value={systemConfig.approvedTemplate}
-                                                onChange={(e) => setSystemConfig({ ...systemConfig, approvedTemplate: e.target.value })}
-                                                rows={4}
-                                                placeholder="Template email untuk dokumen yang disetujui"
-                                            />
-                                        </div>
-                                        <div className="form-group-settings">
-                                            <label>Template Email - Rejected</label>
-                                            <textarea
-                                                value={systemConfig.rejectedTemplate}
-                                                onChange={(e) => setSystemConfig({ ...systemConfig, rejectedTemplate: e.target.value })}
-                                                rows={4}
-                                                placeholder="Template email untuk dokumen yang ditolak"
-                                            />
-                                        </div>
-                                    </>
-                                )}
-                            </div>
                             <button className="btn-save" onClick={handleSystemConfigSave} disabled={loading}>
                                 <Save size={18} /> {loading ? 'Menyimpan...' : 'Simpan Konfigurasi'}
                             </button>
                         </div>
+
                     </div>
                 )}
 
 
-            </div>
+            </div >
             {/* Modal Tambah User */}
-            {showAddUserModal && (
-                <div className="modal-overlay-settings" onClick={() => setShowAddUserModal(false)}>
-                    <div className="modal-content-settings" onClick={(e) => e.stopPropagation()}>
-                        <div className="modal-header-settings">
-                            <h3>Tambah Admin Baru</h3>
-                            <button className="modal-close-settings" onClick={() => setShowAddUserModal(false)}>✕</button>
-                        </div>
-                        <form onSubmit={handleAddUser} className="modal-form-settings">
-                            <div className="form-group-settings">
-                                <label>Email <span className="required">*</span></label>
-                                <input
-                                    type="email"
-                                    value={newUserData.email}
-                                    onChange={(e) => setNewUserData({ ...newUserData, email: e.target.value })}
-                                    placeholder="admin@pln.com"
-                                    required
-                                />
+            {
+                showAddUserModal && (
+                    <div className="modal-overlay-settings" onClick={() => setShowAddUserModal(false)}>
+                        <div className="modal-content-settings" onClick={(e) => e.stopPropagation()}>
+                            <div className="modal-header-settings">
+                                <h3>Tambah Admin Baru</h3>
+                                <button className="modal-close-settings" onClick={() => setShowAddUserModal(false)}>✕</button>
                             </div>
-                            <div className="form-group-settings">
-                                <label>Nama Lengkap <span className="required">*</span></label>
-                                <input
-                                    type="text"
-                                    value={newUserData.namaLengkap}
-                                    onChange={(e) => setNewUserData({ ...newUserData, namaLengkap: e.target.value })}
-                                    placeholder="Nama lengkap admin"
-                                    required
-                                />
-                            </div>
-                            <div className="form-group-settings">
-                                <label>Role <span className="required">*</span></label>
-                                <select
-                                    value={newUserData.role}
-                                    onChange={(e) => setNewUserData({ ...newUserData, role: e.target.value })}
-                                    required
-                                    title="Pilih role user"
-                                >
-                                    <option value="Verifikator">Verifikator</option>
-                                    <option value="Super Admin">Super Admin</option>
-                                </select>
-                            </div>
-
-                            <div className="form-group-settings">
-                                <label>Password <span className="required">*</span></label>
-                                <div style={{ position: 'relative' }}>
+                            <form onSubmit={handleAddUser} className="modal-form-settings">
+                                <div className="form-group-settings">
+                                    <label>Email <span className="required">*</span></label>
                                     <input
-                                        type={showNewUserPassword ? "text" : "password"}
-                                        value={newUserData.password}
-                                        onChange={(e) => setNewUserData({ ...newUserData, password: e.target.value })}
-                                        placeholder="Minimal 6 karakter"
+                                        type="email"
+                                        value={newUserData.email}
+                                        onChange={(e) => setNewUserData({ ...newUserData, email: e.target.value })}
+                                        placeholder="admin@pln.com"
                                         required
-                                        minLength={6}
-                                        style={{ paddingRight: '40px' }}
                                     />
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowNewUserPassword(!showNewUserPassword)}
-                                        style={{
-                                            position: 'absolute',
-                                            right: '10px',
-                                            top: '50%',
-                                            transform: 'translateY(-50%)',
-                                            background: 'none',
-                                            border: 'none',
-                                            cursor: 'pointer',
-                                            color: '#64748b'
-                                        }}
+                                </div>
+                                <div className="form-group-settings">
+                                    <label>Nama Lengkap <span className="required">*</span></label>
+                                    <input
+                                        type="text"
+                                        value={newUserData.namaLengkap}
+                                        onChange={(e) => setNewUserData({ ...newUserData, namaLengkap: e.target.value })}
+                                        placeholder="Nama lengkap admin"
+                                        required
+                                    />
+                                </div>
+                                <div className="form-group-settings">
+                                    <label>Role <span className="required">*</span></label>
+                                    <select
+                                        value={newUserData.role}
+                                        onChange={(e) => setNewUserData({ ...newUserData, role: e.target.value })}
+                                        required
+                                        title="Pilih role user"
                                     >
-                                        {showNewUserPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                        <option value="Verifikator">Verifikator</option>
+                                        <option value="Super Admin">Super Admin</option>
+                                    </select>
+                                </div>
+
+                                <div className="form-group-settings">
+                                    <label>Password <span className="required">*</span></label>
+                                    <div style={{ position: 'relative' }}>
+                                        <input
+                                            type={showNewUserPassword ? "text" : "password"}
+                                            value={newUserData.password}
+                                            onChange={(e) => setNewUserData({ ...newUserData, password: e.target.value })}
+                                            placeholder="Minimal 6 karakter"
+                                            required
+                                            minLength={6}
+                                            style={{ paddingRight: '40px' }}
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowNewUserPassword(!showNewUserPassword)}
+                                            style={{
+                                                position: 'absolute',
+                                                right: '10px',
+                                                top: '50%',
+                                                transform: 'translateY(-50%)',
+                                                background: 'none',
+                                                border: 'none',
+                                                cursor: 'pointer',
+                                                color: '#64748b'
+                                            }}
+                                        >
+                                            {showNewUserPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div className="form-group-settings">
+                                    <label>Konfirmasi Password <span className="required">*</span></label>
+                                    <input
+                                        type="password"
+                                        value={newUserData.confirmPassword}
+                                        onChange={(e) => setNewUserData({ ...newUserData, confirmPassword: e.target.value })}
+                                        placeholder="Ulangi password"
+                                        required
+                                    />
+                                </div>
+                                <div className="modal-footer-settings">
+                                    <button type="button" className="btn-cancel-settings" onClick={() => setShowAddUserModal(false)}>
+                                        Batal
+                                    </button>
+                                    <button type="submit" className="btn-submit-settings">
+                                        <UserPlus size={18} /> Tambah User
                                     </button>
                                 </div>
-                            </div>
-
-                            <div className="form-group-settings">
-                                <label>Konfirmasi Password <span className="required">*</span></label>
-                                <input
-                                    type="password"
-                                    value={newUserData.confirmPassword}
-                                    onChange={(e) => setNewUserData({ ...newUserData, confirmPassword: e.target.value })}
-                                    placeholder="Ulangi password"
-                                    required
-                                />
-                            </div>
-                            <div className="modal-footer-settings">
-                                <button type="button" className="btn-cancel-settings" onClick={() => setShowAddUserModal(false)}>
-                                    Batal
-                                </button>
-                                <button type="submit" className="btn-submit-settings">
-                                    <UserPlus size={18} /> Tambah User
-                                </button>
-                            </div>
-                        </form>
+                            </form>
+                        </div>
                     </div>
-                </div>
-            )}
+                )
+            }
         </>
     )
 }
