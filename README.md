@@ -136,6 +136,19 @@ SAKTI dikembangkan menggunakan *best-in-class technologies* untuk menjamin keber
 
 ---
 
+## Dokumentasi Teknis
+
+Seluruh dokumentasi teknis, panduan instalasi, dan troubleshooting tersimpan rapi dalam direktori `documentation/`.
+
+### Panduan Utama
+*   [**Quick Start Guide**](documentation/QUICK_START.md) - Panduan instalasi dan menjalankan aplikasi.
+*   [**Supabase Setup**](documentation/SUPABASE_SETUP.md) - Konfigurasi database dan autentikasi.
+*   [**Google Drive Integration**](documentation/GOOGLE_DRIVE_SETUP.md) - Setup penyimpanan awan.
+*   [**Troubleshooting**](documentation/TROUBLESHOOTING.md) - Solusi masalah umum.
+*   [**Arsitektur Sistem**](documentation/ARCHITECTURE_DIAGRAM.md) - Detail teknis arsitektur.
+
+---
+
 ## Kontak & Dukungan Teknis
 
 **PT. PLN (Persero) - Unit Pelaksana Transmisi (UPT) Manado**
