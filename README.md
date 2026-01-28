@@ -2,498 +2,111 @@
 
 <!-- Logos -->
 <p align="center">
-  <img src="./public/images/Logo_PLN.png" alt="PLN Logo" height="100"/>
-  &nbsp;&nbsp;&nbsp;
-  <img src="./public/images/Logo_BUMN.png" alt="BUMN Logo" height="100"/>
-  &nbsp;&nbsp;&nbsp;
-  <img src="./public/images/Logo_UNSRAT.png" alt="UNSRAT Logo" height="100"/>
+  <img src="./public/images/Logo_PLN.png" alt="PLN Logo" height="80"/>
+  &nbsp;&nbsp;&nbsp;&nbsp;
+  <img src="./public/images/Logo_Danantara (2).png" alt="Danantara Logo" height="60"/>
+  &nbsp;&nbsp;&nbsp;&nbsp;
+  <img src="./public/images/Logo SAKTI 2.png" alt="SAKTI Logo" height="80"/>
 </p>
 
 # SAKTI
-
-**Sistem Arsip & Kontrak Terintegrasi**
+**Sistem Administrasi Kontrak Terintegrasi**
 
 [![React](https://img.shields.io/badge/React-19.2.0-61DAFB?style=for-the-badge&logo=react&logoColor=white)](https://react.dev/)
 [![Next.js](https://img.shields.io/badge/Next.js-16.1.1-000000?style=for-the-badge&logo=next.js&logoColor=white)](https://nextjs.org/)
 [![Supabase](https://img.shields.io/badge/Supabase-Database-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)](https://supabase.com/)
 [![License](https://img.shields.io/badge/License-Proprietary-red?style=for-the-badge)](LICENSE)
 
-*Platform Digital Terpadu untuk Manajemen Surat Vendor PT. PLN Persero*
+*Platform Digital Terpadu untuk Manajemen Kontrak & Arsip Vendor PT. PLN (Persero)*
 
-[Fitur](#fitur-utama) • [Tech Stack](#tech-stack) • [Arsitektur](#arsitektur-sistem) • [Instalasi](#instalasi) • [Dokumentasi](#dokumentasi)
+[Tentang SAKTI](#tentang-sakti) • [Fitur Unggulan](#fitur-unggulan) • [Mekanisme Sistem](#mekanisme-sistem) • [Teknologi](#teknologi) • [Dokumentasi](#dokumentasi)
 
 </div>
 
 ---
 
-## Deskripsi Sistem
+## Tentang SAKTI
 
-**SAKTI (Sistem Arsip & Kontrak Terintegrasi)** adalah sistem informasi berbasis web yang dirancang khusus untuk PT. PLN Persero guna mengelola proses pengajuan, persetujuan, dan pengarsipan surat dari vendor secara digital, aman, dan terstruktur.
+**SAKTI (Sistem Administrasi Kontrak Terintegrasi)** adalah solusi enterprise yang dirancang khusus untuk memodernisasi ekosistem manajemen kontrak dan arsip di lingkungan PT. PLN (Persero). Aplikasi ini mentransformasi proses manual menjadi alur kerja digital yang transparan, aman, dan efisien, mendukung inisiatif _paperless office_ dan _good corporate governance_.
 
-### Tujuan Sistem
-
-- **Digitalisasi Proses**: Menggantikan proses manual pengajuan surat vendor yang masih menggunakan fisik/email
-- **Transparansi**: Menyediakan tracking real-time status persetujuan surat
-- **Keamanan Data**: Implementasi Row Level Security (RLS) dan private storage untuk keamanan tingkat enterprise
-- **Audit Trail**: Pencatatan lengkap setiap aktivitas untuk keperluan audit dan compliance
-- **Efisiensi Operasional**: Mempercepat proses approval dan mengurangi risiko dokumen hilang
-
-### Masalah yang Diselesaikan
-
-| Masalah Lama | Solusi SAKTI |
-|--------------|--------------|
-| Surat vendor tercecer (fisik/email) | Penyimpanan terpusat di cloud storage |
-| Tidak ada tracking status | Dashboard real-time dengan notifikasi |
-| Proses approval lambat & tidak terstruktur | Workflow approval digital otomatis |
-| Arsip sulit dicari | Search engine dengan filter multi-kriteria |
-| Tidak ada jejak audit | Audit log lengkap untuk setiap transaksi |
+Sistem ini menjembatani komunikasi antara **Vendor** (Penyedia Barang/Jasa) dan **Manajemen PLN** melalui portal terpadu yang memfasilitasi pengajuan dokumen, verifikasi berlapis, hingga pengarsipan digital otomatis yang terstruktur.
 
 ---
 
-## Fitur Utama
+## Fitur Unggulan
 
-### Untuk Vendor (Eksternal)
+### 🏢 Portal Vendor (Eksternal)
+- **Registrasi & Identitas Digital**: Vendor dapat mendaftar mandiri dengan validasi email dan pengelolaan profil perusahaan (NPWP, Alamat, Kontak).
+- **Pengajuan Dokumen Terpusat**: Upload dokumen kontrak dan surat administrasi dalam format PDF dengan validasi otomatis.
+- **Monitoring Status Real-time**: Tracking posisi dokumen (Pending, Approved, Rejected) secara transparan melalui dashboard vendor.
+- **Notifikasi Cerdas**: Pemberitahuan otomatis via sistem untuk setiap update status dokumen.
 
-- **Registrasi & Verifikasi Email** - Pendaftaran akun dengan verifikasi email otomatis
-- **Manajemen Profil Perusahaan** - Kelengkapan data perusahaan (nama, alamat, NPWP)
-- **Pengajuan Surat Digital** - Upload surat format PDF (max 5MB) dengan metadata lengkap
-- **Tracking Status Real-time** - Monitor status surat (Pending, Approved, Rejected)
-- **Notifikasi Otomatis** - Pemberitahuan in-app dan email untuk setiap perubahan status
-- **Riwayat Pengajuan** - Akses penuh ke arsip surat yang pernah diajukan
+### ⚡ Dashboard Manajemen PLN (Internal)
+- **Executive Dashboard**: Visualisasi data statistik kontrak, tren pengajuan, dan kinerja vendor dalam bentuk grafik interaktif.
+- **Sistem Approval Berjenjang**: Mekanisme persetujuan dokumen dengan fitur tinjauan visual (preview PDF) tanpa perlu download.
+- **Manajemen Arsip Digital**: Pencarian dokumen cerdas (Smart Search) berdasarkan metadata kontrak, nama vendor, atau tanggal.
+- **Manajemen Pengguna**: Pengelolaan hak akses bertingkat (Super Admin, Admin, Verifikator).
 
-### Untuk Admin PLN (Internal)
-
-- **Dashboard Monitoring** - Overview statistik dan tren surat masuk
-- **Approval Management** - Setujui atau tolak surat dengan alasan detail
-- **Advanced Search & Filter** - Pencarian berdasarkan vendor, nomor surat, perihal, status, tanggal
-- **Preview PDF Langsung** - Lihat dokumen tanpa perlu download
-- **Audit Log Viewer** - Riwayat lengkap setiap aktivitas persetujuan
-- **Visualisasi Data** - Grafik dan chart untuk analisis tren surat
-- **📁 Upload PDF Kontrak ke Google Drive** - Upload otomatis dengan struktur folder dinamis (NEW!)
-  - Auto-organize: `Berkas Kontrak/[AI|AO]/[Nama Kontrak]/`
-  - Validasi file type & size
-  - Integration dengan Google Drive API via Service Account
-
-### Keamanan Enterprise
-
-- **Row Level Security (RLS)** - Isolasi data per pengguna di level database
-- **Private Storage dengan Signed URL** - Akses file hanya dengan URL bertanda waktu
-- **JWT Authentication** - Session management aman
-- **Audit Logging** - Pencatatan semua aktivitas sistem
-- **Email Verification** - Validasi email untuk mencegah registrasi palsu
+### 🔐 Keamanan & Integritas Data
+- **Audit Trail Lengkap**: Perekaman jejak digital untuk setiap aktivitas (Login, Upload, Approval, Reject) guna keperluan audit.
+- **Auto-Cleanup Policy**: Kebijakan retensi otomatis untuk membersihkan file sementara yang kadaluarsa guna optimalisasi penyimpanan.
+- **Secure Storage**: Penyimpanan file berbasis cloud dengan enkripsi dan akses token terbatas (Signed URLs).
 
 ---
 
-## Tech Stack
+## Mekanisme Sistem
 
-### Frontend
-- **Framework**: Next.js 16.1.1 - React Framework for the Web (App Router)
-- **Styling**: Vanilla CSS / Styled Components
-- **Charts**: Chart.js / Recharts - Visualisasi data interaktif
-- **HTTP Client**: Axios / Fetch API
-- **Form Management**: React Hook Form - Form validation
-- **State Management**: Context API - Global state
+Berikut adalah alur kerja (workflow) komprehensif dari sistem SAKTI:
 
-### Backend (Serverless)
-- **BaaS**: Supabase - Backend as a Service
-  - PostgreSQL Database
-  - Authentication & User Management
-  - Storage (Private Buckets)
-  - Edge Functions (Email notifications)
-  - Real-time subscriptions
-  - Row Level Security (RLS)
-- **File Storage**: Google Drive API
-  - Service Account authentication
-  - Dynamic folder structure
-  - Automated file organization
+### 1. Tahap Registrasi & Verifikasi Vendor
+1.  **Registrasi**: Vendor mendaftarkan akun perusahaan melalui portal SAKTI.
+2.  **Validasi**: Sistem mengirimkan email verifikasi untuk memastikan keabsahan kontak.
+3.  **Lengkapi Profil**: Vendor melengkapi data legalitas perusahaan (NPWP, Alamat Operasional, PIC).
 
-### DevOps & Tools
-- **Version Control**: Git + GitHub
-- **Package Manager**: npm
-- **Linter**: ESLint
-- **Deployment**: Vercel / Netlify (Frontend), Supabase (Backend)
+### 2. Tahap Pengajuan Kontrak (Vendor Submission)
+1.  **Inisiasi Pengajuan**: Vendor membuat pengajuan baru dengan mengisi metadata kontrak (Nomor Kontrak, Judul, Tanggal Mulai/Akhir).
+2.  **Digital Upload**: Vendor mengunggah berkas kontrak dalam format PDF (Maksimal 5MB).
+3.  **Auto-Validation**: Sistem secara otomatis memvalidasi format dan ukuran file sebelum disimpan ke _Temporary Storage_.
+4.  **Status**: Dokumen ditandai dengan status **PENDING**.
 
----
+### 3. Tahap Verifikasi & Approval (PLN Admin)
+1.  **Notifikasi Masuk**: Admin menerima notifikasi adanya pengajuan baru di Dashboard.
+2.  **Review Dokumen**: Admin memeriksa kelengkapan administrasi dan melihat _preview_ dokumen secara langsung di aplikasi.
+3.  **Pengambilan Keputusan**:
+    - **APPROVE**: Jika dokumen valid dan sesuai. Status berubah menjadi **APPROVED**. Dokumen dipindahkan ke Arsip Permanen (Google Drive Terintegrasi).
+    - **REJECT**: Jika terdapat kesalahan. Admin wajib menyertakan alasan penolakan. Status berubah menjadi **REJECTED**.
+4.  **Notifikasi Balik**: Vendor menerima notifikasi hasil keputusan secara real-time.
 
-## Arsitektur Sistem
-
-### Arsitektur Aplikasi
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                         FRONTEND                            │
-│                  (Next.js App Router)                       │
-│                                                             │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐    │
-│  │   Vendor     │  │    Admin     │  │ Super Admin  │    │
-│  │  Dashboard   │  │  Dashboard   │  │  Dashboard   │    │
-│  └──────────────┘  └──────────────┘  └──────────────┘    │
-│                                                             │
-│  ┌─────────────────────────────────────────────────────┐  │
-│  │           Next.js Router (App Directory)            │  │
-│  └─────────────────────────────────────────────────────┘  │
-│                                                             │
-│  ┌─────────────────────────────────────────────────────┐  │
-│  │             Supabase JS Client                      │  │
-│  └─────────────────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────────┘
-                           │
-                           │ HTTPS / WSS
-                           ▼
-┌─────────────────────────────────────────────────────────────┐
-│                    SUPABASE BACKEND                         │
-│                                                             │
-│  ┌─────────────────────────────────────────────────────┐  │
-│  │               Auth Service (JWT)                    │  │
-│  │  • Email/Password Authentication                    │  │
-│  │  • Email Verification                               │  │
-│  │  • Session Management                               │  │
-│  └─────────────────────────────────────────────────────┘  │
-│                                                             │
-│  ┌─────────────────────────────────────────────────────┐  │
-│  │           PostgreSQL Database + RLS                 │  │
-│  │  • users (auth.users)                               │  │
-│  │  • vendor_profiles                                  │  │
-│  │  • letters                                          │  │
-│  │  • approval_logs                                    │  │
-│  │  • notifications                                    │  │
-│  └─────────────────────────────────────────────────────┘  │
-│                                                             │
-│  ┌─────────────────────────────────────────────────────┐  │
-│  │         Storage (Private Bucket + Signed URL)       │  │
-│  │  • letter-documents/ (PDF files)                    │  │
-│  └─────────────────────────────────────────────────────┘  │
-│                                                             │
-│  ┌─────────────────────────────────────────────────────┐  │
-│  │             Edge Functions (Deno)                   │  │
-│  │  • send-email-notification                          │  │
-│  │  • generate-letter-report                           │  │
-│  └─────────────────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────────┘
-```
-
-### Database Schema (Simplified)
-
-```sql
--- Users (managed by Supabase Auth)
-auth.users
-├── id (uuid, PK)
-├── email (unique)
-├── role (vendor | admin | superadmin)
-└── created_at
-
--- Vendor Profiles
-vendor_profiles
-├── id (uuid, PK)
-├── user_id (uuid, FK → auth.users)
-├── company_name (varchar)
-├── address (text)
-├── phone (varchar)
-├── npwp (varchar, nullable)
-└── created_at
-
--- Letters
-letters
-├── id (uuid, PK)
-├── vendor_id (uuid, FK → auth.users)
-├── letter_number (varchar, unique)
-├── subject (varchar)
-├── start_date (date)
-├── end_date (date)
-├── pdf_url (text)
-├── status (enum: PENDING | APPROVED | REJECTED)
-├── rejection_reason (text, nullable)
-└── timestamps
-
--- Approval Logs (Audit Trail)
-approval_logs
-├── id (uuid, PK)
-├── letter_id (uuid, FK → letters)
-├── admin_id (uuid, FK → auth.users)
-├── action (enum: APPROVED | REJECTED)
-├── reason (text, nullable)
-└── created_at
-```
+### 4. Tahap Pengarsipan & Pemeliharaan (System Lifecycle)
+1.  **Arsip Digital**: Dokumen yang disetujui tersimpan rapi dengan struktur folder dinamis: `Arsip/[Tahun]/[Vendor]/[Kontrak]`.
+2.  **Kebijakan Retensi**: Sistem menjalankan _background job_ untuk menghapus file pengajuan yang ditolak atau tidak ditindaklanjuti lebih dari 7 hari (Auto-Cleanup) untuk menjaga kebersihan penyimpanan.
+3.  **Pelaporan**: Data transaksi diolah menjadi laporan eksekutif untuk manajemen.
 
 ---
 
-## User Roles & Hak Akses
+## Teknologi
 
-### Vendor (Eksternal)
-**Deskripsi**: Perusahaan penyedia barang/jasa ke PLN
+SAKTI dibangun di atas infrastruktur teknologi modern yang handal dan *scalable*:
 
-**Hak Akses**:
-- Registrasi & login mandiri
-- Kelola profil perusahaan
-- Submit surat dengan upload PDF
-- Lihat status & riwayat surat sendiri
-- Terima notifikasi perubahan status
-
-**Batasan**:
-- Tidak bisa lihat surat vendor lain
-- Tidak bisa edit/hapus surat setelah submit
-- Tidak bisa akses dashboard admin
-
-### Admin PLN (Internal)
-**Deskripsi**: Pegawai PLN yang menangani surat vendor
-
-**Hak Akses**:
-- Login ke dashboard admin
-- Lihat semua surat dari vendor
-- Approve/Reject surat dengan alasan
-- Search & filter surat
-- Preview PDF
-- Lihat statistik & grafik
-- Akses audit log
-
-**Batasan**:
-- Tidak bisa registrasi mandiri
-- Tidak bisa hapus data
-
-### Super Admin (IT)
-**Deskripsi**: Pengelola sistem
-
-**Hak Akses**:
-- Semua hak Admin
-- Buat akun Admin baru
-- Konfigurasi sistem
-- Monitoring & logs
+- **Frontend**: [Next.js 16](https://nextjs.org/) (React Framework) - Menjamin performa tinggi dan UX yang responsif.
+- **Backend & Database**: [Supabase](https://supabase.com/) (PostgreSQL) - Database relasional yang kuat dengan keamanan Row Level Security (RLS).
+- **Storage Integration**: Google Drive API & Supabase Storage - Untuk penyimpanan dokumen skala besar.
+- **Security**: JWT Authentication, Role-Based Access Control (RBAC), dan Enkripsi SSL/TLS.
+- **Deployment**: Vercel Cloud Platform.
 
 ---
 
-## Alur Proses Bisnis
+## Kontak & Dukungan
 
-### Alur Pengajuan Surat (Vendor)
+**PT. PLN (Persero) - Unit Pelaksana Transmisi (UPT) Manado**
+*Divisi Teknologi Informasi & Umum*
 
-```mermaid
-graph TD
-    A[Vendor Login] --> B{Profil Lengkap?}
-    B -->|Belum| C[Lengkapi Profil]
-    B -->|Sudah| D[Buat Pengajuan]
-    C --> D
-    D --> E[Isi Form Surat]
-    E --> F[Upload PDF ≤5MB]
-    F --> G{Validasi}
-    G -->|Gagal| E
-    G -->|Sukses| H[Submit Surat]
-    H --> I[Status: PENDING]
-    I --> J[Notifikasi ke Admin]
-    J --> K[Vendor Menerima Konfirmasi]
-```
-
-### Alur Persetujuan (Admin)
-
-```mermaid
-graph TD
-    A[Admin Login] --> B[Lihat Daftar Surat PENDING]
-    B --> C[Pilih Surat]
-    C --> D[Preview PDF & Metadata]
-    D --> E{Keputusan}
-    E -->|Approve| F[Set Status: APPROVED]
-    E -->|Reject| G[Isi Alasan Penolakan]
-    G --> H[Set Status: REJECTED]
-    F --> I[Catat Audit Log]
-    H --> I
-    I --> J[Kirim Notifikasi ke Vendor]
-    J --> K[Update Dashboard]
-```
-
----
-
-## Status Surat (State Machine)
-
-```
-SUBMITTED ──────► PENDING ────┬────► APPROVED
-                               │
-                               └────► REJECTED
-```
-
-**Aturan**:
-- Status bersifat **final** (tidak bisa diubah lagi)
-- Tidak ada fitur revisi pada fase 1
-- Setiap perubahan status tercatat di audit log
-
----
-
-## Instalasi
-
-### Prerequisites
-
-- Node.js >= 18.x
-- npm atau yarn
-- Akun Supabase (gratis)
-- Git
-
-### 1. Clone Repository
-
-```bash
-git clone https://github.com/Codift05/vlaas-pln.git
-cd vlaas-pln
-```
-
-### 2. Install Dependencies
-
-```bash
-npm install
-```
-
-### 3. Konfigurasi Environment
-
-Buat file `.env` di root project:
-
-```env
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-```
-
-### 4. Setup Database (Supabase)
-
-Jalankan migration SQL di Supabase SQL Editor (lihat folder `/database`)
-
-### 5. Jalankan Development Server
-
-```bash
-npm run dev
-```
-
-Aplikasi akan berjalan di `http://localhost:3000`
-
-### 6. Build untuk Production
-
-```bash
-npm run build
-npm start
-```
-
----
-
-## Struktur Folder
-
-```
-vlaas-pln/
-├── public/                 # Static assets
-├── src/
-│   ├── app/               # App Router pages & layouts
-│   ├── assets/            # Images, icons
-│   ├── components/        # Reusable components
-│   │   ├── common/        # Button, Input, Modal, dll
-│   │   ├── vendor/        # Vendor-specific components
-│   │   └── admin/         # Admin-specific components
-│   ├── services/          # API services (Supabase)
-│   ├── hooks/             # Custom React hooks
-│   ├── contexts/          # Context providers
-│   ├── utils/             # Helper functions
-│   ├── constants/         # Constants & enums
-│   ├── lib/               # Libraries (e.g. Supabase client)
-├── database/              # SQL migrations & schema
-├── .env.example           # Environment template
-├── package.json
-├── next.config.mjs
-└── README.md
-```
-
----
-
-## Dokumentasi
-
-### 📚 Core Documentation
-
-- [**Quick Start Guide**](QUICK_START.md) - Panduan memulai project
-- [**Supabase Setup**](SUPABASE_SETUP.md) - Konfigurasi database dan auth
-- [**Google Drive Setup**](GOOGLE_DRIVE_SETUP.md) - Setup Google Drive integration
-
-### 🆕 Upload Feature Documentation
-
-- [**Upload Feature Docs**](UPLOAD_FEATURE_DOCS.md) - Dokumentasi lengkap fitur upload PDF
-- [**Upload Quick Start**](UPLOAD_QUICK_START.md) - Panduan cepat setup & penggunaan upload
-- [**Architecture Diagram**](ARCHITECTURE_DIAGRAM.md) - Visualisasi arsitektur sistem upload
-- [**Testing Checklist**](TESTING_CHECKLIST.md) - Checklist untuk testing fitur
-- [**Troubleshooting**](TROUBLESHOOTING.md) - Panduan mengatasi masalah upload
-
-### 📖 API Documentation
-
-Dokumentasi lengkap API tersedia di: [docs/API.md](docs/API.md) *(coming soon)*
-
-### 👥 User Guide
-
-- [Panduan Vendor](docs/VENDOR_GUIDE.md) *(coming soon)*
-- [Panduan Admin](docs/ADMIN_GUIDE.md) *(coming soon)*
-
----
-
-## Keamanan
-
-### Security Features
-
-1. **Authentication**: JWT-based dengan email verification
-2. **Authorization**: Role-based access control (RBAC)
-3. **Row Level Security**: Isolasi data di level database
-4. **Private Storage**: File hanya dapat diakses oleh pemilik/admin
-5. **Signed URLs**: Temporary access untuk download file
-6. **Audit Logging**: Tracking semua aktivitas sensitif
-7. **Input Validation**: Server-side & client-side validation
-8. **SQL Injection Prevention**: Parameterized queries
-9. **XSS Prevention**: Content sanitization
-
-### Reporting Vulnerabilities
-
-Jika menemukan celah keamanan, harap laporkan melalui [GitHub Security Advisory](https://github.com/Codift05/vlaas-pln/security/advisories)
-
----
-
-## Roadmap
-
-### Fase 1 (Current) - MVP
-- [x] Setup project structure
-- [ ] Implementasi autentikasi
-- [ ] Modul pengajuan surat
-- [ ] Modul approval
-- [ ] Dashboard statistik
-- [ ] Sistem notifikasi
-
-### Fase 2 (Q1 2026)
-- [ ] Fitur revisi surat
-- [ ] Multi-level approval
-- [ ] Export laporan (PDF/Excel)
-- [ ] Advanced analytics
-- [ ] Mobile responsive optimization
-
-### Fase 3 (Q2 2026)
-- [ ] API untuk integrasi eksternal
-- [ ] Mobile app (React Native)
-- [ ] OCR untuk parsing PDF
-- [ ] AI-powered document classification
-
----
-
-## Tim Pengembang
-
-Dikembangkan oleh Tim IT PT. PLN Persero
-
-**Maintainer**: [@Codift05](https://github.com/Codift05)
-
----
-
-## License
-
-Proprietary - © 2025 PT. PLN Persero. All rights reserved.
-
-Sistem ini dikembangkan untuk penggunaan internal PT. PLN Persero dan tidak dipublikasikan untuk umum.
-
----
-
-## Kontak & Support
-
-- **GitHub**: [@Codift05](https://github.com/Codift05)
-- **Issues**: [GitHub Issues](https://github.com/Codift05/vlaas-pln/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/Codift05/vlaas-pln/discussions)
+Untuk kendala teknis atau pertanyaan seputar penggunaan sistem SAKTI, silakan hubungi tim administrator IT internal.
 
 ---
 
 <div align="center">
-
-**Dibuat untuk PT. PLN Persero**
-
-*Memastikan Listrik untuk Kehidupan yang Lebih Baik*
-
+  <small>© 2026 PT. PLN (Persero). Hak Cipta Dilindungi Undang-Undang.</small>
+  <br>
+  <small>SAKTI v2.0 - <i>Transformasi Digital untuk Indonesia Terang</i></small>
 </div>
