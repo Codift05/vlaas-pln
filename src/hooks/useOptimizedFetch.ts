@@ -26,7 +26,7 @@ export function useFetch<T = any>(
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<Error | null>(null)
     const isMountedRef = useRef(true)
-    const intervalRef = useRef<NodeJS.Timeout>()
+    const intervalRef = useRef<NodeJS.Timeout | null>(null)
 
     const fetchData = useCallback(async () => {
         try {

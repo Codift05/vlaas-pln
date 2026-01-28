@@ -1,6 +1,6 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
-import { User, Users, Settings, Mail, Search, Lock, FileText, Save, UserPlus, Ban, CheckCircle, XCircle, Camera, Upload, X } from 'lucide-react'
+import { User, Users, Settings, Mail, Search, Lock, FileText, Save, UserPlus, Ban, CheckCircle, XCircle, Camera, Upload, X, Eye, EyeOff } from 'lucide-react'
 import './Pengaturan.css'
 import {
     updateProfile,
@@ -18,6 +18,7 @@ import {
     uploadProfileImage,
     deleteProfileImage
 } from '../../../services/userService'
+import { createAdminUserAction } from '../../../actions/adminUserActions'
 import { supabase } from '../../../lib/supabaseClient'
 
 function Pengaturan() {
@@ -50,8 +51,11 @@ function Pengaturan() {
     const [newUserData, setNewUserData] = useState({
         email: '',
         namaLengkap: '',
-        role: 'Verifikator'
+        role: 'Verifikator',
+        password: '',
+        confirmPassword: ''
     })
+    const [showNewUserPassword, setShowNewUserPassword] = useState(false)
     const [adminUsers, setAdminUsers] = useState<any[]>([])
 
     // State untuk Konfigurasi Sistem
@@ -324,20 +328,47 @@ function Pengaturan() {
 
     const handleAddUser = async (e: any) => {
         e.preventDefault()
+
+        // Validasi Password
+        if (newUserData.password !== newUserData.confirmPassword) {
+            alert('Password dan Konfirmasi Password tidak cocok!')
+            return
+        }
+        if (newUserData.password.length < 6) {
+            alert('Password minimal 6 karakter!')
+            return
+        }
+
         setLoading(true)
         try {
-            const result = await createAdminUser(newUserData)
+            // Gunakan Server Action untuk membuat user + password langsung
+            const result = await createAdminUserAction({
+                email: newUserData.email,
+                password: newUserData.password,
+                namaLengkap: newUserData.namaLengkap,
+                role: newUserData.role
+            })
+
             if (result.success) {
-                alert((result as any).message)
+                alert(result.message)
                 setShowAddUserModal(false)
-                setNewUserData({ email: '', namaLengkap: '', role: 'Verifikator' })
+                setNewUserData({
+                    email: '',
+                    namaLengkap: '',
+                    role: 'Verifikator',
+                    password: '',
+                    confirmPassword: ''
+                })
                 await loadAdminUsers()
-                await createAuditLog(`Menambah user baru: ${newUserData.namaLengkap}`)
+                await loadAuditLogs()
+                // Audit log handled in server action
+                // But we can refresh audit logs locally if needed
             } else {
-                alert('Gagal menambah user: ' + (result as any).error)
+                alert('Gagal menambah user: ' + result.error)
             }
         } catch (error) {
             alert('Terjadi kesalahan saat menambah user')
+            console.error(error)
         } finally {
             setLoading(false)
         }
@@ -939,6 +970,48 @@ function Pengaturan() {
                                     <option value="Verifikator">Verifikator</option>
                                     <option value="Super Admin">Super Admin</option>
                                 </select>
+                            </div>
+
+                            <div className="form-group-settings">
+                                <label>Password <span className="required">*</span></label>
+                                <div style={{ position: 'relative' }}>
+                                    <input
+                                        type={showNewUserPassword ? "text" : "password"}
+                                        value={newUserData.password}
+                                        onChange={(e) => setNewUserData({ ...newUserData, password: e.target.value })}
+                                        placeholder="Minimal 6 karakter"
+                                        required
+                                        minLength={6}
+                                        style={{ paddingRight: '40px' }}
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowNewUserPassword(!showNewUserPassword)}
+                                        style={{
+                                            position: 'absolute',
+                                            right: '10px',
+                                            top: '50%',
+                                            transform: 'translateY(-50%)',
+                                            background: 'none',
+                                            border: 'none',
+                                            cursor: 'pointer',
+                                            color: '#64748b'
+                                        }}
+                                    >
+                                        {showNewUserPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div className="form-group-settings">
+                                <label>Konfirmasi Password <span className="required">*</span></label>
+                                <input
+                                    type="password"
+                                    value={newUserData.confirmPassword}
+                                    onChange={(e) => setNewUserData({ ...newUserData, confirmPassword: e.target.value })}
+                                    placeholder="Ulangi password"
+                                    required
+                                />
                             </div>
                             <div className="modal-footer-settings">
                                 <button type="button" className="btn-cancel-settings" onClick={() => setShowAddUserModal(false)}>
