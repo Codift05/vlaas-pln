@@ -42,26 +42,26 @@ Sistem SAKTI dibangun dengan arsitektur modern yang memisahkan *Frontend* (Clien
 
 ```mermaid
 graph TD
-    subgraph Client Layer
+    subgraph ClientLayer [Client Layer]
         A[Vendor Portal] -->|HTTPS/TLS| D[Next.js App Router]
         B[Admin Dashboard] -->|HTTPS/TLS| D
         C[Super Admin Panel] -->|HTTPS/TLS| D
     end
 
-    subgraph Security Layer
+    subgraph SecurityLayer [Security Layer]
         D <-->|Auth & Session| E[Supabase Auth / JWT]
         E -->|Verify| F[Role Based Access Control]
     end
 
-    subgraph Data & Storage Layer
+    subgraph DataStorageLayer [Data & Storage Layer]
         F <-->|Query| G[(PostgreSQL Database)]
         F <-->|Upload/Download| H[Storage Bucket]
         H <-->|Sync| I[Google Drive Integration]
     end
 
-    style Client Layer fill:#f9f9f9,stroke:#333,stroke-width:1px
-    style Security Layer fill:#e1f5fe,stroke:#0277bd,stroke-width:1px
-    style Data & Storage Layer fill:#e8f5e9,stroke:#2e7d32,stroke-width:1px
+    style ClientLayer fill:#f9f9f9,stroke:#333,stroke-width:1px
+    style SecurityLayer fill:#e1f5fe,stroke:#0277bd,stroke-width:1px
+    style DataStorageLayer fill:#e8f5e9,stroke:#2e7d32,stroke-width:1px
 ```
 
 ---
