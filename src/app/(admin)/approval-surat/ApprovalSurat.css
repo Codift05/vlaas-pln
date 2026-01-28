@@ -269,7 +269,7 @@
 }
 
 /* Modal */
-.modal-overlay {
+.approval-modal-overlay {
     position: fixed;
     top: 0;
     left: 0;
@@ -301,7 +301,7 @@
     }
 }
 
-.modal-content {
+.approval-modal-content {
     background: #ffffff;
     border-radius: 20px;
     padding: 32px;
@@ -326,11 +326,11 @@
     }
 }
 
-.modal-header {
+.approval-modal-header {
     margin-bottom: 24px;
 }
 
-.modal-header h3 {
+.approval-modal-header h3 {
     font-size: 20px;
     font-weight: 700;
     color: #2b3f50;
@@ -339,13 +339,13 @@
     letter-spacing: -0.3px;
 }
 
-.modal-header p {
+.approval-modal-header p {
     font-size: 14px;
     color: #8b95a1;
     font-family: var(--font-inter);
 }
 
-.modal-body {
+.approval-modal-body {
     margin-bottom: 24px;
 }
 
@@ -469,7 +469,7 @@
     box-shadow: 0 0 0 3px rgba(126, 185, 217, 0.1);
 }
 
-.modal-actions {
+.approval-modal-actions {
     display: flex;
     gap: 12px;
     justify-content: flex-end;

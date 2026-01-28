@@ -271,12 +271,12 @@ export default function ApprovalSurat() {
 
             {/* Detail Modal */}
             {showDetailModal && selectedSurat && (
-                <div className="modal-overlay" onClick={() => setShowDetailModal(false)}>
-                    <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-                        <div className="modal-header">
+                <div className="approval-modal-overlay" onClick={() => setShowDetailModal(false)}>
+                    <div className="approval-modal-content" onClick={(e) => e.stopPropagation()}>
+                        <div className="approval-modal-header">
                             <h3>Detail Surat Pengajuan</h3>
                         </div>
-                        <div className="modal-body">
+                        <div className="approval-modal-body">
                             <div className="detail-row">
                                 <div className="detail-label">Nomor Surat</div>
                                 <div className="detail-value">{selectedSurat.nomor_surat}</div>
@@ -364,7 +364,7 @@ export default function ApprovalSurat() {
                                 </div>
                             )}
                         </div>
-                        <div className="modal-actions">
+                        <div className="approval-modal-actions">
                             <button className="btn-cancel" onClick={() => setShowDetailModal(false)}>
                                 Tutup
                             </button>
@@ -375,15 +375,15 @@ export default function ApprovalSurat() {
 
             {/* Reject Modal */}
             {showRejectModal && selectedSurat && (
-                <div className="modal-overlay" onClick={() => setShowRejectModal(false)}>
-                    <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-                        <div className="modal-header">
+                <div className="approval-modal-overlay" onClick={() => setShowRejectModal(false)}>
+                    <div className="approval-modal-content" onClick={(e) => e.stopPropagation()}>
+                        <div className="approval-modal-header">
                             <h3>Tolak Pengajuan Surat</h3>
                             <p style={{ color: '#64748b', fontSize: '0.875rem', marginTop: '0.5rem' }}>
                                 Surat: {selectedSurat.nomor_surat}
                             </p>
                         </div>
-                        <div className="modal-body">
+                        <div className="approval-modal-body">
                             <div className="form-group">
                                 <label>Alasan Penolakan <span style={{ color: '#ef4444' }}>*</span></label>
                                 <textarea
@@ -393,7 +393,7 @@ export default function ApprovalSurat() {
                                 />
                             </div>
                         </div>
-                        <div className="modal-actions">
+                        <div className="approval-modal-actions">
                             <button className="btn-cancel" onClick={() => setShowRejectModal(false)}>
                                 Batal
                             </button>
