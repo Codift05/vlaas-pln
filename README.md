@@ -1,6 +1,5 @@
 <div align="center">
 
-<!-- Logos -->
 <p align="center">
   <img src="./public/images/Logo_PLN.png" alt="PLN Logo" height="80"/>
   &nbsp;&nbsp;&nbsp;&nbsp;
@@ -12,101 +11,142 @@
 # SAKTI
 **Sistem Administrasi Kontrak Terintegrasi**
 
-[![React](https://img.shields.io/badge/React-19.2.0-61DAFB?style=for-the-badge&logo=react&logoColor=white)](https://react.dev/)
-[![Next.js](https://img.shields.io/badge/Next.js-16.1.1-000000?style=for-the-badge&logo=next.js&logoColor=white)](https://nextjs.org/)
-[![Supabase](https://img.shields.io/badge/Supabase-Database-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)](https://supabase.com/)
-[![License](https://img.shields.io/badge/License-Proprietary-red?style=for-the-badge)](LICENSE)
+<br>
 
-*Platform Digital Terpadu untuk Manajemen Kontrak & Arsip Vendor PT. PLN (Persero)*
+![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
+![Next JS](https://img.shields.io/badge/Next-black?style=for-the-badge&logo=next.js&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)
+![Supabase](https://img.shields.io/badge/Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)
+![Google Cloud](https://img.shields.io/badge/Google%20Cloud-4285F4?style=for-the-badge&logo=google-cloud&logoColor=white)
 
-[Tentang SAKTI](#tentang-sakti) • [Fitur Unggulan](#fitur-unggulan) • [Mekanisme Sistem](#mekanisme-sistem) • [Teknologi](#teknologi) • [Dokumentasi](#dokumentasi)
+<br>
+
+**Platform Digital Enterprise untuk Manajemen Siklus Hidup Kontrak dan Arsip Vendor pada PT. PLN (Persero) UPT Manado**
 
 </div>
 
 ---
 
-## Tentang SAKTI
+## Ringkasan Eksekutif
 
-**SAKTI (Sistem Administrasi Kontrak Terintegrasi)** adalah solusi enterprise yang dirancang khusus untuk memodernisasi ekosistem manajemen kontrak dan arsip di lingkungan PT. PLN (Persero). Aplikasi ini mentransformasi proses manual menjadi alur kerja digital yang transparan, aman, dan efisien, mendukung inisiatif _paperless office_ dan _good corporate governance_.
+**SAKTI (Sistem Administrasi Kontrak Terintegrasi)** merupakan inisiatif transformasi digital yang dikembangkan untuk memperkuat tata kelola administrasi kontrak di lingkungan PT. PLN (Persero). Sistem ini dirancang untuk menggantikan proses manual berbasis kertas menjadi ekosistem digital yang terpusat, aman, dan transparan.
 
-Sistem ini menjembatani komunikasi antara **Vendor** (Penyedia Barang/Jasa) dan **Manajemen PLN** melalui portal terpadu yang memfasilitasi pengajuan dokumen, verifikasi berlapis, hingga pengarsipan digital otomatis yang terstruktur.
-
----
-
-## Fitur Unggulan
-
-### 🏢 Portal Vendor (Eksternal)
-- **Registrasi & Identitas Digital**: Vendor dapat mendaftar mandiri dengan validasi email dan pengelolaan profil perusahaan (NPWP, Alamat, Kontak).
-- **Pengajuan Dokumen Terpusat**: Upload dokumen kontrak dan surat administrasi dalam format PDF dengan validasi otomatis.
-- **Monitoring Status Real-time**: Tracking posisi dokumen (Pending, Approved, Rejected) secara transparan melalui dashboard vendor.
-- **Notifikasi Cerdas**: Pemberitahuan otomatis via sistem untuk setiap update status dokumen.
-
-### ⚡ Dashboard Manajemen PLN (Internal)
-- **Executive Dashboard**: Visualisasi data statistik kontrak, tren pengajuan, dan kinerja vendor dalam bentuk grafik interaktif.
-- **Sistem Approval Berjenjang**: Mekanisme persetujuan dokumen dengan fitur tinjauan visual (preview PDF) tanpa perlu download.
-- **Manajemen Arsip Digital**: Pencarian dokumen cerdas (Smart Search) berdasarkan metadata kontrak, nama vendor, atau tanggal.
-- **Manajemen Pengguna**: Pengelolaan hak akses bertingkat (Super Admin, Admin, Verifikator).
-
-### 🔐 Keamanan & Integritas Data
-- **Audit Trail Lengkap**: Perekaman jejak digital untuk setiap aktivitas (Login, Upload, Approval, Reject) guna keperluan audit.
-- **Auto-Cleanup Policy**: Kebijakan retensi otomatis untuk membersihkan file sementara yang kadaluarsa guna optimalisasi penyimpanan.
-- **Secure Storage**: Penyimpanan file berbasis cloud dengan enkripsi dan akses token terbatas (Signed URLs).
+Dengan menerapkan arsitektur *cloud-native* dan standar keamanan *enterprise*, SAKTI memfasilitasi kolaborasi tanpa hambatan antara Vendor (Penyedia Barang/Jasa) dan Manajemen PLN, memastikan kepatuhan terhadap regulasi (compliance), serta meningkatkan efisiensi operasional melalui otomatisasi alur kerja persetujuan dokumen.
 
 ---
 
-## Mekanisme Sistem
+## Arsitektur Sistem
 
-Berikut adalah alur kerja (workflow) komprehensif dari sistem SAKTI:
+Sistem SAKTI dibangun dengan arsitektur modern yang memisahkan *Frontend* (Client-Side) dan *Backend* (Serverless) untuk menjamin skalabilitas dan performa tinggi.
 
-### 1. Tahap Registrasi & Verifikasi Vendor
-1.  **Registrasi**: Vendor mendaftarkan akun perusahaan melalui portal SAKTI.
-2.  **Validasi**: Sistem mengirimkan email verifikasi untuk memastikan keabsahan kontak.
-3.  **Lengkapi Profil**: Vendor melengkapi data legalitas perusahaan (NPWP, Alamat Operasional, PIC).
+```mermaid
+graph TD
+    subgraph Client Layer
+        A[Vendor Portal] -->|HTTPS/TLS| D[Next.js App Router]
+        B[Admin Dashboard] -->|HTTPS/TLS| D
+        C[Super Admin Panel] -->|HTTPS/TLS| D
+    end
 
-### 2. Tahap Pengajuan Kontrak (Vendor Submission)
-1.  **Inisiasi Pengajuan**: Vendor membuat pengajuan baru dengan mengisi metadata kontrak (Nomor Kontrak, Judul, Tanggal Mulai/Akhir).
-2.  **Digital Upload**: Vendor mengunggah berkas kontrak dalam format PDF (Maksimal 5MB).
-3.  **Auto-Validation**: Sistem secara otomatis memvalidasi format dan ukuran file sebelum disimpan ke _Temporary Storage_.
-4.  **Status**: Dokumen ditandai dengan status **PENDING**.
+    subgraph Security Layer
+        D <-->|Auth & Session| E[Supabase Auth / JWT]
+        E -->|Verify| F[Role Based Access Control]
+    end
 
-### 3. Tahap Verifikasi & Approval (PLN Admin)
-1.  **Notifikasi Masuk**: Admin menerima notifikasi adanya pengajuan baru di Dashboard.
-2.  **Review Dokumen**: Admin memeriksa kelengkapan administrasi dan melihat _preview_ dokumen secara langsung di aplikasi.
-3.  **Pengambilan Keputusan**:
-    - **APPROVE**: Jika dokumen valid dan sesuai. Status berubah menjadi **APPROVED**. Dokumen dipindahkan ke Arsip Permanen (Google Drive Terintegrasi).
-    - **REJECT**: Jika terdapat kesalahan. Admin wajib menyertakan alasan penolakan. Status berubah menjadi **REJECTED**.
-4.  **Notifikasi Balik**: Vendor menerima notifikasi hasil keputusan secara real-time.
+    subgraph Data & Storage Layer
+        F <-->|Query| G[(PostgreSQL Database)]
+        F <-->|Upload/Download| H[Storage Bucket]
+        H <-->|Sync| I[Google Drive Integration]
+    end
 
-### 4. Tahap Pengarsipan & Pemeliharaan (System Lifecycle)
-1.  **Arsip Digital**: Dokumen yang disetujui tersimpan rapi dengan struktur folder dinamis: `Arsip/[Tahun]/[Vendor]/[Kontrak]`.
-2.  **Kebijakan Retensi**: Sistem menjalankan _background job_ untuk menghapus file pengajuan yang ditolak atau tidak ditindaklanjuti lebih dari 7 hari (Auto-Cleanup) untuk menjaga kebersihan penyimpanan.
-3.  **Pelaporan**: Data transaksi diolah menjadi laporan eksekutif untuk manajemen.
-
----
-
-## Teknologi
-
-SAKTI dibangun di atas infrastruktur teknologi modern yang handal dan *scalable*:
-
-- **Frontend**: [Next.js 16](https://nextjs.org/) (React Framework) - Menjamin performa tinggi dan UX yang responsif.
-- **Backend & Database**: [Supabase](https://supabase.com/) (PostgreSQL) - Database relasional yang kuat dengan keamanan Row Level Security (RLS).
-- **Storage Integration**: Google Drive API & Supabase Storage - Untuk penyimpanan dokumen skala besar.
-- **Security**: JWT Authentication, Role-Based Access Control (RBAC), dan Enkripsi SSL/TLS.
-- **Deployment**: Vercel Cloud Platform.
+    style Client Layer fill:#f9f9f9,stroke:#333,stroke-width:1px
+    style Security Layer fill:#e1f5fe,stroke:#0277bd,stroke-width:1px
+    style Data & Storage Layer fill:#e8f5e9,stroke:#2e7d32,stroke-width:1px
+```
 
 ---
 
-## Kontak & Dukungan
+## Alur Proses Bisnis
+
+Mekanisme operasional SAKTI mencakup siklus lengkap mulai dari registrasi vendor hingga pengarsipan dokumen kontrak secara permanen.
+
+### Workflow Pengajuan & Persetujuan
+
+```mermaid
+sequenceDiagram
+    participant V as Vendor
+    participant S as Sistem SAKTI
+    participant A as Admin PLN
+    participant D as Digital Archive
+
+    V->>S: 1. Upload Dokumen PDF (Draft)
+    S-->>S: Validasi Format & Metadata
+    S->>A: 2. Notifikasi Pengajuan Baru
+    
+    rect rgb(240, 248, 255)
+        Note right of A: Proses Verifikasi
+        A->>S: Preview Dokumen
+        alt Dokumen Valid
+            A->>S: Approve Dokumen
+            S->>D: 3. Arsip ke Google Drive
+            S->>V: Notifikasi "APPROVED"
+        else Dokumen Tidak Sesuai
+            A->>S: Reject (Sertakan Alasan)
+            S-->>S: Jadwalkan Auto-Cleanup (7 hari)
+            S->>V: Notifikasi "REJECTED"
+        end
+    end
+```
+
+---
+
+## Spesifikasi Modul
+
+### 1. Portal Manajemen Vendor
+Modul antarmuka yang diperuntukkan bagi mitra kerja eksternal.
+*   **Identitas Digital Perusahaan**: Pengelolaan data profil perusahaan (NPWP, Domisili, PIC) yang terverifikasi.
+*   **Secure Document Submission**: Kanal pengunggahan dokumen kontrak terenkripsi dengan pembatasan tipe dan ukuran file.
+*   **Real-time Tracking**: Pemantauan status dokumen secara waktu nyata (real-time) tanpa perlu menghubungi admin secara manual.
+
+### 2. Dashboard Administrasi PLN
+Pusat kontrol bagi internal PLN untuk pengelolaan operasional.
+*   **Executive Overview**: Tampilan statistik makro mengenai volume kontrak, kinerja vendor, dan status pengajuan.
+*   **Digital Verification Room**: Fasilitas peninjauan dokumen visual (PDF Preview) yang terintegrasi di dalam aplikasi.
+*   **Audit Trail & Logs**: Perekaman jejak digital yang tidak dapat dimanipulasi untuk setiap tindakan persetujuan atau penolakan.
+
+### 3. Sistem Pengarsipan Cerdas
+*   **Integrated Cloud Storage**: Sinkronisasi otomatis dengan Google Drive korporat untuk penyimpanan jangka panjang.
+*   **Dynamic Folder Structure**: Pengorganisasian file otomatis berdasarkan Tahun, Nama Vendor, dan Kategori Kontrak.
+*   **Auto-Cleanup Protocol**: Mekanisme pembersihan otomatis untuk file sampah (temporary/rejected) guna efisiensi ruang penyimpanan.
+
+---
+
+## Stack Teknologi
+
+SAKTI dikembangkan menggunakan *best-in-class technologies* untuk menjamin keberlanjutan dan kemudahan pemeliharaan:
+
+| Kategori | Teknologi | Deskripsi |
+| :--- | :--- | :--- |
+| **Frontend Framework** | **Next.js 16** | App Router architecture untuk performa rendering optimal (Server-Side Rendering). |
+| **User Interface** | **React 19 & CSS3** | Antarmuka responsif dengan desain modern dan aksesibilitas tinggi. |
+| **Database** | **Supabase (PostgreSQL)** | Basis data relasional dengan skalabilitas tinggi dan keamanan Row Level Security. |
+| **Authentication** | **JWT & OAuth 2.0** | Standar keamanan otentikasi industri. |
+| **Cloud Storage** | **Google Cloud Platform** | Integrasi API Service Account untuk manajemen file enterprise. |
+| **Infrastructure** | **Vercel** | Edge Network deployment untuk latensi rendah. |
+
+---
+
+## Kontak & Dukungan Teknis
 
 **PT. PLN (Persero) - Unit Pelaksana Transmisi (UPT) Manado**
 *Divisi Teknologi Informasi & Umum*
 
-Untuk kendala teknis atau pertanyaan seputar penggunaan sistem SAKTI, silakan hubungi tim administrator IT internal.
+Sistem ini bersifat **PROPRIETARY** (Milik Pribadi) PT. PLN (Persero). Segala bentuk akses, penggunaan, atau distribusi tanpa izin tertulis dari manajemen adalah dilarang.
 
 ---
 
 <div align="center">
-  <small>© 2026 PT. PLN (Persero). Hak Cipta Dilindungi Undang-Undang.</small>
+  <small>Hak Cipta © 2026 PT. PLN (Persero). Dilindungi Undang-Undang.</small>
   <br>
-  <small>SAKTI v2.0 - <i>Transformasi Digital untuk Indonesia Terang</i></small>
+  <small>SAKTI v2.0 - Sistem Administrasi Kontrak Terintegrasi</small>
 </div>
