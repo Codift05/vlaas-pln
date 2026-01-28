@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react'
 import { CheckCircle, XCircle, Clock, Eye, FileText, Download, ExternalLink } from 'lucide-react'
 import { downloadFileFromSupabase } from '@/services/fileUploadService'
-import { getAllSurat, updateSuratStatus, SuratPengajuan } from '@/services/suratService'
+import { getAllSurat, updateSuratStatus, SuratPengajuan, cleanupExpiredSuratFiles } from '@/services/suratService'
 import './ApprovalSurat.css'
 
 export default function ApprovalSurat() {
@@ -27,6 +27,18 @@ export default function ApprovalSurat() {
     useEffect(() => {
         filterData()
     }, [filter, suratList])
+
+    // Auto-cleanup hook (checks for expired files > 7 days)
+    useEffect(() => {
+        const runCleanup = async () => {
+            const result = await cleanupExpiredSuratFiles();
+            if (result.success && (result.data as any).cleanedCount > 0) {
+                console.log(`Auto-cleanup: Removed ${(result.data as any).cleanedCount} expired files.`);
+                loadData(); // Reload data to reflect 'EXPIRED' status
+            }
+        };
+        runCleanup();
+    }, []);
 
     const loadData = async () => {
         setIsLoading(true)

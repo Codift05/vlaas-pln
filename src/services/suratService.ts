@@ -1,4 +1,5 @@
 import { supabase, handleSupabaseError, handleSupabaseSuccess, SupabaseResponse } from '../lib/supabaseClient';
+import { deleteFileFromSupabase } from './fileUploadService';
 
 export interface SuratPengajuan {
     id: string;
@@ -123,6 +124,54 @@ export const getSuratById = async (id: string): Promise<SupabaseResponse<SuratPe
         if (error) return handleSupabaseError(error);
 
         return handleSupabaseSuccess(data);
+    } catch (error) {
+        return handleSupabaseError(error);
+    }
+};
+// Cleanup expired files (older than 7 days)
+export const cleanupExpiredSuratFiles = async (): Promise<SupabaseResponse<{ cleanedCount: number }>> => {
+    try {
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+        const cutoffDate = sevenDaysAgo.toISOString();
+
+        // Find files older than 7 days that still have a file_url (not null or 'EXPIRED')
+        const { data: expiredFiles, error } = await supabase
+            .from('surat_pengajuan')
+            .select('id, file_url, file_name')
+            .lt('created_at', cutoffDate)
+            .neq('file_url', 'EXPIRED') // Skip already expired marks
+            .not('file_url', 'is', null);
+
+        if (error) return handleSupabaseError(error);
+
+        if (!expiredFiles || expiredFiles.length === 0) {
+            return handleSupabaseSuccess({ cleanedCount: 0 });
+        }
+
+        let cleanedCount = 0;
+
+        for (const file of expiredFiles) {
+            if (file.file_url && file.file_url.includes('supabase')) {
+                // 1. Delete actual file from storage
+                const deleteResult = await deleteFileFromSupabase(file.file_url);
+
+                if (deleteResult.success) {
+                    // 2. Mark record as expired in database
+                    await supabase
+                        .from('surat_pengajuan')
+                        .update({
+                            file_url: 'EXPIRED',
+                            file_name: `[EXPIRED] ${file.file_name}`
+                        })
+                        .eq('id', file.id);
+
+                    cleanedCount++;
+                }
+            }
+        }
+
+        return handleSupabaseSuccess({ cleanedCount }, `Berhasil membersihkan ${cleanedCount} file kadaluarsa`);
     } catch (error) {
         return handleSupabaseError(error);
     }
