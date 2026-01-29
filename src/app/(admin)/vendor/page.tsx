@@ -58,11 +58,8 @@ function DataVendor() {
 
             if (error) throw error
 
-            console.log('Raw vendor data from Supabase:', data) // Debug log
-
             // Map DB columns to frontend format
             const formattedData = data.map(vendor => {
-                console.log('Processing vendor:', vendor) // Debug each vendor
                 return {
                     id: vendor.id || '',
                     nama: vendor.name || vendor.nama || vendor.vendor_name || '',
@@ -75,7 +72,6 @@ function DataVendor() {
                 }
             })
 
-            console.log('Formatted vendor data:', formattedData) // Debug log
             setVendors(formattedData)
         } catch (err) {
             console.error('Error fetching vendors:', err)

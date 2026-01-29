@@ -337,9 +337,10 @@ export const getAuditLogs = async (filters?: any) => {
             return handleSupabaseSuccess([], 'Tabel audit log belum dibuat');
         }
 
+        // 1. Fetch Audit Logs without access foreign join
         let query = supabase
             .from('audit_logs')
-            .select('*, profiles(full_name)')
+            .select('*') // Removed profiles(full_name) join
             .order('created_at', { ascending: false })
             .limit(100);
 
@@ -354,11 +355,33 @@ export const getAuditLogs = async (filters?: any) => {
             query = query.ilike('action', `%${filters.search}%`);
         }
 
-        const { data, error } = await query;
+        const { data: logs, error } = await query;
 
         if (error) return handleSupabaseError(error);
 
-        return handleSupabaseSuccess(data || []);
+        if (!logs || logs.length === 0) return handleSupabaseSuccess([]);
+
+        // 2. Extract unique User IDs
+        const userIds = [...new Set(logs.map(log => log.user_id).filter(id => id))];
+
+        // 3. Fetch User Profiles manually
+        const { data: profiles } = await supabase
+            .from('profiles')
+            .select('id, full_name')
+            .in('id', userIds);
+
+        // 4. Map profiles to logs
+        const enrichedLogs = logs.map(log => {
+            const profile = profiles?.find(p => p.id === log.user_id);
+            return {
+                ...log,
+                profiles: {
+                    full_name: profile?.full_name || 'Unknown User'
+                }
+            };
+        });
+
+        return handleSupabaseSuccess(enrichedLogs);
     } catch (error) {
         console.warn('Error in getAuditLogs - using empty array fallback');
         return handleSupabaseSuccess([], 'Error loading audit logs');

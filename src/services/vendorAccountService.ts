@@ -68,8 +68,6 @@ export const deactivateVendorAccount = async (vendorUserId: string): Promise<Ven
             // Don't fail the entire operation, just log warning
         }
 
-        console.log('✅ Successfully deactivated vendor account:', data[0])
-
         return {
             success: true,
             message: 'Akun berhasil dinonaktifkan'
@@ -282,93 +280,55 @@ export const updateVendorContractStatus = async (): Promise<void> => {
             .select('vendor_name, status')
             .in('status', ['Dalam Pekerjaan', 'Telah Diperiksa', 'Terkontrak', 'Dalam Proses Pekerjaan', 'Dalam Pemeriksaan'])
 
-        if (contractError) {
-            console.error('Error fetching contracts:', contractError)
-            return
-        }
+        if (contractError) return
 
-        console.log('📋 Active contracts:', contracts)
-
-        // Get unique vendor names with active contracts (normalized)
+        // Get unique vendor names with active contracts
         const vendorsWithContracts = new Set(
             contracts?.map(c => c.vendor_name?.trim().toLowerCase()).filter(Boolean) || []
         )
 
-        console.log('🏢 Vendors with active contracts:', Array.from(vendorsWithContracts))
-
-        // ========================================
-        // Update table 'vendors' (main vendor table)
-        // ========================================
-        const { data: vendorsTable, error: vendorsTableError } = await supabase
+        // Update 'vendors' table
+        const { data: vendorsTable } = await supabase
             .from('vendors')
             .select('id, nama, status')
-            .neq('status', 'Tidak Aktif') // Skip deactivated vendors
+            .neq('status', 'Tidak Aktif')
 
-        if (!vendorsTableError && vendorsTable) {
-            console.log('👥 Vendors from "vendors" table:', vendorsTable?.map(v => ({ nama: v.nama, status: v.status })))
-
+        if (vendorsTable) {
             for (const vendor of vendorsTable) {
-                // Check nama field, normalized (trim and lowercase for case-insensitive matching)
                 const vendorName = vendor.nama?.trim().toLowerCase()
-
                 const hasActiveContract = vendorName && vendorsWithContracts.has(vendorName)
-
                 const newStatus = hasActiveContract ? 'Berkontrak' : 'Aktif'
 
-                console.log(`🔄 Vendor "${vendor.nama}": hasContract=${hasActiveContract}, oldStatus="${vendor.status}", newStatus="${newStatus}"`)
-
-                // Only update if status changed
                 if (vendor.status !== newStatus) {
-                    const { error: updateError } = await supabase
+                    await supabase
                         .from('vendors')
                         .update({ status: newStatus })
                         .eq('id', vendor.id)
-
-                    if (updateError) {
-                        console.error(`❌ Error updating vendor ${vendor.nama}:`, updateError)
-                    } else {
-                        console.log(`✅ Updated vendor "${vendor.nama}" status to "${newStatus}"`)
-                    }
                 }
             }
         }
 
-        // ========================================
-        // Update table 'vendor_users' (vendor portal users)
-        // ========================================
-        const { data: vendorUsers, error: vendorUsersError } = await supabase
+        // Update 'vendor_users' table
+        const { data: vendorUsers } = await supabase
             .from('vendor_users')
             .select('id, company_name, status')
-            .neq('status', 'Tidak Aktif') // Skip deactivated vendors
+            .neq('status', 'Tidak Aktif')
 
-        if (!vendorUsersError && vendorUsers) {
-            console.log('👥 Vendors from "vendor_users" table:', vendorUsers?.map(v => ({ name: v.company_name, status: v.status })))
-
+        if (vendorUsers) {
             for (const vendor of vendorUsers) {
                 const vendorName = vendor.company_name?.trim().toLowerCase()
                 const hasActiveContract = vendorName && vendorsWithContracts.has(vendorName)
                 const newStatus = hasActiveContract ? 'Berkontrak' : 'Aktif'
 
-                console.log(`🔄 Vendor User "${vendor.company_name}": hasContract=${hasActiveContract}, oldStatus="${vendor.status}", newStatus="${newStatus}"`)
-
-                // Only update if status changed
                 if (vendor.status !== newStatus) {
-                    const { error: updateError } = await supabase
+                    await supabase
                         .from('vendor_users')
                         .update({ status: newStatus })
                         .eq('id', vendor.id)
-
-                    if (updateError) {
-                        console.error(`❌ Error updating vendor user ${vendor.company_name}:`, updateError)
-                    } else {
-                        console.log(`✅ Updated vendor user "${vendor.company_name}" status to "${newStatus}"`)
-                    }
                 }
             }
         }
-
-        console.log('✅ Vendor contract status update completed')
     } catch (error) {
-        console.error('Error updating vendor contract status:', error)
+        // Silent error
     }
 }
