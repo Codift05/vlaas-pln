@@ -26,37 +26,7 @@ function DataVendor() {
         status: 'Aktif',
         tanggalRegistrasi: new Date().toISOString().split('T')[0]
     });
-    // State untuk file yang dipilih
-    const [selectedFile, setSelectedFile] = useState(null);
-    // Handler saat file dipilih
-    const handleFileChange = (e) => {
-        setSelectedFile(e.target.files[0] || null);
-    };
-    // Handler upload file ke backend (Google Drive)
-    const handleUpload = async (e) => {
-        e.preventDefault();
-        if (!selectedFile) {
-            setNotification({ show: true, type: 'warning', message: 'Pilih file PDF terlebih dahulu!' });
-            return;
-        }
-        const formData = new FormData();
-        formData.append('file', selectedFile);
-        try {
-            const res = await fetch('/api/upload', {
-                method: 'POST',
-                body: formData,
-            });
-            const data = await res.json();
 
-            if (data.success) {
-                setNotification({ show: true, type: 'success', message: 'Upload ke Google Drive berhasil!' });
-            } else {
-                setNotification({ show: true, type: 'error', message: 'Upload gagal: ' + (data.error || 'Unknown error') });
-            }
-        } catch (err) {
-            setNotification({ show: true, type: 'error', message: 'Upload error: ' + err.message });
-        }
-    }
     // const [sidebarOpen, setSidebarOpen] = useState(false) // Removed as handled by layout
     const [searchTerm, setSearchTerm] = useState('')
     const [currentPage, setCurrentPage] = useState(1)
@@ -243,7 +213,7 @@ function DataVendor() {
         })
         setIsEditing(false)
         setEditId(null)
-        setSelectedFile(null)
+        setEditId(null)
     }
 
     const handleCloseModal = () => {
@@ -624,17 +594,7 @@ function DataVendor() {
                             <button className="modal-close-vendor" onClick={handleCloseModal}>✕</button>
                         </div>
                         <form onSubmit={handleSubmit} className="modal-form-vendor">
-                            <div className="form-group-vendor full-width">
-                                <label>Upload PDF Kontrak (opsional)</label>
-                                <div className="upload-file-group-vendor">
-                                    <input type="file" id="file-upload-vendor" accept="application/pdf" onChange={handleFileChange} style={{ display: 'none' }} />
-                                    <label htmlFor="file-upload-vendor" className="btn-upload-vendor">Pilih File</label>
-                                    <span className="file-upload-name-vendor">{selectedFile ? selectedFile.name : 'Tidak ada file dipilih'}</span>
-                                    {selectedFile && (
-                                        <button type="button" className="btn-upload-action-vendor" onClick={handleUpload}>Upload</button>
-                                    )}
-                                </div>
-                            </div>
+
                             <div className="form-grid-vendor">
                                 <div className="form-group-vendor">
                                     <label htmlFor="id">ID Vendor <span className="required-vendor">*</span></label>

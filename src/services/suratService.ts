@@ -176,6 +176,33 @@ export const getSuratById = async (id: string): Promise<SupabaseResponse<SuratPe
         return handleSupabaseError(error);
     }
 };
+
+// Delete surat and its file
+export const deleteSurat = async (id: string, fileUrl?: string): Promise<SupabaseResponse> => {
+    try {
+        // 1. Delete file from storage if exists and is not 'EXPIRED'
+        if (fileUrl && fileUrl !== 'EXPIRED' && fileUrl.includes('supabase')) {
+            const { error: storageError } = await deleteFileFromSupabase(fileUrl);
+            if (storageError) {
+                console.warn('Failed to delete file from storage:', storageError);
+                // Continue to delete record even if file deletion fails
+            }
+        }
+
+        // 2. Delete record from database
+        const { error } = await supabase
+            .from('surat_pengajuan')
+            .delete()
+            .eq('id', id);
+
+        if (error) return handleSupabaseError(error);
+
+        return handleSupabaseSuccess({ message: 'Surat berhasil dihapus' });
+    } catch (error) {
+        return handleSupabaseError(error);
+    }
+};
+
 // Cleanup expired files (older than 7 days)
 export const cleanupExpiredSuratFiles = async (): Promise<SupabaseResponse<{ cleanedCount: number }>> => {
     try {

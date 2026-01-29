@@ -1,8 +1,8 @@
 'use client'
 import { useState, useEffect } from 'react'
-import { CheckCircle, XCircle, Clock, Eye, FileText, Download, ExternalLink } from 'lucide-react'
+import { CheckCircle, XCircle, Clock, Eye, FileText, Download, ExternalLink, Trash2 } from 'lucide-react'
 import { downloadFileFromSupabase } from '@/services/fileUploadService'
-import { getAllSurat, updateSuratStatus, SuratPengajuan, cleanupExpiredSuratFiles } from '@/services/suratService'
+import { getAllSurat, updateSuratStatus, deleteSurat, SuratPengajuan, cleanupExpiredSuratFiles } from '@/services/suratService'
 import NotificationModal from '@/components/NotificationModal'
 import ConfirmModal from '@/components/ConfirmModal'
 import './ApprovalSurat.css'
@@ -106,6 +106,29 @@ export default function ApprovalSurat() {
                     setLastUpdate(Date.now()) // Trigger reload
                 } else {
                     setNotification({ show: true, type: 'error', message: 'Gagal menyetujui surat: ' + (result as any).error })
+                }
+            }
+        })
+    }
+
+    const handleDelete = (surat: SuratPengajuan) => {
+        setConfirmModal({
+            show: true,
+            title: 'Hapus Surat',
+            message: `Apakah Anda yakin ingin menghapus surat "${surat.nomor_surat}"? Data yang dihapus tidak dapat dikembalikan.`,
+            onConfirm: async () => {
+                setConfirmModal({ ...confirmModal, show: false })
+
+                // Import dynamically to avoid top-level server action issues in client component if needed, 
+                // but usually direct import is fine if 'use server' is in action file.
+                const { deleteSuratAction } = await import('@/actions/suratActions');
+                const result = await deleteSuratAction(surat.id, surat.file_url)
+
+                if (result.success) {
+                    setNotification({ show: true, type: 'success', message: 'Surat berhasil dihapus' })
+                    setLastUpdate(Date.now()) // Trigger reload
+                } else {
+                    setNotification({ show: true, type: 'error', message: 'Gagal menghapus surat: ' + (result as any).error })
                 }
             }
         })
@@ -266,28 +289,35 @@ export default function ApprovalSurat() {
                                                 <button
                                                     className="btn-detail"
                                                     onClick={() => handleDetail(surat)}
+                                                    title="Lihat Detail"
                                                 >
-                                                    <Eye size={14} />
-                                                    Detail
+                                                    <Eye size={16} />
                                                 </button>
                                                 {surat.status === 'PENDING' && (
                                                     <>
                                                         <button
                                                             className="btn-approve"
                                                             onClick={() => handleApprove(surat.id)}
+                                                            title="Setujui"
                                                         >
-                                                            <CheckCircle size={14} />
-                                                            Setuju
+                                                            <CheckCircle size={16} />
                                                         </button>
                                                         <button
                                                             className="btn-reject"
                                                             onClick={() => handleReject(surat)}
+                                                            title="Tolak"
                                                         >
-                                                            <XCircle size={14} />
-                                                            Tolak
+                                                            <XCircle size={16} />
                                                         </button>
                                                     </>
                                                 )}
+                                                <button
+                                                    className="btn-delete"
+                                                    onClick={() => handleDelete(surat)}
+                                                    title="Hapus Surat"
+                                                >
+                                                    <Trash2 size={16} />
+                                                </button>
                                             </div>
                                         </td>
                                     </tr>
