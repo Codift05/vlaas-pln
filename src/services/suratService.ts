@@ -50,9 +50,9 @@ export const createSurat = async (data: any): Promise<SupabaseResponse> => {
 
         if (error) return handleSupabaseError(error);
 
-        // Send Telegram Notification
+        // Send Telegram Notification with Buttons
         try {
-            const { sendTelegramNotification } = await import('../actions/telegramActions');
+            const { sendTelegramWithButtons } = await import('../actions/telegramActions');
             const message = `
 <b>📩 Surat Pengajuan Baru</b>
 
@@ -63,7 +63,16 @@ export const createSurat = async (data: any): Promise<SupabaseResponse> => {
 
 Mohon segera diperiksa.
 `;
-            await sendTelegramNotification(message);
+
+            // Inline Keyboard Buttons
+            const buttons = [
+                [
+                    { text: '✅ Setujui', callback_data: `approve_surat:${result.id}` },
+                    { text: '❌ Tolak', callback_data: `reject_surat:${result.id}` }
+                ]
+            ];
+
+            await sendTelegramWithButtons(message, buttons);
         } catch (err) {
             console.error('Failed to send Telegram notification:', err);
         }
