@@ -50,6 +50,24 @@ export const createSurat = async (data: any): Promise<SupabaseResponse> => {
 
         if (error) return handleSupabaseError(error);
 
+        // Send Telegram Notification
+        try {
+            const { sendTelegramNotification } = await import('../actions/telegramActions');
+            const message = `
+<b>📩 Surat Pengajuan Baru</b>
+
+<b>Nomor Surat:</b> ${data.nomorSurat}
+<b>Perihal:</b> ${data.perihal}
+<b>Vendor:</b> ${vendorEmail}
+<b>Tanggal:</b> ${data.tanggalSurat}
+
+Mohon segera diperiksa.
+`;
+            await sendTelegramNotification(message);
+        } catch (err) {
+            console.error('Failed to send Telegram notification:', err);
+        }
+
         return handleSupabaseSuccess(result, 'Surat berhasil diajukan');
     } catch (error) {
         return handleSupabaseError(error);
@@ -105,6 +123,27 @@ export const updateSuratStatus = async (id: string, status: 'APPROVED' | 'REJECT
             .single();
 
         if (error) return handleSupabaseError(error);
+
+        // Send Telegram Notification
+        try {
+            const { sendTelegramNotification } = await import('../actions/telegramActions');
+            const statusIcon = status === 'APPROVED' ? '✅' : '❌';
+            const statusText = status === 'APPROVED' ? 'DISETUJUI' : 'DITOLAK';
+
+            let message = `
+<b>${statusIcon} Status Surat Diperbarui</b>
+
+<b>Nomor Surat:</b> ${data.nomor_surat}
+<b>Status:</b> ${statusText}
+`;
+            if (reason) {
+                message += `<b>Alasan:</b> ${reason}\n`;
+            }
+
+            await sendTelegramNotification(message);
+        } catch (err) {
+            console.error('Failed to send Telegram notification:', err);
+        }
 
         return handleSupabaseSuccess(data, `Surat berhasil ${status === 'APPROVED' ? 'disetujui' : 'ditolak'}`);
     } catch (error) {

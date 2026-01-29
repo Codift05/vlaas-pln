@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation'
 import { FileText, Upload, X, CheckCircle, Calendar, AlertCircle } from 'lucide-react'
 import { uploadPDFToSupabase } from '@/services/fileUploadService'
 import { createSurat } from '@/services/suratService'
+import NotificationModal from '@/components/NotificationModal'
 import './VendorPengajuan.css'
 
 function VendorPengajuan() {
@@ -24,6 +25,7 @@ function VendorPengajuan() {
     const [errors, setErrors] = useState<Record<string, string>>({})
     const [isDragging, setIsDragging] = useState(false)
     const [isSubmitting, setIsSubmitting] = useState(false)
+    const [notification, setNotification] = useState({ show: false, type: 'success' as 'success' | 'error' | 'warning' | 'info', message: '' })
 
     const handleInputChange = (e) => {
         const { name, value } = e.target
@@ -164,7 +166,7 @@ function VendorPengajuan() {
             const uploadResult = await uploadPDFToSupabase(selectedFile)
 
             if (!uploadResult.success) {
-                alert('Gagal mengupload file: ' + uploadResult.error)
+                setNotification({ show: true, type: 'error', message: 'Gagal mengupload file: ' + uploadResult.error })
                 setIsSubmitting(false)
                 return
             }
@@ -180,14 +182,16 @@ function VendorPengajuan() {
 
             if (result.success) {
                 setIsSubmitting(false)
-                alert('Surat berhasil diajukan! File telah tersimpan di server.')
-                router.push('/vendor-portal')
+                setNotification({ show: true, type: 'success', message: 'Surat berhasil diajukan! File telah tersimpan di server.' })
+                setTimeout(() => {
+                    router.push('/vendor-portal')
+                }, 2000)
             } else {
                 throw new Error((result as any).error || 'Gagal menyimpan data surat')
             }
         } catch (error) {
             console.error('Submission error:', error)
-            alert('Terjadi kesalahan saat mengirim pengajuan')
+            setNotification({ show: true, type: 'error', message: 'Terjadi kesalahan saat mengirim pengajuan' })
             setIsSubmitting(false)
         }
     }
@@ -414,6 +418,14 @@ function VendorPengajuan() {
                         </button>
                     </div>
                 </form>
+
+                {/* Notification Modal */}
+                <NotificationModal
+                    show={notification.show}
+                    type={notification.type}
+                    message={notification.message}
+                    onClose={() => setNotification({ ...notification, show: false })}
+                />
             </div>
         </div>
     )

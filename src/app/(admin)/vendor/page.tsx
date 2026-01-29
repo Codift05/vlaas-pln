@@ -4,6 +4,8 @@ import { useSearchParams } from 'next/navigation'
 import { Users, CheckCircle, Search, Eye, Edit, Trash2, PauseCircle, ClipboardList, Plus, Save, X, Briefcase } from 'lucide-react'
 import { supabase } from '../../../lib/supabaseClient'
 import { updateVendorContractStatus } from '../../../services/vendorAccountService'
+import NotificationModal from '../../../components/NotificationModal'
+import ConfirmModal from '../../../components/ConfirmModal'
 import './DataVendor.css'
 
 function DataVendor() {
@@ -11,6 +13,8 @@ function DataVendor() {
     const [vendors, setVendors] = useState([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
+    const [notification, setNotification] = useState({ show: false, type: 'success' as 'success' | 'error' | 'warning' | 'info', message: '' })
+    const [confirmModal, setConfirmModal] = useState({ show: false, title: '', message: '', onConfirm: () => { } })
     // State untuk form tambah/edit vendor
     const [formData, setFormData] = useState({
         id: '',
@@ -20,7 +24,7 @@ function DataVendor() {
         email: '',
         kontakPerson: '',
         status: 'Aktif',
-        tanggalRegistrasi: ''
+        tanggalRegistrasi: new Date().toISOString().split('T')[0]
     });
     // State untuk file yang dipilih
     const [selectedFile, setSelectedFile] = useState(null);
@@ -32,7 +36,7 @@ function DataVendor() {
     const handleUpload = async (e) => {
         e.preventDefault();
         if (!selectedFile) {
-            alert('Pilih file PDF terlebih dahulu!');
+            setNotification({ show: true, type: 'warning', message: 'Pilih file PDF terlebih dahulu!' });
             return;
         }
         const formData = new FormData();
@@ -45,12 +49,12 @@ function DataVendor() {
             const data = await res.json();
 
             if (data.success) {
-                alert('Upload ke Google Drive berhasil!');
+                setNotification({ show: true, type: 'success', message: 'Upload ke Google Drive berhasil!' });
             } else {
-                alert('Upload gagal: ' + (data.error || 'Unknown error'));
+                setNotification({ show: true, type: 'error', message: 'Upload gagal: ' + (data.error || 'Unknown error') });
             }
         } catch (err) {
-            alert('Upload error: ' + err.message);
+            setNotification({ show: true, type: 'error', message: 'Upload error: ' + err.message });
         }
     }
     // const [sidebarOpen, setSidebarOpen] = useState(false) // Removed as handled by layout
@@ -183,7 +187,7 @@ function DataVendor() {
                 // kategori: formData.kategori, // kategori dihapus
                 kontak_person: formData.kontakPerson,
                 status: formData.status,
-                tanggal_registrasi: formData.tanggalRegistrasi // Fix registration_date -> tanggal_registrasi
+                tanggal_registrasi: formData.tanggalRegistrasi || new Date().toISOString().split('T')[0] // Fix registration_date -> tanggal_registrasi
             }
 
             if (isEditing) {
@@ -199,7 +203,7 @@ function DataVendor() {
                 // This ensures status is synced with actual contracts
                 await updateVendorContractStatus()
 
-                alert('Vendor berhasil diperbarui!')
+                setNotification({ show: true, type: 'success', message: 'Vendor berhasil diperbarui!' })
             } else {
                 // Insert new vendor
                 const { error } = await supabase
@@ -211,7 +215,7 @@ function DataVendor() {
                 // Auto-update status based on contracts after save
                 await updateVendorContractStatus()
 
-                alert('Vendor berhasil ditambahkan!')
+                setNotification({ show: true, type: 'success', message: 'Vendor berhasil ditambahkan!' })
             }
 
             setShowModal(false)
@@ -219,7 +223,7 @@ function DataVendor() {
             resetForm()
         } catch (err) {
             console.error('Error saving vendor:', err)
-            alert('Gagal menyimpan vendor: ' + err.message)
+            setNotification({ show: true, type: 'error', message: 'Gagal menyimpan vendor: ' + err.message })
         } finally {
             setLoading(false)
         }
@@ -235,7 +239,7 @@ function DataVendor() {
             // kategori: '',
             kontakPerson: '',
             status: 'Aktif',
-            tanggalRegistrasi: ''
+            tanggalRegistrasi: new Date().toISOString().split('T')[0]
         })
         setIsEditing(false)
         setEditId(null)
@@ -274,79 +278,88 @@ function DataVendor() {
     };
 
     const handleDelete = async (id) => {
-        if (!confirm('Apakah Anda yakin ingin menghapus vendor ini?')) return
+        const vendorToDelete = vendors.find(v => v.id === id)
 
-        try {
-            setLoading(true)
+        setConfirmModal({
+            show: true,
+            title: 'Hapus Vendor',
+            message: `Apakah Anda yakin ingin menghapus vendor "${vendorToDelete?.nama}"? Data yang dihapus tidak dapat dikembalikan.`,
+            onConfirm: async () => {
+                setConfirmModal({ ...confirmModal, show: false })
 
-            const vendorName = vendors.find(v => v.id === id)?.nama
+                try {
+                    setLoading(true)
 
-            // 1. Cek apakah vendor sedang digunakan di table assets
-            const { data: assets, error: assetsError } = await supabase
-                .from('assets')
-                .select('id, name')
-                .eq('vendor_id', id)
-                .limit(5)
+                    const vendorName = vendors.find(v => v.id === id)?.nama
 
-            if (assetsError) {
-                console.warn('Error checking assets:', assetsError)
-            }
+                    // 1. Cek apakah vendor sedang digunakan di table assets
+                    const { data: assets, error: assetsError } = await supabase
+                        .from('assets')
+                        .select('id, name')
+                        .eq('vendor_id', id)
+                        .limit(5)
 
-            // 2. Cek apakah vendor sedang digunakan di kontrak
-            const { data: contracts, error: checkError } = await supabase
-                .from('contracts')
-                .select('id, name, vendor_name')
-                .or(`vendor_name.eq.${vendorName},pengirim.eq.${vendorName}`)
-                .limit(5)
+                    if (assetsError) {
+                        console.warn('Error checking assets:', assetsError)
+                    }
 
-            if (checkError) {
-                console.warn('Error checking contracts:', checkError)
-            }
+                    // 2. Cek apakah vendor sedang digunakan di kontrak
+                    const { data: contracts, error: checkError } = await supabase
+                        .from('contracts')
+                        .select('id, name, vendor_name')
+                        .or(`vendor_name.eq.${vendorName},pengirim.eq.${vendorName}`)
+                        .limit(5)
 
-            // 3. Jika vendor masih dipakai, tampilkan peringatan
-            const usedInAssets = assets && assets.length > 0
-            const usedInContracts = contracts && contracts.length > 0
+                    if (checkError) {
+                        console.warn('Error checking contracts:', checkError)
+                    }
 
-            if (usedInAssets || usedInContracts) {
-                let message = `Vendor "${vendorName}" tidak dapat dihapus karena masih digunakan di:\n\n`
+                    // 3. Jika vendor masih dipakai, tampilkan peringatan
+                    const usedInAssets = assets && assets.length > 0
+                    const usedInContracts = contracts && contracts.length > 0
 
-                if (usedInAssets) {
-                    const assetNames = assets.map(a => a.name).join(', ')
-                    message += `📦 Assets (${assets.length}): ${assetNames}\n`
+                    if (usedInAssets || usedInContracts) {
+                        let message = `Vendor "${vendorName}" tidak dapat dihapus karena masih digunakan di:\n\n`
+
+                        if (usedInAssets) {
+                            const assetNames = assets.map(a => a.name).join(', ')
+                            message += `📦 Assets (${assets.length}): ${assetNames}\n`
+                        }
+
+                        if (usedInContracts) {
+                            const contractNames = contracts.map(c => c.name).join(', ')
+                            message += `📄 Kontrak (${contracts.length}): ${contractNames}\n`
+                        }
+
+                        message += '\nHapus atau ubah data tersebut terlebih dahulu.'
+
+                        setNotification({ show: true, type: 'warning', message: message })
+                        setLoading(false)
+                        return
+                    }
+
+                    // 4. Jika tidak dipakai, lanjutkan delete
+                    const { error } = await supabase
+                        .from('vendors')
+                        .delete()
+                        .eq('id', id)
+
+                    if (error) {
+                        console.error('Supabase delete error:', error)
+                        throw new Error(error.message || error.hint || 'Gagal menghapus vendor dari database')
+                    }
+
+                    setNotification({ show: true, type: 'success', message: 'Vendor berhasil dihapus' })
+                    fetchVendors()
+                } catch (err) {
+                    const errorMessage = err instanceof Error ? err.message : 'Terjadi kesalahan tidak diketahui'
+                    console.error('Error deleting vendor:', errorMessage)
+                    setNotification({ show: true, type: 'error', message: `Gagal menghapus vendor: ${errorMessage}` })
+                } finally {
+                    setLoading(false)
                 }
-
-                if (usedInContracts) {
-                    const contractNames = contracts.map(c => c.name).join(', ')
-                    message += `📄 Kontrak (${contracts.length}): ${contractNames}\n`
-                }
-
-                message += '\nHapus atau ubah data tersebut terlebih dahulu.'
-
-                alert(message)
-                setLoading(false)
-                return
             }
-
-            // 4. Jika tidak dipakai, lanjutkan delete
-            const { error } = await supabase
-                .from('vendors')
-                .delete()
-                .eq('id', id)
-
-            if (error) {
-                console.error('Supabase delete error:', error)
-                throw new Error(error.message || error.hint || 'Gagal menghapus vendor dari database')
-            }
-
-            alert('✅ Vendor berhasil dihapus')
-            fetchVendors()
-        } catch (err) {
-            const errorMessage = err instanceof Error ? err.message : 'Terjadi kesalahan tidak diketahui'
-            console.error('Error deleting vendor:', errorMessage)
-            alert(`Gagal menghapus vendor: ${errorMessage}`)
-        } finally {
-            setLoading(false)
-        }
+        })
     }
 
     // Kolom selector logic
@@ -713,6 +726,17 @@ function DataVendor() {
                                         required
                                     />
                                 </div>
+                                <div className="form-group-vendor">
+                                    <label htmlFor="tanggalRegistrasi">Tanggal Registrasi <span className="required-vendor">*</span></label>
+                                    <input
+                                        type="date"
+                                        id="tanggalRegistrasi"
+                                        name="tanggalRegistrasi"
+                                        value={formData.tanggalRegistrasi}
+                                        onChange={handleInputChange}
+                                        required
+                                    />
+                                </div>
                             </div>
                             <div className="modal-footer-vendor">
                                 <button type="button" className="btn-cancel-vendor" onClick={handleCloseModal}>
@@ -785,6 +809,24 @@ function DataVendor() {
                     </div>
                 </div>
             )}
+
+            {/* Notification Modal */}
+            <NotificationModal
+                show={notification.show}
+                type={notification.type}
+                message={notification.message}
+                onClose={() => setNotification({ ...notification, show: false })}
+            />
+
+            {/* Confirm Modal */}
+            <ConfirmModal
+                show={confirmModal.show}
+                type="delete"
+                title={confirmModal.title}
+                message={confirmModal.message}
+                onConfirm={confirmModal.onConfirm}
+                onCancel={() => setConfirmModal({ ...confirmModal, show: false })}
+            />
         </>
     )
 }

@@ -4,6 +4,8 @@ import { Building2, MapPin, Phone, User, Mail, Save, Edit2, AlertTriangle } from
 import { useRouter } from 'next/navigation'
 import { supabase } from '../../../lib/supabaseClient'
 import { deactivateVendorAccount } from '../../../services/vendorAccountService'
+import NotificationModal from '../../../components/NotificationModal'
+import ConfirmModal from '../../../components/ConfirmModal'
 import './VendorProfile.css'
 
 function VendorProfile() {
@@ -16,6 +18,8 @@ function VendorProfile() {
     const [uploadingImage, setUploadingImage] = useState(false)
     const [showDeleteModal, setShowDeleteModal] = useState(false)
     const [deleteLoading, setDeleteLoading] = useState(false)
+    const [notification, setNotification] = useState({ show: false, type: 'success' as 'success' | 'error' | 'warning' | 'info', message: '' })
+    const [confirmModal, setConfirmModal] = useState({ show: false, title: '', message: '', onConfirm: () => { } })
     const [profileData, setProfileData] = useState({
         companyName: '',
         companyType: 'PT',
@@ -139,13 +143,13 @@ function VendorProfile() {
 
         // Validate file type
         if (!file.type.startsWith('image/')) {
-            alert('File harus berupa gambar')
+            setNotification({ show: true, type: 'error', message: 'File harus berupa gambar' })
             return
         }
 
         // Validate file size (max 2MB)
         if (file.size > 2 * 1024 * 1024) {
-            alert('Ukuran file maksimal 2MB')
+            setNotification({ show: true, type: 'error', message: 'Ukuran file maksimal 2MB' })
             return
         }
 
@@ -159,7 +163,7 @@ function VendorProfile() {
                 const vendorProfile = localStorage.getItem('vendorProfile')
 
                 if (vendorUserId) {
-                    userId = parseInt(vendorUserId)
+                    userId = vendorUserId
                 } else if (vendorProfile) {
                     const profile = JSON.parse(vendorProfile)
                     userId = profile.userId
@@ -167,7 +171,7 @@ function VendorProfile() {
             }
 
             if (!userId) {
-                alert('Sesi login tidak ditemukan. Silakan refresh halaman atau login ulang.')
+                setNotification({ show: true, type: 'error', message: 'Sesi login tidak ditemukan. Silakan refresh halaman atau login ulang.' })
                 setUploadingImage(false)
                 return
             }
@@ -241,11 +245,11 @@ function VendorProfile() {
             }))
             window.dispatchEvent(new Event('profileUpdated'))
 
-            alert('✅ Foto profil berhasil diupload ke Supabase!')
+            setNotification({ show: true, type: 'success', message: 'Foto profil berhasil diupload ke Supabase!' })
         } catch (err) {
             console.error('Error uploading image:', err)
             const errorMessage = err instanceof Error ? err.message : 'Gagal upload foto profil. Silakan coba lagi.'
-            alert(errorMessage)
+            setNotification({ show: true, type: 'error', message: errorMessage })
         } finally {
             setUploadingImage(false)
         }
@@ -318,7 +322,11 @@ function VendorProfile() {
 
     const handleDeleteAccount = async () => {
         if (!vendorId) {
-            alert('Sesi login tidak ditemukan')
+            setNotification({
+                show: true,
+                type: 'error',
+                message: 'Sesi login tidak ditemukan'
+            })
             return
         }
 
@@ -327,22 +335,36 @@ function VendorProfile() {
             const result = await deactivateVendorAccount(vendorId)
 
             if (result.success) {
-                alert('✓ Akun Anda telah dinonaktifkan. Anda dapat mengaktifkan kembali dengan mengakses halaman reaktivasi.')
+                setNotification({
+                    show: true,
+                    type: 'success',
+                    message: 'Akun Anda telah dinonaktifkan. Anda dapat mengaktifkan kembali dengan mengakses halaman reaktivasi.'
+                })
 
-                // Clear session
-                localStorage.removeItem('vendorLoggedIn')
-                localStorage.removeItem('vendorEmail')
-                localStorage.removeItem('vendorUserId')
-                localStorage.removeItem('vendorProfile')
+                // Clear session and redirect after notification
+                setTimeout(() => {
+                    localStorage.removeItem('vendorLoggedIn')
+                    localStorage.removeItem('vendorEmail')
+                    localStorage.removeItem('vendorUserId')
+                    localStorage.removeItem('vendorProfile')
 
-                // Redirect to login
-                router.push('/vendor-login')
+                    // Redirect to login
+                    router.push('/vendor-login')
+                }, 2000)
             } else {
-                alert('❌ ' + result.error)
+                setNotification({
+                    show: true,
+                    type: 'error',
+                    message: result.error || 'Gagal menonaktifkan akun'
+                })
             }
         } catch (error) {
             console.error('Error deleting account:', error)
-            alert('Terjadi kesalahan saat menonaktifkan akun')
+            setNotification({
+                show: true,
+                type: 'error',
+                message: 'Terjadi kesalahan saat menonaktifkan akun'
+            })
         } finally {
             setDeleteLoading(false)
             setShowDeleteModal(false)
@@ -462,23 +484,29 @@ function VendorProfile() {
                                             type="button"
                                             className="btn-remove-image"
                                             onClick={async () => {
-                                                if (confirm('Hapus foto profil?')) {
-                                                    try {
-                                                        await supabase
-                                                            .from('vendors')
-                                                            .update({ profile_image: null })
-                                                            .eq('id', vendorId)
-                                                        setProfileImage('')
-                                                        const currentProfile = JSON.parse(localStorage.getItem('vendorProfile') || '{}')
-                                                        localStorage.setItem('vendorProfile', JSON.stringify({
-                                                            ...currentProfile,
-                                                            profileImage: ''
-                                                        }))
-                                                        window.dispatchEvent(new Event('profileUpdated'))
-                                                    } catch (err) {
-                                                        alert('Gagal menghapus foto')
+                                                setConfirmModal({
+                                                    show: true,
+                                                    title: 'Hapus Foto Profil',
+                                                    message: 'Apakah Anda yakin ingin menghapus foto profil? Data yang dihapus tidak dapat dikembalikan.',
+                                                    onConfirm: async () => {
+                                                        setConfirmModal({ ...confirmModal, show: false })
+                                                        try {
+                                                            await supabase
+                                                                .from('vendors')
+                                                                .update({ profile_image: null })
+                                                                .eq('id', vendorId)
+                                                            setProfileImage('')
+                                                            const currentProfile = JSON.parse(localStorage.getItem('vendorProfile') || '{}')
+                                                            localStorage.setItem('vendorProfile', JSON.stringify({
+                                                                ...currentProfile,
+                                                                profileImage: ''
+                                                            }))
+                                                            window.dispatchEvent(new Event('profileUpdated'))
+                                                        } catch (err) {
+                                                            setNotification({ show: true, type: 'error', message: 'Gagal menghapus foto' })
+                                                        }
                                                     }
-                                                }
+                                                })
                                             }}
                                         >
                                             Hapus
@@ -779,85 +807,105 @@ function VendorProfile() {
                 </form>
 
                 {/* Delete Account Confirmation Modal */}
-                {showDeleteModal && (
-                    <div className="modal-overlay" onClick={() => !deleteLoading && setShowDeleteModal(false)}>
-                        <div
-                            className="incomplete-modal"
-                            onClick={(e) => e.stopPropagation()}
-                            style={{ maxWidth: '500px' }}
-                        >
-                            <div className="modal-icon" style={{ background: '#fee2e2' }}>
-                                <AlertTriangle size={48} style={{ color: '#dc2626' }} />
-                            </div>
-                            <h3 style={{ color: '#dc2626' }}>Konfirmasi Non-Aktifkan Akun</h3>
-                            <p style={{ marginBottom: '16px', lineHeight: '1.6' }}>
-                                Apakah Anda yakin ingin menonaktifkan akun Anda?
-                            </p>
-                            <div style={{
-                                background: '#fef3c7',
-                                border: '1px solid #fbbf24',
-                                padding: '12px 16px',
-                                borderRadius: '8px',
-                                marginBottom: '24px',
-                                textAlign: 'left'
-                            }}>
-                                <p style={{
-                                    margin: 0,
-                                    fontSize: '14px',
-                                    color: '#92400e',
-                                    lineHeight: '1.5'
-                                }}>
-                                    <strong>Perhatian:</strong><br />
-                                    • Akun Anda akan dinonaktifkan<br />
-                                    • Status akun menjadi "Tidak Aktif"<br />
-                                    • Anda tidak dapat login kembali<br />
-                                    • Data profil akan tetap tersimpan
+                {
+                    showDeleteModal && (
+                        <div className="modal-overlay" onClick={() => !deleteLoading && setShowDeleteModal(false)}>
+                            <div
+                                className="incomplete-modal"
+                                onClick={(e) => e.stopPropagation()}
+                                style={{ maxWidth: '500px' }}
+                            >
+                                <div className="modal-icon" style={{ background: '#fee2e2' }}>
+                                    <AlertTriangle size={48} style={{ color: '#dc2626' }} />
+                                </div>
+                                <h3 style={{ color: '#dc2626' }}>Konfirmasi Non-Aktifkan Akun</h3>
+                                <p style={{ marginBottom: '16px', lineHeight: '1.6' }}>
+                                    Apakah Anda yakin ingin menonaktifkan akun Anda?
                                 </p>
-                            </div>
-                            <div className="modal-buttons" style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
-                                <button
-                                    className="btn-secondary"
-                                    onClick={() => setShowDeleteModal(false)}
-                                    disabled={deleteLoading}
-                                    style={{ padding: '12px 24px' }}
-                                >
-                                    Batal
-                                </button>
-                                <button
-                                    className="btn-delete"
-                                    onClick={handleDeleteAccount}
-                                    disabled={deleteLoading}
-                                    style={{
-                                        background: '#dc2626',
-                                        color: 'white',
-                                        border: 'none',
-                                        padding: '12px 24px',
-                                        borderRadius: '8px',
+                                <div style={{
+                                    background: '#fef3c7',
+                                    border: '1px solid #fbbf24',
+                                    padding: '12px 16px',
+                                    borderRadius: '8px',
+                                    marginBottom: '24px',
+                                    textAlign: 'left'
+                                }}>
+                                    <p style={{
+                                        margin: 0,
                                         fontSize: '14px',
-                                        fontWeight: 600,
-                                        cursor: deleteLoading ? 'not-allowed' : 'pointer',
-                                        opacity: deleteLoading ? 0.6 : 1,
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: '8px'
-                                    }}
-                                >
-                                    {deleteLoading ? (
-                                        <>
-                                            <span className="loading-spinner"></span>
-                                            Memproses...
-                                        </>
-                                    ) : (
-                                        <>
-                                            <AlertTriangle size={18} />
-                                            Ya, Non-Aktifkan Akun
-                                        </>
-                                    )}
-                                </button>
+                                        color: '#92400e',
+                                        lineHeight: '1.5'
+                                    }}>
+                                        <strong>Perhatian:</strong><br />
+                                        • Akun Anda akan dinonaktifkan<br />
+                                        • Status akun menjadi "Tidak Aktif"<br />
+                                        • Anda tidak dapat login kembali<br />
+                                        • Data profil akan tetap tersimpan
+                                    </p>
+                                </div>
+                                <div className="modal-buttons" style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+                                    <button
+                                        className="btn-secondary"
+                                        onClick={() => setShowDeleteModal(false)}
+                                        disabled={deleteLoading}
+                                        style={{ padding: '12px 24px' }}
+                                    >
+                                        Batal
+                                    </button>
+                                    <button
+                                        className="btn-delete"
+                                        onClick={handleDeleteAccount}
+                                        disabled={deleteLoading}
+                                        style={{
+                                            background: '#dc2626',
+                                            color: 'white',
+                                            border: 'none',
+                                            padding: '12px 24px',
+                                            borderRadius: '8px',
+                                            fontSize: '14px',
+                                            fontWeight: 600,
+                                            cursor: deleteLoading ? 'not-allowed' : 'pointer',
+                                            opacity: deleteLoading ? 0.6 : 1,
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '8px'
+                                        }}
+                                    >
+                                        {deleteLoading ? (
+                                            <>
+                                                <span className="loading-spinner"></span>
+                                                Memproses...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <AlertTriangle size={18} />
+                                                Ya, Non-Aktifkan Akun
+                                            </>
+                                        )}
+                                    </button>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                )}
+                    )
+                }
+
+                {/* Notification Modal */}
+                <NotificationModal
+                    show={notification.show}
+                    type={notification.type}
+                    message={notification.message}
+                    onClose={() => setNotification({ ...notification, show: false })}
+                />
+
+                {/* Confirm Modal */}
+                <ConfirmModal
+                    show={confirmModal.show}
+                    type="delete"
+                    title={confirmModal.title}
+                    message={confirmModal.message}
+                    onConfirm={confirmModal.onConfirm}
+                    onCancel={() => setConfirmModal({ ...confirmModal, show: false })}
+                />
             </div >
         </div >
     )
