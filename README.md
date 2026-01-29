@@ -156,9 +156,7 @@ Seluruh dokumentasi teknis, panduan instalasi, dan troubleshooting tersimpan rap
 ## Kontak & Dukungan Teknis
 
 **PT. PLN (Persero) - Unit Pelaksana Transmisi (UPT) Manado**
-*Divisi Teknologi Informasi & Umum*
-
-Sistem ini bersifat **PROPRIETARY** (Milik Pribadi) PT. PLN (Persero). Segala bentuk akses, penggunaan, atau distribusi tanpa izin tertulis dari manajemen adalah dilarang.
+*Divisi Konstruksi Dan Penyaluran*
 
 ---
 
