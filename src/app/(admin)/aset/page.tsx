@@ -8,8 +8,7 @@ import { updateVendorContractStatus } from '../../../services/vendorAccountServi
 import './ManajemenAset.css'
 
 function ManajemenAset() {
-    // Debug log to help diagnose blank page
-    console.log('ManajemenAset render start');
+    // Debug log removed
     const searchParams = useSearchParams()
     const [searchTerm, setSearchTerm] = useState('');
     const [filterStatus, setFilterStatus] = useState('all');
@@ -72,8 +71,6 @@ function ManajemenAset() {
                 throw new Error('Data kontrak tidak ditemukan')
             }
 
-            console.log('Contract data:', contract)
-
             // Validasi tipe anggaran
             if (!contract.budgetType || (contract.budgetType !== 'AI' && contract.budgetType !== 'AO')) {
                 throw new Error(`Tipe anggaran harus AI atau AO. Saat ini: "${contract.budgetType}". Harap update data kontrak terlebih dahulu.`)
@@ -92,23 +89,11 @@ function ManajemenAset() {
             formData.append('nomorKontrak', contract.invoiceNumber || contract.id)
             formData.append('contractId', selectedContractId)
 
-            console.log('Uploading with data:', {
-                fileName: selectedFile.name,
-                fileSize: selectedFile.size,
-                fileType: selectedFile.type,
-                tipeAnggaran: contract.budgetType,
-                namaKontrak: contract.name,
-                nomorKontrak: contract.invoiceNumber || contract.id,
-                contractId: selectedContractId
-            })
-
             // Kirim ke API upload-contract
             const res = await fetch('/api/upload-contract', {
                 method: 'POST',
                 body: formData
             })
-
-            console.log('Response status:', res.status, res.statusText)
 
             let data
             try {
@@ -120,26 +105,13 @@ function ManajemenAset() {
                 throw new Error('Server response tidak valid. Cek console untuk detail.')
             }
 
-            console.log('Response data:', data)
-
             if (!res.ok) {
-                // Log detail error untuk debugging
-                console.error('Upload failed:', {
-                    status: res.status,
-                    statusText: res.statusText,
-                    error: data.error,
-                    details: data.details,
-                    fullResponse: data
-                })
-
                 // Show detailed error
                 const detailMsg = data.details ? `\n\nDetail: ${JSON.stringify(data.details, null, 2)}` : ''
                 const errorMsg = `${data.error || 'Upload gagal'}\n\nStatus: ${res.status} ${res.statusText}${detailMsg}`
 
                 throw new Error(errorMsg)
             }
-
-            console.log('Upload successful:', data)
 
             // Simpan link file ke Supabase (hanya jika upload ke Drive sukses)
             if (data.success && data.data) {
@@ -233,7 +205,7 @@ function ManajemenAset() {
 
             if (error) throw error
 
-            console.log('Raw data from Supabase:', data) // Debug log
+            if (error) throw error
 
             // Format data sesuai struktur UI
             const formattedData = data.map(contract => ({
