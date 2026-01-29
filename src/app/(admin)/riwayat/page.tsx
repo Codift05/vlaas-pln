@@ -43,11 +43,21 @@ export default function RiwayatPage() {
             setLoading(true)
 
             // Fetch contract history with limit 50 for page
-            const { data: contractHistory } = await supabase
+            console.log('Fetching from table: contract_history');
+            const { data: contractHistory, error: historyError } = await supabase
                 .from('contract_history')
-                .select('*, contracts(name)')
+                .select('*') // Removed join that caused error
                 .order('created_at', { ascending: false })
                 .limit(50)
+
+            if (historyError) {
+                console.error('Supabase error fetching contract_history:', historyError);
+            }
+
+            // Fetch ALL contracts (lightweight, just id and name) to map manually
+            const { data: contractsList } = await supabase
+                .from('contracts')
+                .select('id, name');
 
             // Fetch vendors with limit 20
             const { data: vendors } = await supabase
@@ -61,11 +71,15 @@ export default function RiwayatPage() {
             if (contractHistory) {
                 contractHistory.forEach((history: any) => {
                     const isAmendment = history.action.includes('Amandemen')
+                    // Manual join
+                    const relatedContract = contractsList?.find(c => c.id === history.contract_id);
+                    const contractName = relatedContract?.name || 'Kontrak';
+
                     notifs.push({
                         id: `contract-${history.id}`,
                         type: isAmendment ? 'amendment' : 'contract',
                         title: history.action,
-                        description: `${history.contracts?.name || 'Kontrak'} - ${history.details}`,
+                        description: `${contractName} - ${history.details}`,
                         time: getRelativeTime(history.created_at),
                         timestamp: new Date(history.created_at),
                         icon: isAmendment ? FileEdit : FileText
