@@ -1,7 +1,8 @@
 'use client'
 import { useState, useEffect } from 'react'
-import { FileText, UserPlus, FileEdit, Clock, History } from 'lucide-react'
+import { FileText, UserPlus, FileEdit, Clock, History, Trash2, AlertCircle } from 'lucide-react'
 import { supabase } from '@/lib/supabaseClient'
+import ConfirmModal from '@/components/ConfirmModal'
 import './Riwayat.css'
 
 interface Notification {
@@ -17,6 +18,8 @@ interface Notification {
 export default function RiwayatPage() {
     const [notifications, setNotifications] = useState<Notification[]>([])
     const [loading, setLoading] = useState(true)
+    const [confirmModal, setConfirmModal] = useState({ show: false, title: '', message: '', onConfirm: () => { } })
+    const [toast, setToast] = useState({ show: false, message: '', type: 'success' })
 
     useEffect(() => {
         fetchNotifications()
@@ -38,9 +41,74 @@ export default function RiwayatPage() {
         return date.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })
     }
 
+    const showToast = (message: string, type: 'success' | 'error' = 'success') => {
+        setToast({ show: true, message, type })
+        setTimeout(() => setToast({ ...toast, show: false }), 3000)
+    }
+
+    const handleDeleteClick = (item: Notification) => {
+        setConfirmModal({
+            show: true,
+            title: 'Sembunyikan Riwayat',
+            message: 'Apakah Anda yakin ingin menyembunyikan notifikasi ini? Data asli tidak akan terhapus dari sistem.',
+            onConfirm: () => hideHistoryItem(item.id)
+        })
+    }
+
+    const handleClearAll = () => {
+        setConfirmModal({
+            show: true,
+            title: 'Bersihkan Semua Riwayat',
+            message: 'Apakah Anda yakin ingin membersihkan semua riwayat dari tampilan ini? Data asli tidak akan terhapus.',
+            onConfirm: () => clearAllHistory()
+        })
+    }
+
+    const hideHistoryItem = (id: string) => {
+        try {
+            setConfirmModal({ ...confirmModal, show: false })
+
+            // Get existing hidden items
+            const hiddenItems = JSON.parse(localStorage.getItem('hidden_activity_logs') || '[]')
+            if (!hiddenItems.includes(id)) {
+                hiddenItems.push(id)
+                localStorage.setItem('hidden_activity_logs', JSON.stringify(hiddenItems))
+            }
+
+            setNotifications(prev => prev.filter(n => n.id !== id))
+            showToast('Riwayat disembunyikan')
+        } catch (error) {
+            console.error('Error hiding history:', error)
+            showToast('Gagal menyembunyikan riwayat', 'error')
+        }
+    }
+
+    const clearAllHistory = () => {
+        try {
+            setConfirmModal({ ...confirmModal, show: false })
+
+            // Get all current IDs
+            const allIds = notifications.map(n => n.id)
+            const hiddenItems = JSON.parse(localStorage.getItem('hidden_activity_logs') || '[]')
+
+            // Merge unique IDs
+            const newHiddenItems = [...new Set([...hiddenItems, ...allIds])]
+            localStorage.setItem('hidden_activity_logs', JSON.stringify(newHiddenItems))
+
+            setNotifications([])
+            showToast('Semua riwayat dibersihkan')
+        } catch (error) {
+            console.error('Error clearing history:', error)
+            showToast('Gagal membersihkan riwayat', 'error')
+        }
+    }
+
     const fetchNotifications = async () => {
         try {
             setLoading(true)
+
+            // Get hidden items first
+            const hiddenItems = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('hidden_activity_logs') || '[]') : []
 
             // Fetch contract history with limit 50 for page
             console.log('Fetching from table: contract_history');
@@ -70,6 +138,7 @@ export default function RiwayatPage() {
 
             if (contractHistory) {
                 contractHistory.forEach((history: any) => {
+                    if (hiddenItems.includes(`contract-${history.id}`)) return; // Skip hidden
                     const isAmendment = history.action.includes('Amandemen')
                     // Manual join
                     const relatedContract = contractsList?.find(c => c.id === history.contract_id);
@@ -89,6 +158,7 @@ export default function RiwayatPage() {
 
             if (vendors) {
                 vendors.forEach((vendor: any) => {
+                    if (hiddenItems.includes(`vendor-${vendor.id}`)) return; // Skip hidden
                     notifs.push({
                         id: `vendor-${vendor.id}`,
                         type: 'vendor',
@@ -114,9 +184,55 @@ export default function RiwayatPage() {
     return (
         <div className="riwayat-container">
             <div className="riwayat-header">
-                <h1 className="riwayat-title">Riwayat Aktivitas</h1>
-                <p className="riwayat-subtitle">Log aktivitas sistem, perubahan kontrak, dan pendaftaran vendor terbaru.</p>
+                <div>
+                    <h1 className="riwayat-title">Riwayat Aktivitas</h1>
+                    <p className="riwayat-subtitle">Log aktivitas sistem, perubahan kontrak, dan pendaftaran vendor terbaru.</p>
+                </div>
+                {notifications.length > 0 && (
+                    <button
+                        onClick={handleClearAll}
+                        className="clear-all-btn"
+                        style={{
+                            padding: '8px 16px',
+                            background: '#fee2e2',
+                            color: '#dc2626',
+                            border: 'none',
+                            borderRadius: '6px',
+                            cursor: 'pointer',
+                            fontSize: '14px',
+                            fontWeight: 500,
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            transition: 'all 0.2s'
+                        }}
+                    >
+                        <Trash2 size={16} />
+                        Bersihkan Semua
+                    </button>
+                )}
             </div>
+
+            {toast.show && (
+                <div style={{
+                    position: 'fixed',
+                    top: '20px',
+                    right: '20px',
+                    padding: '12px 24px',
+                    background: toast.type === 'success' ? '#10B981' : '#EF4444',
+                    color: 'white',
+                    borderRadius: '8px',
+                    boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+                    zIndex: 9999,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    animation: 'slideIn 0.3s ease-out'
+                }}>
+                    {toast.type === 'error' && <AlertCircle size={20} />}
+                    {toast.message}
+                </div>
+            )}
 
             <div className="timeline-container">
                 {loading ? (
@@ -124,15 +240,48 @@ export default function RiwayatPage() {
                 ) : notifications.length > 0 ? (
                     notifications.map((item) => {
                         const Icon = item.icon
+                        const isVendor = item.type === 'vendor'
+
                         return (
-                            <div key={item.id} className="timeline-item">
+                            <div key={item.id} className="timeline-item group">
                                 <div className={`timeline-icon-wrapper ${item.type}`}>
                                     <Icon size={20} strokeWidth={2} />
                                 </div>
                                 <div className="timeline-content">
                                     <div className="timeline-header">
                                         <div className="timeline-title">{item.title}</div>
-                                        <div className="timeline-time">{item.time}</div>
+                                        <div className="flex items-center gap-2">
+                                            <div className="timeline-time">{item.time}</div>
+                                            <button
+                                                onClick={() => handleDeleteClick(item)}
+                                                className="delete-history-btn"
+                                                title="Sembunyikan dari riwayat"
+                                                style={{
+                                                    border: 'none',
+                                                    background: 'transparent',
+                                                    cursor: 'pointer',
+                                                    color: '#ef4444',
+                                                    padding: '4px',
+                                                    borderRadius: '4px',
+                                                    marginLeft: '8px',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    opacity: 0.7,
+                                                    transition: 'all 0.2s'
+                                                }}
+                                                onMouseOver={(e) => {
+                                                    e.currentTarget.style.opacity = '1';
+                                                    e.currentTarget.style.background = '#fee2e2';
+                                                }}
+                                                onMouseOut={(e) => {
+                                                    e.currentTarget.style.opacity = '0.7';
+                                                    e.currentTarget.style.background = 'transparent';
+                                                }}
+                                            >
+                                                <Trash2 size={16} />
+                                            </button>
+                                        </div>
                                     </div>
                                     <div className="timeline-desc">{item.description}</div>
                                 </div>
@@ -146,6 +295,15 @@ export default function RiwayatPage() {
                     </div>
                 )}
             </div>
+
+            <ConfirmModal
+                show={confirmModal.show}
+                title={confirmModal.title}
+                message={confirmModal.message}
+                onConfirm={confirmModal.onConfirm}
+                onCancel={() => setConfirmModal({ ...confirmModal, show: false })}
+                type="delete"
+            />
         </div>
     )
 }
