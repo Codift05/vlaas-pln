@@ -112,11 +112,13 @@ Modul antarmuka yang diperuntukkan bagi mitra kerja eksternal.
 Pusat kontrol bagi internal PLN untuk pengelolaan operasional.
 *   **Executive Overview**: Tampilan statistik makro mengenai volume kontrak, kinerja vendor, dan status pengajuan.
 *   **Digital Verification Room**: Fasilitas peninjauan dokumen visual (PDF Preview) yang terintegrasi di dalam aplikasi.
-*   **Audit Trail & Logs**: Perekaman jejak digital yang tidak dapat dimanipulasi untuk setiap tindakan persetujuan atau penolakan.
+*   **Audit Trail & Logs**: Perekaman jejak digital yang tidak dapat dimanipulasi dengan fitur **Interactive History** (dismiss/hide) untuk manajemen fokus yang lebih baik.
+*   **High-Performance Data Grids**: Tabel data vendor dan kontrak yang telah dioptimalkan untuk menangani beban data besar tanpa latensi.
 
-### 3. Sistem Pengarsipan Cerdas
+### 3. Sistem Pengarsipan & Keamanan
 *   **Integrated Cloud Storage**: Sinkronisasi otomatis dengan Google Drive korporat untuk penyimpanan jangka panjang.
-*   **Dynamic Folder Structure**: Pengorganisasian file otomatis berdasarkan Tahun, Nama Vendor, dan Kategori Kontrak.
+*   **Robust Data Integrity**: Validasi relasional data (Foreign Key) yang ketat untuk menjamin konsistensi antara data kontrak, history, dan vendor.
+*   **Secure Server Actions**: Mekanisme penghapusan dan modifikasi data sensitif yang dilindungi lewat *Server-Side Actions* untuk keamanan setara bank.
 *   **Auto-Cleanup Protocol**: Mekanisme pembersihan otomatis untuk file sampah (temporary/rejected) guna efisiensi ruang penyimpanan.
 
 ---
@@ -163,5 +165,5 @@ Sistem ini bersifat **PROPRIETARY** (Milik Pribadi) PT. PLN (Persero). Segala be
 <div align="center">
   <small>Hak Cipta © 2026 PT. PLN (Persero). Dilindungi Undang-Undang.</small>
   <br>
-  <small>SAKTI v2.0 - Sistem Administrasi Kontrak Terintegrasi</small>
+  <small>SAKTI v2.1 - Sistem Administrasi Kontrak Terintegrasi</small>
 </div>
