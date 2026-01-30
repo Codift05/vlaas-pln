@@ -99,45 +99,49 @@ export default function VendorDashboard() {
         <div className="vendor-dashboard">
             {/* Stats Cards */}
             <div className="stats-grid">
-                <div className="stat-card">
-                    <div className="stat-icon total">
-                        <Calendar size={24} />
-                    </div>
-                    <div className="stat-info">
-                        <div className="stat-value">{totalPengajuan}</div>
-                        <div className="stat-label">Total Pengajuan</div>
-                    </div>
-                </div>
-
-                <div className="stat-card">
-                    <div className="stat-icon pending">
-                        <Clock size={24} />
-                    </div>
-                    <div className="stat-info">
-                        <div className="stat-value">{pendingCount}</div>
-                        <div className="stat-label">Menunggu Persetujuan</div>
-                    </div>
-                </div>
-
-                <div className="stat-card">
-                    <div className="stat-icon approved">
-                        <CheckCircle size={24} />
-                    </div>
-                    <div className="stat-info">
-                        <div className="stat-value">{approvedCount}</div>
-                        <div className="stat-label">Disetujui</div>
-                    </div>
-                </div>
-
-                <div className="stat-card">
-                    <div className="stat-icon rejected">
-                        <XCircle size={24} />
-                    </div>
-                    <div className="stat-info">
-                        <div className="stat-value">{rejectedCount}</div>
-                        <div className="stat-label">Ditolak</div>
-                    </div>
-                </div>
+                {[
+                    {
+                        title: 'Total Pengajuan',
+                        value: totalPengajuan,
+                        icon: Calendar,
+                        color: '#3b82f6',
+                        bgColor: '#eff6ff',
+                    },
+                    {
+                        title: 'Menunggu Persetujuan',
+                        value: pendingCount,
+                        icon: Clock,
+                        color: '#f39c12',
+                        bgColor: '#fff8e1',
+                    },
+                    {
+                        title: 'Disetujui',
+                        value: approvedCount,
+                        icon: CheckCircle,
+                        color: '#2ecc71',
+                        bgColor: '#e8f5e9',
+                    },
+                    {
+                        title: 'Ditolak',
+                        value: rejectedCount,
+                        icon: XCircle,
+                        color: '#e74c3c',
+                        bgColor: '#ffebee',
+                    },
+                ].map((stat, index) => {
+                    const IconComponent = stat.icon;
+                    return (
+                        <div key={index} className="stat-card">
+                            <div className="stat-icon" style={{ background: stat.bgColor }}>
+                                <IconComponent size={28} style={{ color: stat.color }} strokeWidth={2.5} />
+                            </div>
+                            <div className="stat-info">
+                                <div className="stat-value">{stat.value}</div>
+                                <div className="stat-label">{stat.title}</div>
+                            </div>
+                        </div>
+                    );
+                })}
             </div>
 
             {/* Table */}
