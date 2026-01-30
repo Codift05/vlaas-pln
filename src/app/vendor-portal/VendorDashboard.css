@@ -20,43 +20,29 @@
 /* Stats Grid */
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 24px;
   margin-bottom: 32px;
 }
 
 .stat-card {
-  background: white;
+  background: #ffffff;
   padding: 24px;
-  border-radius: 16px;
+  border-radius: 20px;
+  box-shadow: none;
+  border: 1px solid rgba(226, 232, 240, 0.6);
   display: flex;
   align-items: center;
-  gap: 20px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
-  border: 1px solid rgba(226, 232, 240, 0.8);
+  gap: 18px;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
 }
 
-.stat-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 0;
-  height: 100%;
-  background: linear-gradient(90deg, rgba(59, 130, 246, 0.05) 0%, transparent 100%);
-  transition: width 0.3s;
-}
-
 .stat-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
-}
-
-.stat-card:hover::before {
-  width: 100%;
+  box-shadow: none;
+  border-color: rgba(59, 130, 246, 0.2);
 }
 
 .stat-icon {
@@ -67,35 +53,21 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 0.3s;
+  /* Background and color will be handled via inline styles in TSX like Admin */
 }
 
 .stat-card:hover .stat-icon {
-  transform: scale(1.1) rotate(-5deg);
+  transform: scale(1.05);
 }
 
-.stat-icon.total {
-  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
-  color: #3b82f6;
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
-}
-
-.stat-icon.pending {
-  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-  color: #f59e0b;
-  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2);
-}
-
-.stat-icon.approved {
-  background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
-  color: #10b981;
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
-}
-
+/* Specific icon styles removed here because we will use inline styles like Admin */
+.stat-icon.total,
+.stat-icon.pending,
+.stat-icon.approved,
 .stat-icon.rejected {
-  background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
-  color: #ef4444;
-  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
+  background: none;
+  box-shadow: none;
 }
 
 .stat-info {
@@ -103,21 +75,21 @@
 }
 
 .stat-value {
-  font-size: 36px;
+  font-size: 28px;
   font-weight: 700;
   color: #1e293b;
-  margin: 0 0 4px 0;
   line-height: 1;
-  letter-spacing: -1px;
-  font-family: 'Inter', sans-serif;
+  margin-bottom: 4px;
+  letter-spacing: -0.5px;
+  font-family: var(--font-inter);
 }
 
 .stat-label {
-  font-size: 14px;
-  color: #64748b;
-  margin: 0;
+  font-size: 13px;
+  color: #8b95a1;
   font-weight: 500;
-  font-family: 'Inter', sans-serif;
+  letter-spacing: 0.2px;
+  font-family: var(--font-inter);
 }
 
 /* Search and Actions */
@@ -216,115 +188,111 @@
   box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
 }
 
-/* Table Container */
+/* Table Container - Flat */
 .table-container {
-  background: white;
-  border-radius: 16px;
-  padding: 24px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
-  border: 1px solid rgba(226, 232, 240, 0.8);
+  background: #ffffff;
+  border-radius: 20px;
+  box-shadow: none;
+  border: 1px solid rgba(226, 232, 240, 0.6);
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  min-height: 600px;
   margin-bottom: 0;
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .table-header {
-  margin-bottom: 20px;
+  padding: 26px;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.6);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0px;
 }
 
 .table-header h2 {
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 700;
-  color: #1e293b;
+  color: #2b3f50;
   margin: 0;
-  letter-spacing: -0.2px;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-inter);
+  letter-spacing: -0.3px;
 }
 
 /* Vendor Table */
 .vendor-table {
   width: 100%;
-  border-collapse: separate;
-  border-spacing: 0;
+  border-collapse: collapse;
 }
 
 .vendor-table thead {
-  background: #f8fafc;
+  background: rgba(248, 250, 252, 0.8);
 }
 
 .vendor-table th {
-  padding: 14px 16px;
+  padding: 18px 24px;
   text-align: left;
-  font-size: 13px;
-  font-weight: 600;
-  color: #475569;
-  border-bottom: 1px solid #e2e8f0;
-  white-space: nowrap;
-  font-family: 'Inter', sans-serif;
-  letter-spacing: 0.3px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #64748b;
   text-transform: uppercase;
-  background: transparent;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid #e2e8f0;
+  font-family: var(--font-inter);
+  background: #f8fafc;
 }
 
 .vendor-table tbody tr {
   border-bottom: 1px solid #f1f5f9;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.2s ease;
 }
 
 .vendor-table tbody tr:last-child {
-  border-bottom: none;
+  border-bottom: 1px solid #f1f5f9;
 }
 
 .vendor-table tbody tr:hover {
-  background-color: #f8fafc;
+  background: #f8fafc;
+  transform: translateY(-1px);
 }
 
 .vendor-table td {
-  padding: 16px;
+  padding: 18px 24px;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.4);
+  color: #2b3f50;
   font-size: 14px;
-  color: #475569;
+  font-family: var(--font-inter);
   vertical-align: middle;
-  font-family: 'Inter', sans-serif;
-  font-weight: 500;
 }
 
-/* Action Icons */
+/* Action Buttons */
+.btn-download {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: #eff6ff;
+  color: #3b82f6;
+  border: 1px solid #bfdbfe;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  font-family: var(--font-inter);
+}
+
+.btn-download:hover {
+  background: #3b82f6;
+  color: white;
+  border-color: #3b82f6;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+}
+
+/* Old Icon Styles (Keeping just in case or clearing them) */
 .action-icons {
   display: flex;
   gap: 8px;
-  align-items: center;
-}
-
-.icon-btn {
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: none;
-  cursor: pointer;
-  transition: all 0.2s;
-  background: transparent;
-}
-
-.icon-btn.view {
-  color: #3b82f6;
-  background: #eff6ff;
-}
-
-.icon-btn.view:hover {
-  background: #dbeafe;
-  transform: scale(1.1);
-}
-
-.icon-btn.edit {
-  color: #f59e0b;
-  background: #fef3c7;
-}
-
-.icon-btn.edit:hover {
-  background: #fde68a;
-  transform: scale(1.1);
 }
 
 .icon-btn.delete {
@@ -339,35 +307,31 @@
 
 /* Status Badges */
 .status-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 600;
-  font-family: 'Inter', sans-serif;
-  letter-spacing: 0.3px;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  cursor: default;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 600;
+    font-family: var(--font-inter);
+    letter-spacing: 0.2px;
+    border: none;
 }
 
-.status-pending {
-  background: #fef3c7;
-  color: #d97706;
-  border: 1px solid #fde68a;
+.status-badge.status-pending {
+    background: #fff9e1;
+    color: #b8860b;
 }
 
-.status-approved {
-  background: #d1fae5;
-  color: #059669;
-  border: 1px solid #a7f3d0;
+.status-badge.status-approved {
+    background: #d4edda;
+    color: #155724;
 }
 
-.status-rejected {
-  background: #fee2e2;
-  color: #dc2626;
-  border: 1px solid #fecaca;
+.status-badge.status-rejected {
+    background: #f8d7da;
+    color: #721c24;
 }
 
 /* Pagination */
