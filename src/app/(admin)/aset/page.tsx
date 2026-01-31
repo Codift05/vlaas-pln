@@ -20,13 +20,13 @@ function ManajemenAset() {
         name: true,
         vendorName: true,
         amount: true, // Nilai Kontrak
-        budgetType: true,
-        contractType: true,
-        // category: true, // kategori dihapus
-        location: true,
+        budgetType: false, // Hidden by default
+        contractType: false, // Hidden by default
+        location: false, // Hidden by default
         status: true,
-        startDate: true,
-        endDate: true
+        periode: true, // Combined date column
+        startDate: false, // Hidden - use periode instead
+        endDate: false // Hidden - use periode instead
     });
     // State untuk Detail Modal
     const [showDetailModal, setShowDetailModal] = useState(false)
@@ -1008,73 +1008,127 @@ function ManajemenAset() {
             <>
                 {/* Deadline Alert Cards */}
                 <div className="deadline-stats-container">
+                    {/* Total Kontrak */}
                     <div className="deadline-stat-card">
-                        <div className="deadline-stat-icon" style={{ background: '#ffebee' }}>
-                            <AlertOctagon size={28} style={{ color: '#e74c3c' }} />
+                        <div className="deadline-stat-icon" style={{ background: '#eff6ff', color: '#3b82f6' }}>
+                            <FileText size={24} />
                         </div>
                         <div className="deadline-stat-content">
-                            <div className="deadline-stat-number">
-                                {deadlineStats.overdue}
-                            </div>
-                            <div className="deadline-stat-label">
-                                Kontrak Terlambat
-                            </div>
+                            <div className="deadline-stat-number">{assets.length}</div>
+                            <div className="deadline-stat-label">Total Kontrak</div>
                         </div>
                     </div>
+
+                    {/* Kontrak Aktif */}
                     <div className="deadline-stat-card">
-                        <div className="deadline-stat-icon" style={{ background: '#fff8e1' }}>
-                            <Clock size={28} style={{ color: '#f39c12' }} />
+                        <div className="deadline-stat-icon" style={{ background: '#f0fdf4', color: '#16a34a' }}>
+                            <Activity size={24} />
                         </div>
                         <div className="deadline-stat-content">
                             <div className="deadline-stat-number">
-                                {deadlineStats.warning}
+                                {assets.filter(a => a.status === 'Dalam Pekerjaan').length}
                             </div>
-                            <div className="deadline-stat-label">
-                                Mendekati Deadline
-                            </div>
+                            <div className="deadline-stat-label">Kontrak Aktif</div>
+                        </div>
+                    </div>
+
+                    {/* Kontrak Terlambat */}
+                    <div className="deadline-stat-card">
+                        <div className="deadline-stat-icon" style={{ background: '#fef2f2', color: '#ef4444' }}>
+                            <AlertCircle size={24} />
+                        </div>
+                        <div className="deadline-stat-content">
+                            <div className="deadline-stat-number">{deadlineStats.overdue}</div>
+                            <div className="deadline-stat-label">Kontrak Terlambat</div>
+                        </div>
+                    </div>
+
+                    {/* Mendekati Deadline */}
+                    <div className="deadline-stat-card">
+                        <div className="deadline-stat-icon" style={{ background: '#fff7ed', color: '#f97316' }}>
+                            <Clock size={24} />
+                        </div>
+                        <div className="deadline-stat-content">
+                            <div className="deadline-stat-number">{deadlineStats.warning}</div>
+                            <div className="deadline-stat-label">Mendekati Deadline</div>
                         </div>
                     </div>
                 </div>
 
                 {/* Action Bar */}
+                {/* Action Bar */}
                 <div className="action-bar">
-                    <div className="filter-section">
+                    <div className="filter-section" style={{ flex: '1 1 500px' }}>
                         <select
                             value={filterStatus}
                             onChange={(e) => setFilterStatus(e.target.value)}
                             className="filter-select"
                             title="Pilih status kontrak"
+                            style={{ display: 'block', padding: '12px 16px', borderRadius: '12px', border: '1px solid #e2e8f0', background: 'white', minWidth: '160px' }}
                         >
                             <option value="all">Semua Status</option>
                             <option value="Selesai">Selesai</option>
                             <option value="Dalam Pemeriksaan">Dalam Pemeriksaan</option>
                             <option value="Telah Diperiksa">Telah Diperiksa</option>
                             <option value="Terbayar">Terbayar</option>
+                            <option value="Dalam Pekerjaan">Dalam Pekerjaan</option>
                         </select>
 
-                        <input
-                            type="text"
-                            placeholder="Cari Kontrak berdasarkan nama..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="search-input-table"
-                        />
+                        <div style={{ position: 'relative', flex: '1 1 250px' }}>
+                            <Search size={18} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
+                            <input
+                                type="text"
+                                placeholder="Cari Kontrak..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="search-input-table"
+                                style={{ paddingLeft: '44px', width: '100%' }}
+                            />
+                        </div>
 
+                        {/* Date Filter Placeholder - Styled to look intentional */}
+                        <div style={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            padding: '6px 16px',
+                            background: '#f8fafc',
+                            border: '1px solid #e2e8f0',
+                            borderRadius: '12px',
+                            height: '46px',
+                            justifyContent: 'center',
+                            minWidth: '140px'
+                        }}>
+                            <label style={{ fontSize: '10px', color: '#64748b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '2px' }}>Periode</label>
+                            <span style={{ fontSize: '13px', color: '#334155', fontWeight: 500 }}>Semua Waktu</span>
+                        </div>
+                    </div>
+
+                    <div className="action-buttons-group" style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
                         {searchTerm && (
-                            <span className="search-result-count">
-                                Ditemukan {filteredAssets.length} kontrak
+                            <span className="search-result-count" style={{ marginRight: '8px' }}>
+                                <b>{filteredAssets.length}</b> ditemukan
                             </span>
                         )}
-                        <div>
-                            <label style={{ display: 'block', fontSize: '12px', color: '#64748b', marginBottom: '4px' }}>Tanggal & Waktu</label>
-                            {/* progressDateTime is not defined, so this block is removed to prevent error */}
-                        </div>
+
                         <div className="column-selector" ref={columnSelectorRef}>
                             <button
                                 className="column-selector-btn"
                                 onClick={() => setShowColumnSelector(!showColumnSelector)}
+                                style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '8px',
+                                    padding: '12px 18px',
+                                    background: 'white',
+                                    border: '1px solid #e2e8f0',
+                                    borderRadius: '12px',
+                                    fontWeight: 600,
+                                    fontSize: '14px',
+                                    color: '#334155',
+                                    cursor: 'pointer'
+                                }}
                             >
-                                <Eye size={18} /> Pilih Kolom ({getVisibleColumnsCount()}/10)
+                                <Eye size={18} /> <span className="hide-on-mobile">Kolom</span>
                             </button>
                             {showColumnSelector && (
                                 <div className="column-dropdown">
@@ -1151,6 +1205,14 @@ function ManajemenAset() {
                                             <label className="column-option">
                                                 <input
                                                     type="checkbox"
+                                                    checked={columnVisibility.periode}
+                                                    onChange={() => toggleColumnVisibility('periode')}
+                                                />
+                                                <span>Periode</span>
+                                            </label>
+                                            <label className="column-option">
+                                                <input
+                                                    type="checkbox"
                                                     checked={columnVisibility.startDate}
                                                     onChange={() => toggleColumnVisibility('startDate')}
                                                 />
@@ -1170,13 +1232,16 @@ function ManajemenAset() {
                             )}
                         </div>
                         <button className="btn-primary" onClick={() => setShowModal(true)}>
-                            <Plus size={18} /> Tambah Kontrak Baru
+                            <Plus size={18} /> <span className="hide-on-mobile">Kontrak Baru</span>
                         </button>
                     </div>
                 </div>
 
                 {/* Assets Table */}
                 <div className="table-container">
+                    <div className="table-header">
+                        <h2>Daftar Kontrak</h2>
+                    </div>
                     <table className="assets-table">
                         <thead>
                             <tr>
@@ -1190,6 +1255,7 @@ function ManajemenAset() {
 
                                 {columnVisibility.location && <th>Lokasi</th>}
                                 {columnVisibility.status && <th>Status</th>}
+                                {columnVisibility.periode && <th>Periode</th>}
                                 {columnVisibility.startDate && <th>Tanggal Mulai</th>}
                                 {columnVisibility.endDate && <th>Tanggal Selesai</th>}
                                 <th>Aksi</th>
@@ -1283,6 +1349,17 @@ function ManajemenAset() {
                                                 )}
                                                 {columnVisibility.startDate && <td>{asset.startDate}</td>}
                                                 {columnVisibility.endDate && <td>{asset.endDate}</td>}
+                                                {columnVisibility.periode && (
+                                                    <td style={{ whiteSpace: 'nowrap', fontSize: '13px' }}>
+                                                        {asset.startDate && asset.endDate ? (
+                                                            <span>
+                                                                {new Date(asset.startDate).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' })}
+                                                                {' - '}
+                                                                {new Date(asset.endDate).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: '2-digit' })}
+                                                            </span>
+                                                        ) : '-'}
+                                                    </td>
+                                                )}
                                                 <td>
                                                     <div className="action-buttons">
                                                         <button className="btn-icon btn-view" title="Lihat Detail" onClick={() => handleViewDetail(asset)}><Eye size={16} /></button>
