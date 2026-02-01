@@ -88,49 +88,50 @@ textarea:focus {
 /* Deadline Stats Cards - Consistent with Dashboard */
 .deadline-stats-container {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 16px;
-  margin-bottom: 20px;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* Allow wider cards */
+  gap: 24px;
+  margin-bottom: 32px;
 }
 
 .deadline-stat-card {
   flex: 1;
   background: #ffffff;
-  border-radius: 20px;
   padding: 24px;
+  border-radius: 20px;
+  box-shadow: none;
+  border: 1px solid rgba(226, 232, 240, 0.6);
   display: flex;
   align-items: center;
-  gap: 20px;
-  box-shadow: none;
+  gap: 18px;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
-  border: 1px solid rgba(226, 232, 240, 0.6);
+  min-height: auto;
 }
 
-
+/* ... existing hover styles ... */
 
 .deadline-stat-card:hover {
   transform: translateY(-4px);
-  box-shadow: none;
-  border-color: rgba(59, 130, 246, 0.2);
+  box-shadow: 0 12px 24px -10px rgba(0, 0, 0, 0.08);
+  border-color: rgba(59, 130, 246, 0.3);
 }
 
-
+/* ... existing icon styles ... */
 
 .deadline-stat-icon {
+  width: 56px;
+  height: 56px;
   border-radius: 16px;
-  width: 64px;
-  height: 64px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
   transition: transform 0.3s;
-  background: #eff6ff; /* Default light blue bg */
+  background: #eff6ff;
   color: #3b82f6;
 }
-
+/* ... */
 .deadline-stat-card:hover .deadline-stat-icon {
   transform: scale(1.05);
   background: #3b82f6;
@@ -146,19 +147,18 @@ textarea:focus {
   font-weight: 700;
   color: #1e293b;
   line-height: 1;
+  margin-bottom: 4px;
   letter-spacing: -0.5px;
   font-family: var(--font-inter);
-  margin: 0 0 4px 0;
 }
 
 .deadline-stat-label {
-  font-size: 14px;
-  color: #64748b;
-  margin: 0;
-  font-weight: 600;
-  letter-spacing: 0.3px;
+  font-size: 13px;
+  color: #8b95a1;
+  font-weight: 500;
+  letter-spacing: 0.2px;
   font-family: var(--font-inter);
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 .action-bar {
@@ -167,13 +167,7 @@ textarea:focus {
   align-items: center;
   margin-bottom: 28px;
   gap: 16px;
-  flex-wrap: wrap;
-}
-
-.action-buttons-group {
-  display: flex;
-  gap: 12px;
-  align-items: center;
+  flex-wrap: wrap; /* Enable wrapping */
 }
 
 .filter-section {
@@ -181,6 +175,8 @@ textarea:focus {
   gap: 14px;
   flex: 1;
   align-items: center;
+  flex-wrap: wrap; /* Enable wrapping for small screens */
+  min-width: 0; /* Prevent flex overflow */
 }
 
 .search-result-count {
@@ -485,13 +481,32 @@ textarea:focus {
 
 /* Table Container */
 .table-container {
-  background: var(--bg-header);
-  backdrop-filter: blur(10px);
-  border-radius: 16px;
+  background: #ffffff;
+  border-radius: 20px;
   box-shadow: none;
   border: 1px solid rgba(226, 232, 240, 0.6);
-  overflow: hidden;
+  overflow-x: auto;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  min-height: 600px;
   margin-bottom: 20px;
+  width: 100%;
+}
+
+.table-header {
+  padding: 26px;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.6);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.table-header h2 {
+  font-size: 18px;
+  font-weight: 700;
+  color: #2b3f50;
+  margin: 0;
+  font-family: var(--font-inter);
+  letter-spacing: -0.3px;
 }
 
 .assets-table {
@@ -514,6 +529,7 @@ textarea:focus {
   border-bottom: 1px solid #e2e8f0;
   font-family: var(--font-inter);
   background: #f8fafc;
+  white-space: nowrap;
 }
 
 .assets-table tbody tr {
@@ -528,11 +544,13 @@ textarea:focus {
 }
 
 .assets-table td {
-  padding: 20px 24px;
+  padding: 18px 24px;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.4);
+  color: #2b3f50;
   font-size: 14px;
-  color: #334155;
   font-family: var(--font-inter);
   vertical-align: middle;
+  white-space: nowrap;
 }
 
 .asset-id {
@@ -540,6 +558,7 @@ textarea:focus {
   color: #94a3b8;
   font-family: monospace;
   font-size: 13px;
+  width: 120px; /* Fixed width for ID */
 }
 
 .asset-name {
@@ -547,6 +566,7 @@ textarea:focus {
   color: #1e293b;
   font-size: 15px;
   line-height: 1.4;
+  /* Specific override for name if needed, but generic td handles it now */
 }
 
 /* Status Badges - Pill Shape */
@@ -1505,4 +1525,40 @@ textarea:focus {
   opacity: 0.5;
   cursor: not-allowed;
   background: #f1f5f9;
+}
+
+/* Responsive Utilities */
+@media (max-width: 768px) {
+  .hide-on-mobile {
+    display: none !important;
+  }
+  
+  .action-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .filter-section {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .action-buttons-group {
+    justify-content: space-between;
+    width: 100%;
+    margin-top: 12px;
+  }
+
+  .deadline-stats-container {
+    grid-template-columns: 1fr;
+  }
+  
+  .search-box-wrapper {
+      width: 100%;
+  }
+
+  /* Make date placeholder full width on mobile if needed or keep inline */
+  .date-filter-placeholder {
+      width: 100%;
+  }
 }

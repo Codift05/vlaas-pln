@@ -543,24 +543,18 @@ const LogoGroup = styled.div`
     display: none;
   }
 
-  /* PLN Logo - Standard Size */
+  /* PLN Logo - Smaller Size */
   .logo-pln {
-    height: 55px;
+    height: 36px;
     width: auto;
     object-fit: contain;
-    transition: transform 0.2s;
   }
 
-  /* Danantara Logo - Maximize for 80px Header */
+  /* Danantara Logo - Smaller Size */
   .logo-danantara {
-    height: 40px;
+    height: 28px;
     width: auto;
     object-fit: contain;
-    transition: transform 0.2s;
-  }
-  
-  img:hover {
-      transform: scale(1.05);
   }
   
   .logo-text {

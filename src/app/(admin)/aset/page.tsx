@@ -20,13 +20,13 @@ function ManajemenAset() {
         name: true,
         vendorName: true,
         amount: true, // Nilai Kontrak
-        budgetType: true,
-        contractType: true,
-        // category: true, // kategori dihapus
-        location: true,
+        budgetType: false, // Hidden by default
+        contractType: false, // Hidden by default
+        location: false, // Hidden by default
         status: true,
-        startDate: true,
-        endDate: true
+        periode: true, // Combined date column
+        startDate: false, // Hidden - use periode instead
+        endDate: false // Hidden - use periode instead
     });
     // State untuk Detail Modal
     const [showDetailModal, setShowDetailModal] = useState(false)
@@ -205,27 +205,72 @@ function ManajemenAset() {
 
             if (error) throw error
 
-            if (error) throw error
+            // Fetch all contract history in one query for better performance
+            let allHistory = []
+            try {
+                const { data: historyData, error: historyError } = await supabase
+                    .from('contract_history')
+                    .select('*')
+                    .order('created_at', { ascending: false })
+
+                if (!historyError && historyData) {
+                    allHistory = historyData
+                }
+            } catch (historyErr) {
+                console.warn('Contract history table not available yet:', historyErr)
+            }
 
             // Format data sesuai struktur UI
-            const formattedData = data.map(contract => ({
-                id: contract.id || '',
-                name: contract.name || contract.perihal || '',
-                vendorName: contract.vendor_name || contract.pengirim || '',
-                recipient: contract.penerima || contract.recipient || '',
-                invoiceNumber: contract.nomor_surat || contract.invoice_number || '',
-                amount: contract.amount ? parseFloat(contract.amount) : 0,
-                budgetType: contract.budget_type || contract.kategori || '',
-                contractType: contract.contract_type || contract.kategori || '',
-                category: contract.kategori || contract.budget_type || '',
-                location: contract.location || contract.notes || '-',
-                status: contract.status || 'Dalam Pekerjaan',
-                startDate: contract.start_date || contract.tanggal_masuk || '',
-                endDate: contract.end_date || '',
-                updatedAt: contract.updated_at || contract.created_at || '',
-                progress: 0,
-                history: []
-            }))
+            const formattedData = data.map(contract => {
+                // Find history for this contract
+                const contractHistory = allHistory
+                    .filter(h => h.contract_id === contract.id)
+                    .map(h => ({
+                        id: h.id,
+                        action: h.action || '',
+                        user: h.user_name || 'Admin',
+                        details: h.details || '',
+                        date: h.created_at ? new Date(h.created_at).toLocaleDateString('id-ID', {
+                            day: '2-digit',
+                            month: 'short',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        }) : ''
+                    }))
+
+                // Calculate latest progress from progress tracker history
+                let latestProgress = contract.progress || 0
+                const progressTrackers = contractHistory.filter(h => h.action && h.action.includes('Progress Tracker'))
+                if (progressTrackers.length > 0) {
+                    // Get the most recent progress tracker
+                    const latestTracker = progressTrackers[0] // Already sorted by created_at DESC
+                    // Extract percentage from action text like "Progress Tracker: Title (60%)"
+                    const percentageMatch = latestTracker.action.match(/\((\d+)%\)/)
+                    if (percentageMatch) {
+                        latestProgress = parseInt(percentageMatch[1], 10)
+                    }
+                }
+
+                return {
+                    id: contract.id || '',
+                    name: contract.name || contract.perihal || '',
+                    vendorName: contract.vendor_name || contract.pengirim || '',
+                    recipient: contract.penerima || contract.recipient || '',
+                    invoiceNumber: contract.nomor_surat || contract.invoice_number || '',
+                    amount: contract.amount ? parseFloat(contract.amount) : 0,
+                    budgetType: contract.budget_type || contract.kategori || '',
+                    contractType: contract.contract_type || contract.kategori || '',
+                    category: contract.kategori || contract.budget_type || '',
+                    location: contract.location || contract.notes || '-',
+                    status: contract.status || 'Dalam Pekerjaan',
+                    startDate: contract.start_date || contract.tanggal_masuk || '',
+                    endDate: contract.end_date || '',
+                    updatedAt: contract.updated_at || contract.created_at || '',
+                    progress: latestProgress,
+                    history: contractHistory
+                }
+            })
             setAssets(formattedData)
         } catch (err) {
             console.error('Error fetching contracts:', err)
@@ -597,18 +642,7 @@ function ManajemenAset() {
             const percentage = progressFormData.percentage || 0;
             console.log('Submitting Progress:', { contractId: progressFormData.contractId, percentage });
 
-            // 1. Update Contract Progress
-            const { error: updateError } = await supabase
-                .from('contracts')
-                .update({ progress: percentage })
-                .eq('id', progressFormData.contractId)
-
-            if (updateError) {
-                console.error('Supabase Update Error:', updateError);
-                throw updateError;
-            }
-
-            // 2. Add History Entry
+            // 1. Add History Entry first (this is the critical part)
             const progressDateTime = progressFormData.date && progressFormData.time
                 ? `${progressFormData.date} ${progressFormData.time}`
                 : '';
@@ -626,8 +660,23 @@ function ManajemenAset() {
                 throw historyError;
             }
 
+            // 2. Update Contract Progress in database
+            const { error: updateError } = await supabase
+                .from('contracts')
+                .update({ progress: percentage })
+                .eq('id', progressFormData.contractId)
+
+            if (updateError) {
+                console.warn('Could not update progress column:', updateError.message);
+                // Log but don't throw - we already saved to history which is the source of truth
+            }
+
             showAlert('success', 'Berhasil', 'Progress tracker berhasil ditambahkan!')
-            fetchContracts()
+
+            // Store the contract ID before closing modal
+            const contractId = progressFormData.contractId
+
+            // Close modal and reset form
             setShowProgressModal(false)
             setProgressFormData({
                 contractId: '',
@@ -638,6 +687,9 @@ function ManajemenAset() {
                 date: '',
                 time: ''
             })
+
+            // Refresh data to get updated history
+            await fetchContracts()
         } catch (err) {
             console.error('Error adding progress tracker FULL:', err);
             const msg = err?.message || err?.error_description || JSON.stringify(err);
@@ -1008,73 +1060,127 @@ function ManajemenAset() {
             <>
                 {/* Deadline Alert Cards */}
                 <div className="deadline-stats-container">
+                    {/* Total Kontrak */}
                     <div className="deadline-stat-card">
-                        <div className="deadline-stat-icon" style={{ background: '#ffebee' }}>
-                            <AlertOctagon size={28} style={{ color: '#e74c3c' }} />
+                        <div className="deadline-stat-icon" style={{ background: '#eff6ff', color: '#3b82f6' }}>
+                            <FileText size={24} />
                         </div>
                         <div className="deadline-stat-content">
-                            <div className="deadline-stat-number">
-                                {deadlineStats.overdue}
-                            </div>
-                            <div className="deadline-stat-label">
-                                Kontrak Terlambat
-                            </div>
+                            <div className="deadline-stat-number">{assets.length}</div>
+                            <div className="deadline-stat-label">Total Kontrak</div>
                         </div>
                     </div>
+
+                    {/* Kontrak Aktif */}
                     <div className="deadline-stat-card">
-                        <div className="deadline-stat-icon" style={{ background: '#fff8e1' }}>
-                            <Clock size={28} style={{ color: '#f39c12' }} />
+                        <div className="deadline-stat-icon" style={{ background: '#f0fdf4', color: '#16a34a' }}>
+                            <Activity size={24} />
                         </div>
                         <div className="deadline-stat-content">
                             <div className="deadline-stat-number">
-                                {deadlineStats.warning}
+                                {assets.filter(a => a.status === 'Dalam Pekerjaan').length}
                             </div>
-                            <div className="deadline-stat-label">
-                                Mendekati Deadline
-                            </div>
+                            <div className="deadline-stat-label">Kontrak Aktif</div>
+                        </div>
+                    </div>
+
+                    {/* Kontrak Terlambat */}
+                    <div className="deadline-stat-card">
+                        <div className="deadline-stat-icon" style={{ background: '#fef2f2', color: '#ef4444' }}>
+                            <AlertCircle size={24} />
+                        </div>
+                        <div className="deadline-stat-content">
+                            <div className="deadline-stat-number">{deadlineStats.overdue}</div>
+                            <div className="deadline-stat-label">Kontrak Terlambat</div>
+                        </div>
+                    </div>
+
+                    {/* Mendekati Deadline */}
+                    <div className="deadline-stat-card">
+                        <div className="deadline-stat-icon" style={{ background: '#fff7ed', color: '#f97316' }}>
+                            <Clock size={24} />
+                        </div>
+                        <div className="deadline-stat-content">
+                            <div className="deadline-stat-number">{deadlineStats.warning}</div>
+                            <div className="deadline-stat-label">Mendekati Deadline</div>
                         </div>
                     </div>
                 </div>
 
                 {/* Action Bar */}
+                {/* Action Bar */}
                 <div className="action-bar">
-                    <div className="filter-section">
+                    <div className="filter-section" style={{ flex: '1 1 500px' }}>
                         <select
                             value={filterStatus}
                             onChange={(e) => setFilterStatus(e.target.value)}
                             className="filter-select"
                             title="Pilih status kontrak"
+                            style={{ display: 'block', padding: '12px 16px', borderRadius: '12px', border: '1px solid #e2e8f0', background: 'white', minWidth: '160px' }}
                         >
                             <option value="all">Semua Status</option>
                             <option value="Selesai">Selesai</option>
                             <option value="Dalam Pemeriksaan">Dalam Pemeriksaan</option>
                             <option value="Telah Diperiksa">Telah Diperiksa</option>
                             <option value="Terbayar">Terbayar</option>
+                            <option value="Dalam Pekerjaan">Dalam Pekerjaan</option>
                         </select>
 
-                        <input
-                            type="text"
-                            placeholder="Cari Kontrak berdasarkan nama..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="search-input-table"
-                        />
+                        <div style={{ position: 'relative', flex: '1 1 250px' }}>
+                            <Search size={18} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
+                            <input
+                                type="text"
+                                placeholder="Cari Kontrak..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="search-input-table"
+                                style={{ paddingLeft: '44px', width: '100%' }}
+                            />
+                        </div>
 
+                        {/* Date Filter Placeholder - Styled to look intentional */}
+                        <div style={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            padding: '6px 16px',
+                            background: '#f8fafc',
+                            border: '1px solid #e2e8f0',
+                            borderRadius: '12px',
+                            height: '46px',
+                            justifyContent: 'center',
+                            minWidth: '140px'
+                        }}>
+                            <label style={{ fontSize: '10px', color: '#64748b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '2px' }}>Periode</label>
+                            <span style={{ fontSize: '13px', color: '#334155', fontWeight: 500 }}>Semua Waktu</span>
+                        </div>
+                    </div>
+
+                    <div className="action-buttons-group" style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
                         {searchTerm && (
-                            <span className="search-result-count">
-                                Ditemukan {filteredAssets.length} kontrak
+                            <span className="search-result-count" style={{ marginRight: '8px' }}>
+                                <b>{filteredAssets.length}</b> ditemukan
                             </span>
                         )}
-                        <div>
-                            <label style={{ display: 'block', fontSize: '12px', color: '#64748b', marginBottom: '4px' }}>Tanggal & Waktu</label>
-                            {/* progressDateTime is not defined, so this block is removed to prevent error */}
-                        </div>
+
                         <div className="column-selector" ref={columnSelectorRef}>
                             <button
                                 className="column-selector-btn"
                                 onClick={() => setShowColumnSelector(!showColumnSelector)}
+                                style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '8px',
+                                    padding: '12px 18px',
+                                    background: 'white',
+                                    border: '1px solid #e2e8f0',
+                                    borderRadius: '12px',
+                                    fontWeight: 600,
+                                    fontSize: '14px',
+                                    color: '#334155',
+                                    cursor: 'pointer'
+                                }}
                             >
-                                <Eye size={18} /> Pilih Kolom ({getVisibleColumnsCount()}/10)
+                                <Eye size={18} /> <span className="hide-on-mobile">Kolom</span>
                             </button>
                             {showColumnSelector && (
                                 <div className="column-dropdown">
@@ -1151,6 +1257,14 @@ function ManajemenAset() {
                                             <label className="column-option">
                                                 <input
                                                     type="checkbox"
+                                                    checked={columnVisibility.periode}
+                                                    onChange={() => toggleColumnVisibility('periode')}
+                                                />
+                                                <span>Periode</span>
+                                            </label>
+                                            <label className="column-option">
+                                                <input
+                                                    type="checkbox"
                                                     checked={columnVisibility.startDate}
                                                     onChange={() => toggleColumnVisibility('startDate')}
                                                 />
@@ -1170,13 +1284,16 @@ function ManajemenAset() {
                             )}
                         </div>
                         <button className="btn-primary" onClick={() => setShowModal(true)}>
-                            <Plus size={18} /> Tambah Kontrak Baru
+                            <Plus size={18} /> <span className="hide-on-mobile">Kontrak Baru</span>
                         </button>
                     </div>
                 </div>
 
                 {/* Assets Table */}
                 <div className="table-container">
+                    <div className="table-header">
+                        <h2>Daftar Kontrak</h2>
+                    </div>
                     <table className="assets-table">
                         <thead>
                             <tr>
@@ -1190,6 +1307,7 @@ function ManajemenAset() {
 
                                 {columnVisibility.location && <th>Lokasi</th>}
                                 {columnVisibility.status && <th>Status</th>}
+                                {columnVisibility.periode && <th>Periode</th>}
                                 {columnVisibility.startDate && <th>Tanggal Mulai</th>}
                                 {columnVisibility.endDate && <th>Tanggal Selesai</th>}
                                 <th>Aksi</th>
@@ -1283,6 +1401,17 @@ function ManajemenAset() {
                                                 )}
                                                 {columnVisibility.startDate && <td>{asset.startDate}</td>}
                                                 {columnVisibility.endDate && <td>{asset.endDate}</td>}
+                                                {columnVisibility.periode && (
+                                                    <td style={{ whiteSpace: 'nowrap', fontSize: '13px' }}>
+                                                        {asset.startDate && asset.endDate ? (
+                                                            <span>
+                                                                {new Date(asset.startDate).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' })}
+                                                                {' - '}
+                                                                {new Date(asset.endDate).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: '2-digit' })}
+                                                            </span>
+                                                        ) : '-'}
+                                                    </td>
+                                                )}
                                                 <td>
                                                     <div className="action-buttons">
                                                         <button className="btn-icon btn-view" title="Lihat Detail" onClick={() => handleViewDetail(asset)}><Eye size={16} /></button>
@@ -1533,8 +1662,9 @@ function ManajemenAset() {
                                                                                     filteredHistory = filteredHistory.filter(h => h && h.action && h.action.includes('Progress Tracker'));
                                                                                 }
                                                                                 if (filteredHistory.length > 0) {
-                                                                                    return filteredHistory.slice().reverse().map((log, idx) => (
-                                                                                        <div key={idx} className="amendment-item" style={{ display: 'flex', gap: '20px', padding: '16px', borderRadius: '12px', border: '1px solid #f1f5f9', background: '#fff', transition: 'all 0.2s', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' }}>
+                                                                                    // Show most recent first (history already sorted DESC from DB)
+                                                                                    return filteredHistory.map((log, idx) => (
+                                                                                        <div key={log.id || `${log.date}-${idx}`} className="amendment-item" style={{ display: 'flex', gap: '20px', padding: '16px', borderRadius: '12px', border: '1px solid #f1f5f9', background: '#fff', transition: 'all 0.2s', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' }}>
                                                                                             <div style={{ minWidth: '140px', fontSize: '13px', color: '#64748b', borderRight: '1px solid #f1f5f9', paddingRight: '16px' }}>
                                                                                                 <div style={{ fontWeight: 600, color: '#334155', fontSize: '14px' }}>{log.date}</div>
                                                                                                 <div style={{ fontSize: '12px', marginTop: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
