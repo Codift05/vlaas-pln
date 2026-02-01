@@ -205,27 +205,72 @@ function ManajemenAset() {
 
             if (error) throw error
 
-            if (error) throw error
+            // Fetch all contract history in one query for better performance
+            let allHistory = []
+            try {
+                const { data: historyData, error: historyError } = await supabase
+                    .from('contract_history')
+                    .select('*')
+                    .order('created_at', { ascending: false })
+
+                if (!historyError && historyData) {
+                    allHistory = historyData
+                }
+            } catch (historyErr) {
+                console.warn('Contract history table not available yet:', historyErr)
+            }
 
             // Format data sesuai struktur UI
-            const formattedData = data.map(contract => ({
-                id: contract.id || '',
-                name: contract.name || contract.perihal || '',
-                vendorName: contract.vendor_name || contract.pengirim || '',
-                recipient: contract.penerima || contract.recipient || '',
-                invoiceNumber: contract.nomor_surat || contract.invoice_number || '',
-                amount: contract.amount ? parseFloat(contract.amount) : 0,
-                budgetType: contract.budget_type || contract.kategori || '',
-                contractType: contract.contract_type || contract.kategori || '',
-                category: contract.kategori || contract.budget_type || '',
-                location: contract.location || contract.notes || '-',
-                status: contract.status || 'Dalam Pekerjaan',
-                startDate: contract.start_date || contract.tanggal_masuk || '',
-                endDate: contract.end_date || '',
-                updatedAt: contract.updated_at || contract.created_at || '',
-                progress: 0,
-                history: []
-            }))
+            const formattedData = data.map(contract => {
+                // Find history for this contract
+                const contractHistory = allHistory
+                    .filter(h => h.contract_id === contract.id)
+                    .map(h => ({
+                        id: h.id,
+                        action: h.action || '',
+                        user: h.user_name || 'Admin',
+                        details: h.details || '',
+                        date: h.created_at ? new Date(h.created_at).toLocaleDateString('id-ID', {
+                            day: '2-digit',
+                            month: 'short',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        }) : ''
+                    }))
+
+                // Calculate latest progress from progress tracker history
+                let latestProgress = contract.progress || 0
+                const progressTrackers = contractHistory.filter(h => h.action && h.action.includes('Progress Tracker'))
+                if (progressTrackers.length > 0) {
+                    // Get the most recent progress tracker
+                    const latestTracker = progressTrackers[0] // Already sorted by created_at DESC
+                    // Extract percentage from action text like "Progress Tracker: Title (60%)"
+                    const percentageMatch = latestTracker.action.match(/\((\d+)%\)/)
+                    if (percentageMatch) {
+                        latestProgress = parseInt(percentageMatch[1], 10)
+                    }
+                }
+
+                return {
+                    id: contract.id || '',
+                    name: contract.name || contract.perihal || '',
+                    vendorName: contract.vendor_name || contract.pengirim || '',
+                    recipient: contract.penerima || contract.recipient || '',
+                    invoiceNumber: contract.nomor_surat || contract.invoice_number || '',
+                    amount: contract.amount ? parseFloat(contract.amount) : 0,
+                    budgetType: contract.budget_type || contract.kategori || '',
+                    contractType: contract.contract_type || contract.kategori || '',
+                    category: contract.kategori || contract.budget_type || '',
+                    location: contract.location || contract.notes || '-',
+                    status: contract.status || 'Dalam Pekerjaan',
+                    startDate: contract.start_date || contract.tanggal_masuk || '',
+                    endDate: contract.end_date || '',
+                    updatedAt: contract.updated_at || contract.created_at || '',
+                    progress: latestProgress,
+                    history: contractHistory
+                }
+            })
             setAssets(formattedData)
         } catch (err) {
             console.error('Error fetching contracts:', err)
@@ -597,18 +642,7 @@ function ManajemenAset() {
             const percentage = progressFormData.percentage || 0;
             console.log('Submitting Progress:', { contractId: progressFormData.contractId, percentage });
 
-            // 1. Update Contract Progress
-            const { error: updateError } = await supabase
-                .from('contracts')
-                .update({ progress: percentage })
-                .eq('id', progressFormData.contractId)
-
-            if (updateError) {
-                console.error('Supabase Update Error:', updateError);
-                throw updateError;
-            }
-
-            // 2. Add History Entry
+            // 1. Add History Entry first (this is the critical part)
             const progressDateTime = progressFormData.date && progressFormData.time
                 ? `${progressFormData.date} ${progressFormData.time}`
                 : '';
@@ -626,8 +660,23 @@ function ManajemenAset() {
                 throw historyError;
             }
 
+            // 2. Update Contract Progress in database
+            const { error: updateError } = await supabase
+                .from('contracts')
+                .update({ progress: percentage })
+                .eq('id', progressFormData.contractId)
+
+            if (updateError) {
+                console.warn('Could not update progress column:', updateError.message);
+                // Log but don't throw - we already saved to history which is the source of truth
+            }
+
             showAlert('success', 'Berhasil', 'Progress tracker berhasil ditambahkan!')
-            fetchContracts()
+
+            // Store the contract ID before closing modal
+            const contractId = progressFormData.contractId
+
+            // Close modal and reset form
             setShowProgressModal(false)
             setProgressFormData({
                 contractId: '',
@@ -638,6 +687,9 @@ function ManajemenAset() {
                 date: '',
                 time: ''
             })
+
+            // Refresh data to get updated history
+            await fetchContracts()
         } catch (err) {
             console.error('Error adding progress tracker FULL:', err);
             const msg = err?.message || err?.error_description || JSON.stringify(err);
@@ -1610,8 +1662,9 @@ function ManajemenAset() {
                                                                                     filteredHistory = filteredHistory.filter(h => h && h.action && h.action.includes('Progress Tracker'));
                                                                                 }
                                                                                 if (filteredHistory.length > 0) {
-                                                                                    return filteredHistory.slice().reverse().map((log, idx) => (
-                                                                                        <div key={idx} className="amendment-item" style={{ display: 'flex', gap: '20px', padding: '16px', borderRadius: '12px', border: '1px solid #f1f5f9', background: '#fff', transition: 'all 0.2s', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' }}>
+                                                                                    // Show most recent first (history already sorted DESC from DB)
+                                                                                    return filteredHistory.map((log, idx) => (
+                                                                                        <div key={log.id || `${log.date}-${idx}`} className="amendment-item" style={{ display: 'flex', gap: '20px', padding: '16px', borderRadius: '12px', border: '1px solid #f1f5f9', background: '#fff', transition: 'all 0.2s', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' }}>
                                                                                             <div style={{ minWidth: '140px', fontSize: '13px', color: '#64748b', borderRight: '1px solid #f1f5f9', paddingRight: '16px' }}>
                                                                                                 <div style={{ fontWeight: 600, color: '#334155', fontSize: '14px' }}>{log.date}</div>
                                                                                                 <div style={{ fontSize: '12px', marginTop: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
