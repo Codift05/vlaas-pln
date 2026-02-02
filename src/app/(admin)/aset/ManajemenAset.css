@@ -447,7 +447,7 @@ textarea:focus {
 
 .column-options::-webkit-scrollbar-thumb {
   background: #cbd5e0;
-  border-radius: 3px;
+  border-radius: 30px;
 }
 
 .column-option {
@@ -483,13 +483,59 @@ textarea:focus {
 .table-container {
   background: #ffffff;
   border-radius: 20px;
-  box-shadow: none;
-  border: 1px solid rgba(226, 232, 240, 0.6);
-  overflow-x: auto;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  min-height: 600px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(226, 232, 240, 1);
+  overflow: hidden;
+  min-height: auto;
   margin-bottom: 20px;
   width: 100%;
+  max-width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.table-scroll-wrapper {
+  overflow-x: auto;
+  overflow-y: auto;
+  width: 100%;
+  max-width: 100%;
+  position: relative;
+  flex: 1;
+  border-bottom-left-radius: 20px;
+  border-bottom-right-radius: 20px;
+  /* Scrollbar visible only when needed */
+  &::-webkit-scrollbar {
+    height: 8px;
+  }
+}
+
+/* Scrollbar Styles - Longer thumb for better scrolling control */
+.table-scroll-wrapper::-webkit-scrollbar {
+  height: 14px;
+  width: 14px;
+}
+
+.table-scroll-wrapper::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 7px;
+}
+
+.table-scroll-wrapper::-webkit-scrollbar-thumb {
+  background-color: #94a3b8;
+  border-radius: 7px;
+  min-width: 45px;
+  border: 2px solid #f1f5f9;
+}
+
+.table-scroll-wrapper::-webkit-scrollbar-thumb:hover {
+  background-color: #64748b;
+  border-color: #e2e8f0;
+}
+
+/* Firefox */
+.table-scroll-wrapper {
+  scrollbar-width: thin;
+  scrollbar-color: #94a3b8 #f1f5f9;
 }
 
 .table-header {
@@ -512,16 +558,14 @@ textarea:focus {
 .assets-table {
   width: 100%;
   border-collapse: collapse;
+  table-layout: fixed;
 }
 
-.assets-table thead {
-  background: var(--bg-hover);
-}
-
+/* Ensure header cells don't shrink */
 .assets-table th {
-  padding: 18px 24px;
+  padding: 20px 14px;
   text-align: left;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
   color: #64748b;
   text-transform: uppercase;
@@ -529,7 +573,65 @@ textarea:focus {
   border-bottom: 1px solid #e2e8f0;
   font-family: var(--font-inter);
   background: #f8fafc;
-  white-space: nowrap;
+  white-space: normal;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  min-width: auto;
+}
+
+/* Specific column widths - COMPACT tapi LUAS ISINYA */
+.assets-table th:nth-child(1) {
+  width: 40px;
+  min-width: 40px;
+  max-width: 40px;
+}
+
+.assets-table th:nth-child(2) {
+  width: 100px; /* Nomor Kontrak */
+}
+
+.assets-table th:nth-child(3) {
+  width: 140px; /* Nama Kontrak */
+}
+
+.assets-table th:nth-child(4) {
+  width: 125px; /* Nama Vendor */
+}
+
+.assets-table th:nth-child(5) {
+  width: 115px; /* Nilai Kontrak */
+}
+
+.assets-table th:nth-child(6) {
+  width: 85px; /* Tipe Anggaran */
+}
+
+.assets-table th:nth-child(7) {
+  width: 85px; /* Tipe Kontrak */
+}
+
+.assets-table th:nth-child(8) {
+  width: 105px; /* Lokasi */
+}
+
+.assets-table th:nth-child(9) {
+  width: 85px; /* Status */
+}
+
+.assets-table th:nth-child(10) {
+  width: 110px; /* Periode */
+}
+
+.assets-table th:nth-child(11) {
+  width: 100px; /* Tanggal Mulai */
+}
+
+.assets-table th:nth-child(12) {
+  width: 100px; /* Tanggal Selesai */
+}
+
+.assets-table th:last-child {
+  width: 95px; /* Aksi */
 }
 
 .assets-table tbody tr {
@@ -544,29 +646,31 @@ textarea:focus {
 }
 
 .assets-table td {
-  padding: 18px 24px;
+  padding: 20px 14px;
   border-bottom: 1px solid rgba(226, 232, 240, 0.4);
   color: #2b3f50;
-  font-size: 14px;
+  font-size: 13px;
   font-family: var(--font-inter);
   vertical-align: middle;
-  white-space: nowrap;
+  word-break: break-word;
+  white-space: normal;
+  overflow-wrap: break-word;
 }
 
 .asset-id {
   font-weight: 600;
   color: #94a3b8;
   font-family: monospace;
-  font-size: 13px;
-  width: 120px; /* Fixed width for ID */
+  font-size: 12px;
+  width: 35px;
+  max-width: 35px;
 }
 
 .asset-name {
   font-weight: 600;
   color: #1e293b;
-  font-size: 15px;
+  font-size: 13px;
   line-height: 1.4;
-  /* Specific override for name if needed, but generic td handles it now */
 }
 
 /* Status Badges - Pill Shape */
@@ -1228,6 +1332,96 @@ textarea:focus {
   }
 }
 
+@media (max-width: 1400px) {
+  .assets-table th,
+  .assets-table td {
+    padding: 14px 10px;
+    font-size: 11px;
+  }
+
+  .assets-table th:nth-child(2) {
+    width: 100px;
+  }
+
+  .assets-table th:nth-child(3) {
+    width: 135px;
+  }
+
+  .assets-table th:nth-child(4) {
+    width: 125px;
+  }
+
+  .assets-table th:nth-child(5) {
+    width: 110px;
+  }
+
+  .assets-table th:nth-child(6),
+  .assets-table th:nth-child(7),
+  .assets-table th:nth-child(8) {
+    width: 85px;
+  }
+
+  .assets-table th:nth-child(10) {
+    width: 105px;
+  }
+
+  .assets-table th:nth-child(11),
+  .assets-table th:nth-child(12) {
+    width: 95px;
+  }
+
+  .assets-table th:last-child {
+    width: 90px;
+  }
+}
+
+@media (max-width: 1200px) {
+  .assets-table th,
+  .assets-table td {
+    padding: 12px 9px;
+    font-size: 10px;
+  }
+
+  .assets-table th:nth-child(2) {
+    width: 95px;
+  }
+
+  .assets-table th:nth-child(3) {
+    width: 125px;
+  }
+
+  .assets-table th:nth-child(4) {
+    width: 115px;
+  }
+
+  .assets-table th:nth-child(5) {
+    width: 100px;
+  }
+
+  .assets-table th:nth-child(6),
+  .assets-table th:nth-child(7),
+  .assets-table th:nth-child(8) {
+    width: 80px;
+  }
+
+  .assets-table th:nth-child(10) {
+    width: 100px;
+  }
+
+  .assets-table th:nth-child(11),
+  .assets-table th:nth-child(12) {
+    width: 85px;
+  }
+
+  .assets-table th:last-child {
+    width: 80px;
+  }
+
+  .asset-name {
+    font-size: 12px;
+  }
+}
+
 @media (max-width: 900px) {
   .action-bar {
     flex-direction: column;
@@ -1236,7 +1430,129 @@ textarea:focus {
   }
 
   .table-container {
-    padding: 0 4px;
+    padding: 0;
+  }
+
+  .assets-table {
+    font-size: 10px;
+    table-layout: fixed;
+  }
+
+  .assets-table th,
+  .assets-table td {
+    padding: 10px 8px;
+  }
+
+  .assets-table th:nth-child(1) {
+    width: 35px;
+  }
+
+  .assets-table th:nth-child(2) {
+    width: 85px;
+  }
+
+  .assets-table th:nth-child(3) {
+    width: 110px;
+  }
+
+  .assets-table th:nth-child(4) {
+    width: 100px;
+  }
+
+  .assets-table th:nth-child(5) {
+    width: 90px;
+  }
+
+  .assets-table th:nth-child(6),
+  .assets-table th:nth-child(7),
+  .assets-table th:nth-child(8),
+  .assets-table th:nth-child(9) {
+    width: 70px;
+  }
+
+  .assets-table th:nth-child(10) {
+    width: 85px;
+  }
+
+  .assets-table th:nth-child(11),
+  .assets-table th:nth-child(12) {
+    width: 80px;
+  }
+
+  .assets-table th:last-child {
+    width: 75px;
+  }
+
+  .asset-name {
+    font-size: 10px;
+  }
+}
+
+@media (max-width: 768px) {
+  .table-container {
+    border-radius: 12px;
+    min-height: auto;
+  }
+
+  .table-scroll-wrapper {
+    border-radius: 0 0 12px 12px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .assets-table {
+    font-size: 11px;
+    table-layout: fixed;
+  }
+
+  .assets-table th,
+  .assets-table td {
+    padding: 12px 9px;
+  }
+
+  .assets-table th:nth-child(1) {
+    width: 35px;
+  }
+
+  .assets-table th:nth-child(2) {
+    width: 90px;
+  }
+
+  .assets-table th:nth-child(3) {
+    width: 110px;
+  }
+
+  .assets-table th:nth-child(4) {
+    width: 100px;
+  }
+
+  .assets-table th:nth-child(5) {
+    width: 95px;
+  }
+
+  .assets-table th:nth-child(6),
+  .assets-table th:nth-child(7),
+  .assets-table th:nth-child(8),
+  .assets-table th:nth-child(9) {
+    width: 75px;
+  }
+
+  .assets-table th:nth-child(10) {
+    width: 90px;
+  }
+
+  .assets-table th:nth-child(11),
+  .assets-table th:nth-child(12) {
+    width: 80px;
+  }
+
+  .assets-table th:last-child {
+    width: 75px;
+  }
+
+  .detail-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
   }
 }
 
@@ -1251,17 +1567,67 @@ textarea:focus {
 
   .action-bar {
     gap: 8px;
+    flex-direction: column;
+  }
+
+  .assets-table {
+    font-size: 10px;
+    table-layout: fixed;
   }
 
   .assets-table th,
   .assets-table td {
-    padding: 10px 8px;
-    font-size: 13px;
+    padding: 10px 7px;
+  }
+
+  .assets-table th:nth-child(1) {
+    width: 30px;
+  }
+
+  .assets-table th:nth-child(2) {
+    width: 80px;
+  }
+
+  .assets-table th:nth-child(3) {
+    width: 95px;
+  }
+
+  .assets-table th:nth-child(4) {
+    width: 90px;
+  }
+
+  .assets-table th:nth-child(5) {
+    width: 80px;
+  }
+
+  .assets-table th:nth-child(6),
+  .assets-table th:nth-child(7),
+  .assets-table th:nth-child(8),
+  .assets-table th:nth-child(9),
+  .assets-table th:nth-child(10),
+  .assets-table th:nth-child(11),
+  .assets-table th:nth-child(12) {
+    width: 65px;
+  }
+
+  .assets-table th:last-child {
+    width: 65px;
   }
 
   .table-container {
     border-radius: 8px;
     padding: 0;
+    box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.1);
+  }
+
+  .table-header h2 {
+    font-size: 16px;
+    padding: 12px 16px;
+  }
+
+  .status-badge {
+    font-size: 10px;
+    padding: 4px 8px;
   }
 }
 
