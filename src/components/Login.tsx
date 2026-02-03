@@ -1358,29 +1358,6 @@ const Login: FC = () => {
     }
   }
 
-  const platforms: Platform[] = [
-    {
-      logo: '/images/Logo SAKTI 3.png',
-      name: 'SAKTI',
-      description: 'Sistem Arsip & Kontrak Terintegrasi - Platform Digital Terpadu untuk Manajemen Surat Vendor PLN'
-    },
-    {
-      logo: '/images/Logo_PLN.png',
-      name: 'PT PLN (Persero)',
-      description: 'Perusahaan Listrik Negara - Menerangi Indonesia dengan energi yang andal dan berkelanjutan'
-    },
-    {
-      logo: '/images/Danantara.jpg',
-      name: 'Danantara Indonesia',
-      description: 'Holding BUMN Indonesia - Mengakselerasi transformasi ekonomi nasional melalui sinergi perusahaan strategis'
-    },
-    {
-      logo: '/images/Logo_UNSRAT.png',
-      name: 'Universitas Sam Ratulangi',
-      description: 'Program Magang - Kemitraan pendidikan untuk mengembangkan talenta digital Indonesia'
-    }
-  ]
-
   return (
     <LoginContainer>
       <div className="left-section">
@@ -1390,20 +1367,6 @@ const Login: FC = () => {
             Selamat datang di SAKTI - Platform Digital Terpadu untuk Manajemen Surat dan Aset Vendor PT PLN (Persero).<br />
             Kelola dokumen vendor, aset, dan laporan dengan sistem yang aman, efisien, dan terintegrasi.
           </p>
-        </div>
-
-        <div className="platforms-list">
-          {platforms.map((platform, index) => (
-            <div key={index} className="platform-item">
-              <div className="platform-icon">
-                <img src={platform.logo} alt={platform.name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-              </div>
-              <div className="platform-info">
-                <h3 className="platform-name">{platform.name}</h3>
-                <p className="platform-desc">{platform.description}</p>
-              </div>
-            </div>
-          ))}
         </div>
       </div>
 
