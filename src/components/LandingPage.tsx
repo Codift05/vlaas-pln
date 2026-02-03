@@ -190,61 +190,26 @@ export default function LandingPage() {
             {/* How It Works Section */}
             <section className="steps-section" id="how-it-works">
                 <div className="section-container">
-                    <div className="steps-layout">
-                        <div className="steps-visual">
-                            <div className="steps-mockup">
-                                <div className="mockup-header">
-                                    <div className="mockup-dots">
-                                        <span></span><span></span><span></span>
-                                    </div>
-                                    <span className="mockup-title">Dashboard SAKTI</span>
-                                </div>
-                                <div className="mockup-content">
-                                    <div className="mockup-stat">
-                                        <LayoutDashboard size={24} />
-                                        <div>
-                                            <span className="stat-label">Total Kontrak</span>
-                                            <span className="stat-value">Rp 2.4 M</span>
-                                        </div>
-                                    </div>
-                                    <div className="mockup-stat">
-                                        <Users size={24} />
-                                        <div>
-                                            <span className="stat-label">Vendor Aktif</span>
-                                            <span className="stat-value">48</span>
-                                        </div>
-                                    </div>
-                                    <div className="mockup-stat">
-                                        <CheckCircle size={24} />
-                                        <div>
-                                            <span className="stat-label">Approval Rate</span>
-                                            <span className="stat-value">94%</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                    <div className="steps-content-centered">
+                        <div className="section-badge">
+                            <span>Cara Kerja</span>
                         </div>
-                        <div className="steps-content">
-                            <div className="section-badge">
-                                <span>Cara Kerja</span>
-                            </div>
-                            <h2 className="section-title">
-                                Mulai Mengelola{' '}
-                                <span className="text-gradient">dalam 3 Langkah</span>
-                            </h2>
-                            <div className="steps-list">
-                                {steps.map((step, index) => (
-                                    <div key={index} className="step-item">
-                                        <div className="step-number-wrapper">
-                                            <span className="step-number">{step.number}</span>
-                                        </div>
-                                        <div className="step-info">
-                                            <h3 className="step-title">{step.title}</h3>
-                                            <p className="step-description">{step.description}</p>
-                                        </div>
+                        <h2 className="section-title">
+                            Mulai Mengelola{' '}
+                            <span className="text-gradient">dalam 3 Langkah</span>
+                        </h2>
+                        <div className="steps-list-centered">
+                            {steps.map((step, index) => (
+                                <div key={index} className="step-item-centered">
+                                    <div className="step-number-wrapper">
+                                        <span className="step-number">{step.number}</span>
                                     </div>
-                                ))}
-                            </div>
+                                    <div className="step-info">
+                                        <h3 className="step-title">{step.title}</h3>
+                                        <p className="step-description">{step.description}</p>
+                                    </div>
+                                </div>
+                            ))}
                         </div>
                     </div>
                 </div>
