@@ -1517,17 +1517,6 @@ const Login: FC = () => {
             <p className="footer-text">Powered by UPT PLN Manado</p>
           </div>
         </div>
-
-        <div className="dev-mode-container">
-          <label className="dev-mode-toggle">
-            <input
-              type="checkbox"
-              checked={devMode}
-              onChange={toggleDevMode}
-            />
-            <span className="toggle-slider"></span>
-          </label>
-        </div>
       </div>
 
       {/* Register Modal Popup */}
