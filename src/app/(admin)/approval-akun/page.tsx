@@ -140,11 +140,15 @@ function ApprovalAkun() {
             onConfirm: async () => {
                 setConfirmModal({ ...confirmModal, show: false })
                 try {
-                    // Generate random password
-                    const tempPassword = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-8).toUpperCase()
+                    // Generate random password (kombinasi huruf dan angka, 12 karakter)
+                    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+                    let tempPassword = ''
+                    for (let i = 0; i < 12; i++) {
+                        tempPassword += chars.charAt(Math.floor(Math.random() * chars.length))
+                    }
 
                     // Update status dan password
-                    const { error } = await supabase
+                    const { error: updateError } = await supabase
                         .from('vendor_users')
                         .update({
                             status: 'Aktif',
@@ -152,16 +156,47 @@ function ApprovalAkun() {
                         })
                         .eq('id', account.id)
 
-                    if (error) throw error
+                    if (updateError) throw updateError
 
-                    // TODO: Kirim email dengan password
-                    console.log('Send email to:', account.email, 'with password:', tempPassword)
+                    // Kirim email dengan password
+                    try {
+                        const emailResponse = await fetch('/api/send-account-approval-email', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                email: account.email,
+                                companyName: account.company_name,
+                                password: tempPassword
+                            }),
+                        })
 
-                    setNotification({
-                        show: true,
-                        type: 'success',
-                        message: `Akun vendor "${account.company_name}" berhasil disetujui! Password telah dikirim ke ${account.email}`
-                    })
+                        const emailResult = await emailResponse.json()
+
+                        if (!emailResult.success) {
+                            console.error('Email sending failed:', emailResult.error)
+                            // Tetap lanjut meskipun email gagal
+                            setNotification({
+                                show: true,
+                                type: 'warning',
+                                message: `Akun vendor "${account.company_name}" berhasil disetujui, tetapi email gagal terkirim. Password: ${tempPassword}`
+                            })
+                        } else {
+                            setNotification({
+                                show: true,
+                                type: 'success',
+                                message: `Akun vendor "${account.company_name}" berhasil disetujui! Password telah dikirim ke ${account.email}`
+                            })
+                        }
+                    } catch (emailError) {
+                        console.error('Email error:', emailError)
+                        setNotification({
+                            show: true,
+                            type: 'warning',
+                            message: `Akun vendor "${account.company_name}" berhasil disetujui, tetapi email gagal terkirim. Password: ${tempPassword}`
+                        })
+                    }
 
                     fetchAccounts()
                     setShowDetailModal(false)

@@ -934,9 +934,7 @@ const Login: FC = () => {
     picName: '',
     picPosition: '',
     picPhone: '',
-    picEmail: '',
-    certificateFile: null as File | null,
-    certificateType: '' // VRS, TDR, atau DPT
+    picEmail: ''
   })
 
   useEffect(() => {
@@ -1021,52 +1019,6 @@ const Login: FC = () => {
         return
       }
 
-      // Validasi upload sertifikat
-      if (!registerData.certificateFile) {
-        setError('Mohon upload Sertifikat VRS/TDR/DPT')
-        setLoading(false)
-        return
-      }
-
-      if (!registerData.certificateType) {
-        setError('Mohon pilih jenis sertifikat')
-        setLoading(false)
-        return
-      }
-
-      // Validasi file PDF
-      if (registerData.certificateFile && !registerData.certificateFile.type.includes('pdf')) {
-        setError('File sertifikat harus berformat PDF')
-        setLoading(false)
-        return
-      }
-
-      // Upload sertifikat ke Supabase Storage
-      let certificateUrl = ''
-      if (registerData.certificateFile) {
-        const fileExt = 'pdf'
-        const fileName = `${Date.now()}-${registerData.companyName.replace(/\s+/g, '_')}.${fileExt}`
-        const filePath = `vendor-certificates/${fileName}`
-
-        const { data: uploadData, error: uploadError } = await supabase.storage
-          .from('vendor-documents')
-          .upload(filePath, registerData.certificateFile)
-
-        if (uploadError) {
-          console.error('Upload error:', uploadError)
-          setError('Gagal mengupload sertifikat: ' + uploadError.message)
-          setLoading(false)
-          return
-        }
-
-        // Get public URL
-        const { data: { publicUrl } } = supabase.storage
-          .from('vendor-documents')
-          .getPublicUrl(filePath)
-
-        certificateUrl = publicUrl
-      }
-
       // 1. Create user account in vendor_users table with status "Pending"
       const { data: newUser, error: userError } = await supabase
         .from('vendor_users')
@@ -1084,8 +1036,8 @@ const Login: FC = () => {
           pic_phone: registerData.picPhone,
           pic_email: registerData.picEmail,
           status: 'Pending', // Status pending menunggu approval admin
-          certificate_url: certificateUrl,
-          certificate_type: registerData.certificateType,
+          certificate_url: null,
+          certificate_type: null,
           profile_image: null
         }])
         .select()
@@ -1125,9 +1077,7 @@ const Login: FC = () => {
         picName: '',
         picPosition: '',
         picPhone: '',
-        picEmail: '',
-        certificateFile: null,
-        certificateType: ''
+        picEmail: ''
       })
       setIsRegisterMode(false)
       setRegisterStep(1)
@@ -1926,66 +1876,6 @@ const Login: FC = () => {
                           disabled={loading}
                         />
                       </div>
-                    </div>
-
-                    {/* Upload Sertifikat */}
-                    <h3 className="section-title" style={{ fontSize: '16px', fontWeight: '600', color: '#1e3c72', marginTop: '20px', marginBottom: '15px', borderBottom: '2px solid #1e88e5', paddingBottom: '8px' }}>
-                      Upload Sertifikat
-                    </h3>
-
-                    <div className="input-group">
-                      <label className="input-label">
-                        Jenis Sertifikat <span className="required">*</span>
-                      </label>
-                      <select
-                        value={registerData.certificateType}
-                        onChange={(e) => setRegisterData({ ...registerData, certificateType: e.target.value })}
-                        className="input-field"
-                        required
-                        disabled={loading}
-                        style={{ cursor: 'pointer' }}
-                      >
-                        <option value="">-- Pilih Jenis Sertifikat --</option>
-                        <option value="VRS">Sertifikat Registrasi Vendor (VRS)</option>
-                        <option value="TDR">Tanda Daftar Rekanan (TDR)</option>
-                        <option value="DPT">Sertifikat DPT</option>
-                      </select>
-                    </div>
-
-                    <div className="input-group">
-                      <label className="input-label">
-                        Upload File Sertifikat (PDF) <span className="required">*</span>
-                      </label>
-                      <input
-                        type="file"
-                        accept=".pdf"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0]
-                          if (file) {
-                            if (file.type !== 'application/pdf') {
-                              setError('File harus berformat PDF')
-                              e.target.value = ''
-                              return
-                            }
-                            if (file.size > 5 * 1024 * 1024) { // 5MB limit
-                              setError('Ukuran file maksimal 5MB')
-                              e.target.value = ''
-                              return
-                            }
-                            setRegisterData({ ...registerData, certificateFile: file })
-                            setError('')
-                          }
-                        }}
-                        className="input-field"
-                        required
-                        disabled={loading}
-                        style={{ padding: '8px' }}
-                      />
-                      <small style={{ display: 'block', marginTop: '6px', fontSize: '12px', color: '#666' }}>
-                        {registerData.certificateFile
-                          ? `✅ File: ${registerData.certificateFile.name}`
-                          : 'Format PDF, maksimal 5MB'}
-                      </small>
                     </div>
 
                     <div style={{
