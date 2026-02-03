@@ -54,7 +54,7 @@ function DataVendor() {
             await updateVendorContractStatus()
 
             const { data, error } = await supabase
-                .from('vendors')
+                .from('vendor_users')
                 .select('*')
                 .order('created_at', { ascending: false })
 
@@ -64,16 +64,16 @@ function DataVendor() {
             const formattedData = data.map(vendor => {
                 return {
                     id: vendor.id || '',
-                    nama: vendor.name || vendor.nama || vendor.vendor_name || '',
-                    alamat: vendor.alamat || vendor.address || '',
-                    telepon: vendor.telepon || vendor.phone || '',
-                    email: vendor.email || '',
-                    kontakPerson: vendor.kontak_person || vendor.contact_person || '',
+                    nama: vendor.company_name || vendor.name || vendor.nama || '',
+                    alamat: vendor.address || vendor.alamat || '',
+                    telepon: vendor.pic_phone || vendor.phone || vendor.telepon || '',
+                    email: vendor.pic_email || vendor.email || '',
+                    kontakPerson: vendor.pic_name || vendor.kontak_person || vendor.contact_person || '',
                     status: vendor.status || 'Aktif',
-                    tanggalRegistrasi: vendor.tanggal_registrasi || vendor.created_at || '',
-                    bankPembayaran: vendor.bank_pembayaran || '',
-                    noRekening: vendor.no_rekening || '',
-                    namaRekening: vendor.nama_rekening || ''
+                    tanggalRegistrasi: vendor.created_at || vendor.tanggal_registrasi || '',
+                    bankPembayaran: vendor.bank_name || vendor.bank_pembayaran || '',
+                    noRekening: vendor.account_number || vendor.no_rekening || '',
+                    namaRekening: vendor.account_name || vendor.nama_rekening || ''
                 }
             })
 
@@ -151,22 +151,21 @@ function DataVendor() {
         try {
             const payload = {
                 id: formData.id,
-                nama: formData.nama,
-                alamat: formData.alamat,
-                telepon: formData.telepon,
-                email: formData.email,
-                kontak_person: formData.kontakPerson,
+                company_name: formData.nama,
+                address: formData.alamat,
+                pic_phone: formData.telepon,
+                pic_email: formData.email,
+                pic_name: formData.kontakPerson,
                 status: formData.status,
-                tanggal_registrasi: formData.tanggalRegistrasi || new Date().toISOString().split('T')[0],
-                bank_pembayaran: formData.bankPembayaran || null,
-                no_rekening: formData.noRekening || null,
-                nama_rekening: formData.namaRekening || null
+                bank_name: formData.bankPembayaran || null,
+                account_number: formData.noRekening || null,
+                account_name: formData.namaRekening || null
             }
 
             if (isEditing) {
                 // Update existing vendor using editId to locate the record
                 const { error } = await supabase
-                    .from('vendors')
+                    .from('vendor_users')
                     .update(payload)
                     .eq('id', editId)
 
@@ -178,10 +177,16 @@ function DataVendor() {
 
                 setNotification({ show: true, type: 'success', message: 'Vendor berhasil diperbarui!' })
             } else {
-                // Insert new vendor
+                // Insert new vendor - create minimal vendor_users entry
+                // Password and email verification akan di-set nanti saat vendor register
                 const { error } = await supabase
-                    .from('vendors')
-                    .insert([payload])
+                    .from('vendor_users')
+                    .insert([{
+                        ...payload,
+                        email: formData.email,
+                        password: null, // Will be set when vendor registers
+                        created_at: new Date().toISOString()
+                    }])
 
                 if (error) throw error
 
@@ -317,7 +322,7 @@ function DataVendor() {
 
                     // 4. Jika tidak dipakai, lanjutkan delete
                     const { error } = await supabase
-                        .from('vendors')
+                        .from('vendor_users')
                         .delete()
                         .eq('id', id)
 

@@ -2,7 +2,7 @@
 import React, { FC } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, Package, Users, FileBarChart, FileCheck, Settings, History as HistoryIcon } from 'lucide-react'
+import { LayoutDashboard, Package, Users, FileBarChart, FileCheck, Settings, History as HistoryIcon, UserCheck } from 'lucide-react'
 import styled from 'styled-components'
 
 interface SidebarProps {
@@ -232,6 +232,11 @@ const Sidebar: FC<SidebarProps> = ({ isOpen, onClose, isExpanded, toggleSidebar 
           <Link href="/approval-surat" className={`nav-item ${isActive('/approval-surat')}`} onClick={handleNavClick}>
             <FileCheck className="nav-icon-svg" size={22} strokeWidth={2} />
             <span className="nav-text">Approval Surat</span>
+          </Link>
+
+          <Link href="/approval-akun" className={`nav-item ${isActive('/approval-akun')}`} onClick={handleNavClick}>
+            <UserCheck className="nav-icon-svg" size={22} strokeWidth={2} />
+            <span className="nav-text">Approval Akun</span>
           </Link>
 
           <Link href="/laporan" className={`nav-item ${isActive('/laporan')}`} onClick={handleNavClick}>
