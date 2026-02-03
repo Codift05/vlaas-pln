@@ -659,6 +659,8 @@ const Header: FC<HeaderProps> = ({ onMenuClick, isExpanded = false }) => {
         return 'Data Vendor'
       case '/approval-surat':
         return 'Approval Surat Pengajuan'
+      case '/approval-akun':
+        return 'Approval Akun Vendor'
       case '/laporan':
         return 'Laporan & Analitik'
       case '/pengaturan':
