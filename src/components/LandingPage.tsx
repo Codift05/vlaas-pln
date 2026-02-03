@@ -253,20 +253,28 @@ export default function LandingPage() {
                         <div className="footer-links-group">
                             <div className="footer-links">
                                 <h4>Platform</h4>
-                                <a href="#features">Fitur</a>
-                                <a href="#how-it-works">Cara Kerja</a>
-                                <Link href="/login">Login Admin</Link>
+                                <span>Fitur</span>
+                                <span>Cara Kerja</span>
+                                <span>Login Admin</span>
                             </div>
                             <div className="footer-links">
                                 <h4>Akses</h4>
-                                <Link href="/login">Admin Portal</Link>
-                                <Link href="/vendor-login">Vendor Portal</Link>
+                                <span>Admin Portal</span>
+                                <span>Vendor Portal</span>
                             </div>
                             <div className="footer-links">
                                 <h4>Kontak</h4>
                                 <span>PLN UPT Manado</span>
-                                <span>Jl. Wolter Monginsidi No.1</span>
-                                <span>Manado, Sulawesi Utara</span>
+                                <span>Jl. Tompakwa No.1, Bumi Nyiur</span>
+                                <span>Kec. Wanea, Kota Manado</span>
+                                <span>Sulawesi Utara 95117, Indonesia</span>
+                            </div>
+                            <div className="footer-links">
+                                <h4>Developer</h4>
+                                <span className="developer-name">Miftahuddin S. Arsyad</span>
+                                <span className="developer-role">Informatics Engineering</span>
+                                <span className="developer-name">Edward Benedict</span>
+                                <span className="developer-role">Informatics Engineering</span>
                             </div>
                         </div>
                     </div>
