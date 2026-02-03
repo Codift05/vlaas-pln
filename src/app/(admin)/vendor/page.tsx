@@ -24,7 +24,10 @@ function DataVendor() {
         email: '',
         kontakPerson: '',
         status: 'Aktif',
-        tanggalRegistrasi: new Date().toISOString().split('T')[0]
+        tanggalRegistrasi: new Date().toISOString().split('T')[0],
+        bankPembayaran: '',
+        noRekening: '',
+        namaRekening: ''
     });
 
     // const [sidebarOpen, setSidebarOpen] = useState(false) // Removed as handled by layout
@@ -35,7 +38,6 @@ function DataVendor() {
     // Kolom selector
     const [showColumnSelector, setShowColumnSelector] = useState(false);
     const [columnVisibility, setColumnVisibility] = useState({
-        id: true,
         nama: true,
         kontakPerson: true,
         telepon: true,
@@ -68,7 +70,10 @@ function DataVendor() {
                     email: vendor.email || '',
                     kontakPerson: vendor.kontak_person || vendor.contact_person || '',
                     status: vendor.status || 'Aktif',
-                    tanggalRegistrasi: vendor.tanggal_registrasi || vendor.created_at || ''
+                    tanggalRegistrasi: vendor.tanggal_registrasi || vendor.created_at || '',
+                    bankPembayaran: vendor.bank_pembayaran || '',
+                    noRekening: vendor.no_rekening || '',
+                    namaRekening: vendor.nama_rekening || ''
                 }
             })
 
@@ -146,14 +151,16 @@ function DataVendor() {
         try {
             const payload = {
                 id: formData.id,
-                nama: formData.nama, // Fix name -> nama
-                alamat: formData.alamat, // Fix address -> alamat
-                telepon: formData.telepon, // Fix phone -> telepon
+                nama: formData.nama,
+                alamat: formData.alamat,
+                telepon: formData.telepon,
                 email: formData.email,
-                // kategori: formData.kategori, // kategori dihapus
                 kontak_person: formData.kontakPerson,
                 status: formData.status,
-                tanggal_registrasi: formData.tanggalRegistrasi || new Date().toISOString().split('T')[0] // Fix registration_date -> tanggal_registrasi
+                tanggal_registrasi: formData.tanggalRegistrasi || new Date().toISOString().split('T')[0],
+                bank_pembayaran: formData.bankPembayaran || null,
+                no_rekening: formData.noRekening || null,
+                nama_rekening: formData.namaRekening || null
             }
 
             if (isEditing) {
@@ -202,13 +209,14 @@ function DataVendor() {
             alamat: '',
             telepon: '',
             email: '',
-            // kategori: '',
             kontakPerson: '',
             status: 'Aktif',
-            tanggalRegistrasi: new Date().toISOString().split('T')[0]
+            tanggalRegistrasi: new Date().toISOString().split('T')[0],
+            bankPembayaran: '',
+            noRekening: '',
+            namaRekening: ''
         })
         setIsEditing(false)
-        setEditId(null)
         setEditId(null)
     }
 
@@ -227,7 +235,10 @@ function DataVendor() {
             email: vendor.email,
             kontakPerson: vendor.kontakPerson,
             status: vendor.status,
-            tanggalRegistrasi: vendor.tanggalRegistrasi
+            tanggalRegistrasi: vendor.tanggalRegistrasi,
+            bankPembayaran: vendor.bankPembayaran || '',
+            noRekening: vendor.noRekening || '',
+            namaRekening: vendor.namaRekening || ''
         })
         setIsEditing(true)
         setShowModal(true)
@@ -425,7 +436,7 @@ function DataVendor() {
                             onClick={() => setShowColumnSelector(!showColumnSelector)}
                             type="button"
                         >
-                            <Eye size={18} /> Pilih Kolom ({getVisibleColumnsCount()}/6)
+                            <Eye size={18} /> Pilih Kolom ({getVisibleColumnsCount()}/5)
                         </button>
                         {showColumnSelector && (
                             <div className="column-dropdown-vendor">
@@ -433,10 +444,6 @@ function DataVendor() {
                                     <span>Tampilkan Kolom</span>
                                 </div>
                                 <div className="column-options-vendor">
-                                    <label className="column-option-vendor">
-                                        <input type="checkbox" checked={columnVisibility.id} onChange={() => toggleColumnVisibility('id')} />
-                                        <span>ID Vendor</span>
-                                    </label>
                                     <label className="column-option-vendor">
                                         <input type="checkbox" checked={columnVisibility.nama} onChange={() => toggleColumnVisibility('nama')} />
                                         <span>Nama Vendor</span>
@@ -472,7 +479,6 @@ function DataVendor() {
                 <table className="vendors-table">
                     <thead>
                         <tr>
-                            {columnVisibility.id && <th>ID Vendor</th>}
                             {columnVisibility.nama && <th>Nama Vendor</th>}
                             {columnVisibility.kontakPerson && <th>Kontak Person</th>}
                             {columnVisibility.telepon && <th>Telepon</th>}
@@ -489,7 +495,6 @@ function DataVendor() {
                         ) : currentVendors.length > 0 ? (
                             currentVendors.map((vendor) => (
                                 <tr key={vendor.id}>
-                                    {columnVisibility.id && <td className="vendor-id">{vendor.id}</td>}
                                     {columnVisibility.nama && (
                                         <td className="vendor-name">
                                             <div className="vendor-name-container">
@@ -693,6 +698,39 @@ function DataVendor() {
                                         required
                                     />
                                 </div>
+                                <div className="form-group-vendor">
+                                    <label htmlFor="bankPembayaran">Bank Pembayaran</label>
+                                    <input
+                                        type="text"
+                                        id="bankPembayaran"
+                                        name="bankPembayaran"
+                                        value={formData.bankPembayaran}
+                                        onChange={handleInputChange}
+                                        placeholder="Contoh: Bank Mandiri"
+                                    />
+                                </div>
+                                <div className="form-group-vendor">
+                                    <label htmlFor="noRekening">No. Rekening</label>
+                                    <input
+                                        type="text"
+                                        id="noRekening"
+                                        name="noRekening"
+                                        value={formData.noRekening}
+                                        onChange={handleInputChange}
+                                        placeholder="Contoh: 1234567890"
+                                    />
+                                </div>
+                                <div className="form-group-vendor full-width">
+                                    <label htmlFor="namaRekening">Nama Rekening</label>
+                                    <input
+                                        type="text"
+                                        id="namaRekening"
+                                        name="namaRekening"
+                                        value={formData.namaRekening}
+                                        onChange={handleInputChange}
+                                        placeholder="Contoh: PT ABC Elektrik"
+                                    />
+                                </div>
                             </div>
                             <div className="modal-footer-vendor">
                                 <button type="button" className="btn-cancel-vendor" onClick={handleCloseModal}>
@@ -721,14 +759,20 @@ function DataVendor() {
                                 <span style={{ fontWeight: 600, fontSize: 15, color: '#2563eb' }}>Informasi Vendor</span>
                             </div>
                             <div className="detail-grid-vendor" style={{ marginTop: 20 }}>
-                                <div className="detail-group-vendor">
-                                    <span className="detail-label-vendor" style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: '0.5px', color: '#6b7280', marginBottom: 6 }}>ID Vendor</span>
-                                    <div className="detail-value-vendor" style={{ background: '#f9fafb', border: '1px solid #e5e7eb', padding: '10px 14px', fontSize: 14, color: '#1f2937' }}>{detailVendor.id}</div>
+                                <div className="detail-group-vendor full-width">
+                                    <span className="detail-label-vendor" style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: '0.5px', color: '#6b7280', marginBottom: 6 }}>Nama Vendor</span>
+                                    <div style={{ fontSize: 15, fontWeight: 600, color: '#1f2937', padding: '4px 0' }}>{detailVendor.nama}</div>
                                 </div>
                                 <div className="detail-group-vendor">
                                     <span className="detail-label-vendor" style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: '0.5px', color: '#6b7280', marginBottom: 6 }}>Status Saat Ini</span>
                                     <div style={{ marginTop: 2 }}>
-                                        <span style={{ background: detailVendor.status === 'Aktif' ? '#d1fae5' : '#fee2e2', color: detailVendor.status === 'Aktif' ? '#065f46' : '#991b1b', fontWeight: 600, borderRadius: 6, padding: '6px 16px', fontSize: 13, display: 'inline-block' }}>{detailVendor.status}</span>
+                                        <span style={{ background: detailVendor.status === 'Aktif' ? '#d1fae5' : detailVendor.status === 'Berkontrak' ? '#fef3c7' : '#fee2e2', color: detailVendor.status === 'Aktif' ? '#065f46' : detailVendor.status === 'Berkontrak' ? '#92400e' : '#991b1b', fontWeight: 600, borderRadius: 6, padding: '6px 16px', fontSize: 13, display: 'inline-block' }}>{detailVendor.status}</span>
+                                    </div>
+                                </div>
+                                <div className="detail-group-vendor">
+                                    <span className="detail-label-vendor" style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: '0.5px', color: '#6b7280', marginBottom: 6 }}>Tanggal Registrasi</span>
+                                    <div className="detail-value-vendor" style={{ background: '#f9fafb', border: '1px solid #e5e7eb', padding: '10px 14px', fontSize: 14, color: '#1f2937' }}>
+                                        {detailVendor.tanggalRegistrasi ? new Date(detailVendor.tanggalRegistrasi).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : '-'}
                                     </div>
                                 </div>
                                 <div className="detail-group-vendor">
@@ -740,10 +784,6 @@ function DataVendor() {
                                     <div className="detail-value-vendor" style={{ background: '#f9fafb', border: '1px solid #e5e7eb', padding: '10px 14px', fontSize: 14, color: '#1f2937' }}>{detailVendor.email}</div>
                                 </div>
                                 <div className="detail-group-vendor full-width">
-                                    <span className="detail-label-vendor" style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: '0.5px', color: '#6b7280', marginBottom: 6 }}>Nama Vendor</span>
-                                    <div style={{ fontSize: 15, fontWeight: 600, color: '#1f2937', padding: '4px 0' }}>{detailVendor.nama}</div>
-                                </div>
-                                <div className="detail-group-vendor full-width">
                                     <span className="detail-label-vendor" style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: '0.5px', color: '#6b7280', marginBottom: 6 }}>Kontak Person</span>
                                     <div className="detail-value-vendor" style={{ background: '#f9fafb', border: '1px solid #e5e7eb', padding: '10px 14px', fontSize: 14, color: '#1f2937' }}>{detailVendor.kontakPerson}</div>
                                 </div>
@@ -751,9 +791,18 @@ function DataVendor() {
                                     <span className="detail-label-vendor" style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: '0.5px', color: '#6b7280', marginBottom: 6 }}>Alamat</span>
                                     <div className="detail-value-vendor" style={{ background: '#f9fafb', border: '1px solid #e5e7eb', padding: '10px 14px', fontSize: 14, color: '#1f2937' }}>{detailVendor.alamat}</div>
                                 </div>
+                                {/* Informasi Bank */}
                                 <div className="detail-group-vendor">
-                                    <span className="detail-label-vendor" style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: '0.5px', color: '#6b7280', marginBottom: 6 }}>Tanggal Registrasi</span>
-                                    <div className="detail-value-vendor" style={{ background: '#f9fafb', border: '1px solid #e5e7eb', padding: '10px 14px', fontSize: 14, color: '#1f2937' }}>{detailVendor.tanggalRegistrasi}</div>
+                                    <span className="detail-label-vendor" style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: '0.5px', color: '#6b7280', marginBottom: 6 }}>Bank Pembayaran</span>
+                                    <div className="detail-value-vendor" style={{ background: '#f9fafb', border: '1px solid #e5e7eb', padding: '10px 14px', fontSize: 14, color: '#1f2937' }}>{detailVendor.bankPembayaran || '-'}</div>
+                                </div>
+                                <div className="detail-group-vendor">
+                                    <span className="detail-label-vendor" style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: '0.5px', color: '#6b7280', marginBottom: 6 }}>No. Rekening</span>
+                                    <div className="detail-value-vendor" style={{ background: '#f9fafb', border: '1px solid #e5e7eb', padding: '10px 14px', fontSize: 14, color: '#1f2937' }}>{detailVendor.noRekening || '-'}</div>
+                                </div>
+                                <div className="detail-group-vendor full-width">
+                                    <span className="detail-label-vendor" style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: '0.5px', color: '#6b7280', marginBottom: 6 }}>Nama Rekening</span>
+                                    <div className="detail-value-vendor" style={{ background: '#f9fafb', border: '1px solid #e5e7eb', padding: '10px 14px', fontSize: 14, color: '#1f2937' }}>{detailVendor.namaRekening || '-'}</div>
                                 </div>
                             </div>
                             <div className="modal-footer-vendor" style={{ marginTop: 28, paddingTop: 24, borderTop: '1px solid #e5e7eb' }}>
