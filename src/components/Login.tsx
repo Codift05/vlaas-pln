@@ -1372,7 +1372,7 @@ const Login: FC = () => {
     {
       logo: '/images/Danantara.jpg',
       name: 'Danantara Indonesia',
-      description: 'Holding BUMN Indonesia - Mengakselerasi transformasi ekonomi nasional melalui sinergi perusahaan strategis'
+      description: 'Danantara Indonesia - Mengakselerasi transformasi ekonomi nasional melalui sinergi perusahaan strategis'
     },
     {
       logo: '/images/Logo_UNSRAT.png',
