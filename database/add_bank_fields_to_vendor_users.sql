@@ -21,10 +21,20 @@ ADD COLUMN IF NOT EXISTS account_number character varying(50);
 ALTER TABLE vendor_users 
 ADD COLUMN IF NOT EXISTS account_name character varying(255);
 
+-- Add certificate_url column for storing uploaded certificate
+ALTER TABLE vendor_users 
+ADD COLUMN IF NOT EXISTS certificate_url text;
+
+-- Add certificate_type column (VRS, TDR, or DPT)
+ALTER TABLE vendor_users 
+ADD COLUMN IF NOT EXISTS certificate_type character varying(10);
+
 -- Add comments for documentation
 COMMENT ON COLUMN vendor_users.bank_name IS 'Nama bank untuk pembayaran vendor (e.g., Bank Mandiri, BCA, BRI)';
 COMMENT ON COLUMN vendor_users.account_number IS 'Nomor rekening bank vendor';
 COMMENT ON COLUMN vendor_users.account_name IS 'Nama pemilik rekening bank (biasanya sama dengan nama perusahaan)';
+COMMENT ON COLUMN vendor_users.certificate_url IS 'URL file sertifikat vendor (VRS/TDR/DPT) yang diupload saat registrasi';
+COMMENT ON COLUMN vendor_users.certificate_type IS 'Jenis sertifikat: VRS (Vendor Registration), TDR (Tanda Daftar Rekanan), atau DPT';
 
 -- =====================================================
 -- Step 2: Remove Unused Fields

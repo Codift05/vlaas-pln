@@ -928,18 +928,15 @@ const Login: FC = () => {
     confirmPassword: '',
     phone: '',
     address: '',
-    city: '',
-    province: '',
-    postalCode: '',
-    fax: '',
+    bankName: '',
+    accountNumber: '',
+    accountName: '',
     picName: '',
     picPosition: '',
     picPhone: '',
     picEmail: '',
-    npwp: '',
-    siup: '',
-    tdp: '',
-    established: ''
+    certificateFile: null as File | null,
+    certificateType: '' // VRS, TDR, atau DPT
   })
 
   useEffect(() => {
@@ -1016,48 +1013,79 @@ const Login: FC = () => {
     setLoading(true)
 
     try {
-      // Validasi
-      if (!registerData.companyName || !registerData.email || !registerData.password || !registerData.phone) {
-        setError('Nama perusahaan, email, password, dan telepon wajib diisi')
+      // Validasi field wajib
+      if (!registerData.companyName || !registerData.email || !registerData.address ||
+        !registerData.picName || !registerData.picPhone || !registerData.picEmail) {
+        setError('Mohon lengkapi semua field yang wajib diisi')
         setLoading(false)
         return
       }
 
-      if (registerData.password !== registerData.confirmPassword) {
-        setError('Password dan konfirmasi password tidak cocok')
+      // Validasi upload sertifikat
+      if (!registerData.certificateFile) {
+        setError('Mohon upload Sertifikat VRS/TDR/DPT')
         setLoading(false)
         return
       }
 
-      if (registerData.password.length < 6) {
-        setError('Password minimal 6 karakter')
+      if (!registerData.certificateType) {
+        setError('Mohon pilih jenis sertifikat')
         setLoading(false)
         return
       }
 
-      // 1. Create user account in vendor_users table
+      // Validasi file PDF
+      if (registerData.certificateFile && !registerData.certificateFile.type.includes('pdf')) {
+        setError('File sertifikat harus berformat PDF')
+        setLoading(false)
+        return
+      }
+
+      // Upload sertifikat ke Supabase Storage
+      let certificateUrl = ''
+      if (registerData.certificateFile) {
+        const fileExt = 'pdf'
+        const fileName = `${Date.now()}-${registerData.companyName.replace(/\s+/g, '_')}.${fileExt}`
+        const filePath = `vendor-certificates/${fileName}`
+
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('vendor-documents')
+          .upload(filePath, registerData.certificateFile)
+
+        if (uploadError) {
+          console.error('Upload error:', uploadError)
+          setError('Gagal mengupload sertifikat: ' + uploadError.message)
+          setLoading(false)
+          return
+        }
+
+        // Get public URL
+        const { data: { publicUrl } } = supabase.storage
+          .from('vendor-documents')
+          .getPublicUrl(filePath)
+
+        certificateUrl = publicUrl
+      }
+
+      // 1. Create user account in vendor_users table with status "Pending"
       const { data: newUser, error: userError } = await supabase
         .from('vendor_users')
         .insert([{
           email: registerData.email,
-          password: registerData.password, // In production, hash this!
+          password: 'PENDING_APPROVAL', // Password temporary, akan diganti saat approved oleh admin
           company_name: registerData.companyName,
           company_type: registerData.companyType,
           address: registerData.address,
-          city: registerData.city,
-          province: registerData.province,
-          postal_code: registerData.postalCode,
-          phone: registerData.phone,
-          fax: registerData.fax,
+          bank_name: registerData.bankName || null,
+          account_number: registerData.accountNumber || null,
+          account_name: registerData.accountName || null,
           pic_name: registerData.picName,
-          pic_position: registerData.picPosition,
+          pic_position: registerData.picPosition || null,
           pic_phone: registerData.picPhone,
           pic_email: registerData.picEmail,
-          npwp: registerData.npwp,
-          siup: registerData.siup,
-          tdp: registerData.tdp,
-          established: registerData.established ? parseInt(registerData.established) : null,
-          status: 'Aktif', // Default status untuk vendor baru
+          status: 'Pending', // Status pending menunggu approval admin
+          certificate_url: certificateUrl,
+          certificate_type: registerData.certificateType,
           profile_image: null
         }])
         .select()
@@ -1065,64 +1093,22 @@ const Login: FC = () => {
 
       if (userError) {
         console.error('User creation error:', userError)
-        console.error('Error details:', JSON.stringify(userError, null, 2))
-        console.error('Register data:', registerData)
 
         if (userError.code === '23505') {
           setError('Email sudah terdaftar. Gunakan email lain.')
-        } else if (userError.code === '23502') {
-          setError('Ada kolom wajib yang belum diisi. Periksa kembali form.')
-        } else if (userError.message) {
-          setError(`Gagal membuat akun: ${userError.message}`)
         } else {
-          setError(`Gagal membuat akun. Error: ${userError.code || 'Unknown'}`)
+          setError(`Gagal mendaftar: ${userError.message}`)
         }
         setLoading(false)
         return
       }
 
-      // 2. Generate vendor ID
-      const { data: existingVendors, error: countError } = await supabase
-        .from('vendors')
-        .select('id')
-        .order('created_at', { ascending: false })
-        .limit(1)
-
-      if (countError) throw countError
-
-      let newVendorId = 'VND001'
-      if (existingVendors && existingVendors.length > 0) {
-        const lastId = existingVendors[0].id
-        const lastNumber = parseInt(lastId.replace('VND', ''))
-        newVendorId = `VND${String(lastNumber + 1).padStart(3, '0')}`
-      }
-
-      // 3. Create vendor profile in vendors table with user_id reference
-      const { error: vendorError } = await supabase
-        .from('vendors')
-        .insert([{
-          id: newVendorId,
-          user_id: newUser.id, // Link to vendor_users
-          nama: registerData.companyName,
-          email: registerData.email,
-          telepon: registerData.phone,
-          alamat: registerData.address || '',
-          kontak_person: registerData.picName || '',
-          status: 'Aktif'
-        }])
-
-      if (vendorError) {
-        console.error('Vendor profile error:', vendorError)
-        // Rollback: delete user if vendor creation fails
-        await supabase.from('vendor_users').delete().eq('id', newUser.id)
-
-        setError(`Gagal membuat profil vendor: ${vendorError.message}`)
-        setLoading(false)
-        return
-      }
-
-      // Registrasi berhasil
-      setNotification({ show: true, type: 'success', message: `Registrasi berhasil! ID Vendor Anda: ${newVendorId}\n\nSilakan login dengan email dan password yang sudah didaftarkan.` })
+      // Registrasi berhasil - tampilkan notifikasi
+      setNotification({
+        show: true,
+        type: 'success',
+        message: `Pendaftaran berhasil!\n\nData Anda sedang dalam proses verifikasi oleh Admin.\nPassword untuk login akan dikirimkan ke email ${registerData.email} setelah data diverifikasi.`
+      })
 
       // Reset form dan kembali ke login
       setRegisterData({
@@ -1133,21 +1119,19 @@ const Login: FC = () => {
         confirmPassword: '',
         phone: '',
         address: '',
-        city: '',
-        province: '',
-        postalCode: '',
-        fax: '',
+        bankName: '',
+        accountNumber: '',
+        accountName: '',
         picName: '',
         picPosition: '',
         picPhone: '',
         picEmail: '',
-        npwp: '',
-        siup: '',
-        tdp: '',
-        established: ''
+        certificateFile: null,
+        certificateType: ''
       })
       setIsRegisterMode(false)
-      setEmail(registerData.email)
+      setRegisterStep(1)
+      setVerificationData({ email: '', companyName: '', code: '' })
 
     } catch (err) {
       console.error('Register error:', err)
@@ -1294,6 +1278,20 @@ const Login: FC = () => {
             return
           }
 
+          // Check if account is pending approval
+          if (user.status === 'Pending') {
+            setError('Akun Anda masih dalam proses verifikasi oleh Admin. Password login akan dikirimkan ke email Anda setelah data diverifikasi.')
+            setLoading(false)
+            return
+          }
+
+          // Check if account is deactivated
+          if (user.status === 'Tidak Aktif') {
+            setError('Akun Anda telah dinonaktifkan.')
+            setLoading(false)
+            return
+          }
+
           localStorage.setItem('vendorLoggedIn', 'true')
           localStorage.setItem('vendorEmail', email)
           localStorage.setItem('vendorUserId', user.id.toString()) // Use real user ID
@@ -1331,6 +1329,13 @@ const Login: FC = () => {
 
         if (authError || !user) {
           setError('Email atau password salah')
+          setLoading(false)
+          return
+        }
+
+        // Check if account is pending approval
+        if (user.status === 'Pending') {
+          setError('Akun Anda masih dalam proses verifikasi oleh Admin. Password login akan dikirimkan ke email Anda setelah data diverifikasi.')
           setLoading(false)
           return
         }
@@ -1798,69 +1803,12 @@ const Login: FC = () => {
                       </select>
                     </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
-                      <div className="input-group">
-                        <label className="input-label">NPWP</label>
-                        <input
-                          type="text"
-                          placeholder="00.000.000.0-000.000"
-                          value={registerData.npwp}
-                          onChange={(e) => setRegisterData({ ...registerData, npwp: e.target.value })}
-                          className="input-field"
-                          disabled={loading}
-                        />
-                      </div>
-
-                      <div className="input-group">
-                        <label className="input-label">Tahun Berdiri</label>
-                        <input
-                          type="number"
-                          placeholder="2020"
-                          value={registerData.established}
-                          onChange={(e) => setRegisterData({ ...registerData, established: e.target.value })}
-                          className="input-field"
-                          disabled={loading}
-                        />
-                      </div>
-                    </div>
-
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
-                      <div className="input-group">
-                        <label className="input-label">No. SIUP</label>
-                        <input
-                          type="text"
-                          placeholder="Nomor SIUP"
-                          value={registerData.siup}
-                          onChange={(e) => setRegisterData({ ...registerData, siup: e.target.value })}
-                          className="input-field"
-                          disabled={loading}
-                        />
-                      </div>
-
-                      <div className="input-group">
-                        <label className="input-label">TDP</label>
-                        <input
-                          type="text"
-                          placeholder="Nomor TDP"
-                          value={registerData.tdp}
-                          onChange={(e) => setRegisterData({ ...registerData, tdp: e.target.value })}
-                          className="input-field"
-                          disabled={loading}
-                        />
-                      </div>
-                    </div>
-
-                    {/* Alamat Perusahaan */}
-                    <h3 className="section-title" style={{ fontSize: '16px', fontWeight: '600', color: '#1e3c72', marginTop: '20px', marginBottom: '15px', borderBottom: '2px solid #1e88e5', paddingBottom: '8px' }}>
-                      Alamat Perusahaan
-                    </h3>
-
                     <div className="input-group">
                       <label className="input-label">
-                        Alamat Lengkap <span className="required">*</span>
+                        Alamat Lengkap Perusahaan <span className="required">*</span>
                       </label>
                       <textarea
-                        placeholder="Jalan, Nomor, RT/RW, Kelurahan, Kecamatan"
+                        placeholder="Jalan, Nomor, RT/RW, Kelurahan, Kecamatan, Kota, Provinsi, Kode Pos"
                         value={registerData.address}
                         onChange={(e) => setRegisterData({ ...registerData, address: e.target.value })}
                         className="input-field"
@@ -1871,95 +1819,47 @@ const Login: FC = () => {
                       />
                     </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
-                      <div className="input-group">
-                        <label className="input-label">Kota/Kabupaten</label>
-                        <input
-                          type="text"
-                          placeholder="Jakarta"
-                          value={registerData.city}
-                          onChange={(e) => setRegisterData({ ...registerData, city: e.target.value })}
-                          className="input-field"
-                          disabled={loading}
-                        />
-                      </div>
-
-                      <div className="input-group">
-                        <label className="input-label">Provinsi</label>
-                        <input
-                          type="text"
-                          placeholder="DKI Jakarta"
-                          value={registerData.province}
-                          onChange={(e) => setRegisterData({ ...registerData, province: e.target.value })}
-                          className="input-field"
-                          disabled={loading}
-                        />
-                      </div>
-                    </div>
+                    {/* Informasi Bank */}
+                    <h3 className="section-title" style={{ fontSize: '16px', fontWeight: '600', color: '#1e3c72', marginTop: '20px', marginBottom: '15px', borderBottom: '2px solid #1e88e5', paddingBottom: '8px' }}>
+                      Informasi Bank (Opsional)
+                    </h3>
 
                     <div className="input-group">
-                      <label className="input-label">
-                        Kode Pos</label>
+                      <label className="input-label">Bank Pembayaran</label>
                       <input
                         type="text"
-                        placeholder="12345"
-                        value={registerData.postalCode}
-                        onChange={(e) => setRegisterData({ ...registerData, postalCode: e.target.value })}
+                        placeholder="Bank Mandiri"
+                        value={registerData.bankName}
+                        onChange={(e) => setRegisterData({ ...registerData, bankName: e.target.value })}
                         className="input-field"
                         disabled={loading}
                       />
                     </div>
 
-                    {/* Kontak Perusahaan */}
-                    <h3 className="section-title" style={{ fontSize: '16px', fontWeight: '600', color: '#1e3c72', marginTop: '20px', marginBottom: '15px', borderBottom: '2px solid #1e88e5', paddingBottom: '8px' }}>
-                      Kontak Perusahaan
-                    </h3>
-
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
                       <div className="input-group">
-                        <label className="input-label">
-                          Telepon <span className="required">*</span>
-                        </label>
+                        <label className="input-label">No. Rekening</label>
                         <input
-                          type="tel"
-                          placeholder="021-12345678"
-                          value={registerData.phone}
-                          onChange={(e) => setRegisterData({ ...registerData, phone: e.target.value })}
+                          type="text"
+                          placeholder="1234567890"
+                          value={registerData.accountNumber}
+                          onChange={(e) => setRegisterData({ ...registerData, accountNumber: e.target.value })}
                           className="input-field"
-                          required
                           disabled={loading}
                         />
                       </div>
 
                       <div className="input-group">
-                        <label className="input-label">Fax</label>
+                        <label className="input-label">Nama Rekening</label>
                         <input
-                          type="tel"
-                          placeholder="021-12345679"
-                          value={registerData.fax}
-                          onChange={(e) => setRegisterData({ ...registerData, fax: e.target.value })}
+                          type="text"
+                          placeholder="PT Nama Perusahaan"
+                          value={registerData.accountName}
+                          onChange={(e) => setRegisterData({ ...registerData, accountName: e.target.value })}
                           className="input-field"
                           disabled={loading}
                         />
                       </div>
-                    </div>
-
-                    <div className="input-group">
-                      <label className="input-label">
-                        Email Perusahaan <span className="required">*</span>
-                      </label>
-                      <input
-                        type="email"
-                        placeholder="info@perusahaan.com"
-                        value={registerData.email}
-                        onChange={(e) => setRegisterData({ ...registerData, email: e.target.value })}
-                        className="input-field verified-email"
-                        required
-                        disabled
-                      />
-                      <small style={{ display: 'block', marginTop: '6px', fontSize: '12px', color: '#4caf50', fontWeight: '600' }}>
-                        ✅ Email telah diverifikasi
-                      </small>
                     </div>
 
                     {/* Penanggung Jawab */}
@@ -1969,17 +1869,37 @@ const Login: FC = () => {
 
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
                       <div className="input-group">
-                        <label className="input-label">Nama Lengkap</label>
+                        <label className="input-label">
+                          Nama Lengkap <span className="required">*</span>
+                        </label>
                         <input
                           type="text"
                           placeholder="Budi Santoso"
                           value={registerData.picName}
                           onChange={(e) => setRegisterData({ ...registerData, picName: e.target.value })}
                           className="input-field"
+                          required
                           disabled={loading}
                         />
                       </div>
 
+                      <div className="input-group">
+                        <label className="input-label">
+                          No. Telepon <span className="required">*</span>
+                        </label>
+                        <input
+                          type="tel"
+                          placeholder="0812-3456-7890"
+                          value={registerData.picPhone}
+                          onChange={(e) => setRegisterData({ ...registerData, picPhone: e.target.value })}
+                          className="input-field"
+                          required
+                          disabled={loading}
+                        />
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
                       <div className="input-group">
                         <label className="input-label">Jabatan</label>
                         <input
@@ -1991,76 +1911,96 @@ const Login: FC = () => {
                           disabled={loading}
                         />
                       </div>
-                    </div>
-
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
-                      <div className="input-group">
-                        <label className="input-label">No. Telepon</label>
-                        <input
-                          type="tel"
-                          placeholder="0812-3456-7890"
-                          value={registerData.picPhone}
-                          onChange={(e) => setRegisterData({ ...registerData, picPhone: e.target.value })}
-                          className="input-field"
-                          disabled={loading}
-                        />
-                      </div>
 
                       <div className="input-group">
-                        <label className="input-label">Email</label>
+                        <label className="input-label">
+                          Email Perusahaan <span className="required">*</span>
+                        </label>
                         <input
                           type="email"
-                          placeholder="budi@perusahaan.com"
+                          placeholder="info@perusahaan.com"
                           value={registerData.picEmail}
                           onChange={(e) => setRegisterData({ ...registerData, picEmail: e.target.value })}
-                          className="input-field"
-                          disabled={loading}
-                        />
-                      </div>
-                    </div>
-
-                    {/* Keamanan */}
-                    <h3 className="section-title" style={{ fontSize: '16px', fontWeight: '600', color: '#1e3c72', marginTop: '20px', marginBottom: '15px', borderBottom: '2px solid #1e88e5', paddingBottom: '8px' }}>
-                      Keamanan
-                    </h3>
-
-                    <div className="input-group">
-                      <label className="input-label">
-                        Password <span className="required">*</span>
-                      </label>
-                      <div className="password-wrapper">
-                        <input
-                          type={showPassword ? 'text' : 'password'}
-                          placeholder="Minimal 6 karakter"
-                          value={registerData.password}
-                          onChange={(e) => setRegisterData({ ...registerData, password: e.target.value })}
                           className="input-field"
                           required
                           disabled={loading}
                         />
-                        <button
-                          type="button"
-                          className="toggle-password"
-                          onClick={() => setShowPassword(!showPassword)}
-                          disabled={loading}
-                        >
-                        </button>
                       </div>
+                    </div>
+
+                    {/* Upload Sertifikat */}
+                    <h3 className="section-title" style={{ fontSize: '16px', fontWeight: '600', color: '#1e3c72', marginTop: '20px', marginBottom: '15px', borderBottom: '2px solid #1e88e5', paddingBottom: '8px' }}>
+                      Upload Sertifikat
+                    </h3>
+
+                    <div className="input-group">
+                      <label className="input-label">
+                        Jenis Sertifikat <span className="required">*</span>
+                      </label>
+                      <select
+                        value={registerData.certificateType}
+                        onChange={(e) => setRegisterData({ ...registerData, certificateType: e.target.value })}
+                        className="input-field"
+                        required
+                        disabled={loading}
+                        style={{ cursor: 'pointer' }}
+                      >
+                        <option value="">-- Pilih Jenis Sertifikat --</option>
+                        <option value="VRS">Sertifikat Registrasi Vendor (VRS)</option>
+                        <option value="TDR">Tanda Daftar Rekanan (TDR)</option>
+                        <option value="DPT">Sertifikat DPT</option>
+                      </select>
                     </div>
 
                     <div className="input-group">
                       <label className="input-label">
-                        Konfirmasi Password <span className="required">*</span>
+                        Upload File Sertifikat (PDF) <span className="required">*</span>
                       </label>
                       <input
-                        type={showPassword ? 'text' : 'password'}
-                        placeholder="Ulangi password"
-                        value={registerData.confirmPassword}
-                        onChange={(e) => setRegisterData({ ...registerData, confirmPassword: e.target.value })}
+                        type="file"
+                        accept=".pdf"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0]
+                          if (file) {
+                            if (file.type !== 'application/pdf') {
+                              setError('File harus berformat PDF')
+                              e.target.value = ''
+                              return
+                            }
+                            if (file.size > 5 * 1024 * 1024) { // 5MB limit
+                              setError('Ukuran file maksimal 5MB')
+                              e.target.value = ''
+                              return
+                            }
+                            setRegisterData({ ...registerData, certificateFile: file })
+                            setError('')
+                          }
+                        }}
                         className="input-field"
                         required
                         disabled={loading}
+                        style={{ padding: '8px' }}
                       />
+                      <small style={{ display: 'block', marginTop: '6px', fontSize: '12px', color: '#666' }}>
+                        {registerData.certificateFile
+                          ? `✅ File: ${registerData.certificateFile.name}`
+                          : 'Format PDF, maksimal 5MB'}
+                      </small>
+                    </div>
+
+                    <div style={{
+                      background: '#fff3cd',
+                      border: '1px solid #ffc107',
+                      borderRadius: '8px',
+                      padding: '12px 16px',
+                      marginTop: '20px',
+                      marginBottom: '20px'
+                    }}>
+                      <p style={{ margin: 0, fontSize: '13px', color: '#856404', lineHeight: '1.5' }}>
+                        <strong>⚠️ Penting:</strong><br />
+                        Setelah mendaftar, akun Anda akan dalam status <strong>Pending</strong> menunggu verifikasi dari Admin.<br />
+                        Password untuk login akan dikirimkan ke email Anda setelah data diverifikasi dan disetujui.
+                      </p>
                     </div>
 
                     <button type="submit" className="login-button" disabled={loading} style={{ marginTop: '20px' }}>
