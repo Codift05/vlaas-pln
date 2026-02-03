@@ -171,10 +171,6 @@ export default function LandingPage() {
                                 </div>
                                 <h3 className="feature-title">{feature.title}</h3>
                                 <p className="feature-description">{feature.description}</p>
-                                <div className="feature-link">
-                                    <span>Pelajari lebih lanjut</span>
-                                    <ChevronRight size={16} />
-                                </div>
                             </div>
                         ))}
                     </div>
