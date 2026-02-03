@@ -190,15 +190,15 @@ function ManajemenAset() {
     const fetchActiveVendors = async () => {
         try {
             const { data, error } = await supabase
-                .from('vendor_users')
-                .select('company_name, status')
+                .from('vendors')
+                .select('nama, status')
                 .in('status', ['Aktif', 'Berkontrak'])
-                .order('company_name', { ascending: true })
+                .order('nama', { ascending: true })
 
             if (error) throw error
 
             // Remove duplicates and filter out null/empty names
-            const uniqueVendors = [...new Set(data.map(v => v.company_name).filter(Boolean))]
+            const uniqueVendors = [...new Set(data.map(v => v.nama).filter(Boolean))]
             setActiveVendors(uniqueVendors)
         } catch (err) {
             console.error('Error fetching vendors:', err)
@@ -609,10 +609,13 @@ function ManajemenAset() {
         setShowConfirmModal(true)
     }
 
-    const handleConfirmAmendment = () => {
+    const handleConfirmAmendment = async () => {
         if (!pendingAmendment) return
 
         const { asset, nextAmendmentNum } = pendingAmendment
+
+        // Refresh vendor list sebelum membuka modal amandemen
+        await fetchActiveVendors()
 
         setFormData({
             ...asset,
@@ -739,7 +742,15 @@ function ManajemenAset() {
         }))
     }
 
-    const handleEdit = (asset) => {
+    const handleOpenAddModal = async () => {
+        // Refresh vendor list sebelum membuka modal
+        await fetchActiveVendors()
+        setShowModal(true)
+    }
+
+    const handleEdit = async (asset) => {
+        // Refresh vendor list sebelum membuka modal edit
+        await fetchActiveVendors()
         setFormData({
             ...asset,
             amount: asset.amount ? String(asset.amount) : '', // Ensure amount is string for input
@@ -1286,7 +1297,7 @@ function ManajemenAset() {
                                 </div>
                             )}
                         </div>
-                        <button className="btn-primary" onClick={() => setShowModal(true)}>
+                        <button className="btn-primary" onClick={handleOpenAddModal}>
                             <Plus size={18} /> <span className="hide-on-mobile">Kontrak Baru</span>
                         </button>
                     </div>
