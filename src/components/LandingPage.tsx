@@ -107,12 +107,6 @@ export default function LandingPage() {
                         <a href="#how-it-works">Cara Kerja</a>
                         <a href="#about">Tentang</a>
                     </div>
-                    <div className="nav-actions">
-                        <Link href="/login" className="nav-login-link">Masuk</Link>
-                        <Link href="/login" className="nav-cta-btn">
-                            Mulai Sekarang
-                        </Link>
-                    </div>
                 </div>
             </nav>
 
