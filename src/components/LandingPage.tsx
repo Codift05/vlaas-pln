@@ -124,7 +124,7 @@ export default function LandingPage() {
                     </div>
                     <div className="hero-cta-group">
                         <Link href="/login" className="hero-primary-btn">
-                            Masuk ke Platform
+                            Masuk Admin
                             <ArrowRight size={18} />
                         </Link>
                         <Link href="/vendor-login" className="hero-secondary-btn">
