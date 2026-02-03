@@ -1,6 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
-import { Building2, MapPin, Phone, User, Mail, Save, Edit2, AlertTriangle } from 'lucide-react'
+import { Building2, User, Mail, Save, Edit2, AlertTriangle } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '../../../lib/supabaseClient'
 import { deactivateVendorAccount } from '../../../services/vendorAccountService'
@@ -24,20 +24,13 @@ function VendorProfile() {
         companyName: '',
         companyType: 'PT',
         address: '',
-        city: '',
-        province: '',
-        postalCode: '',
-        phone: '',
-        fax: '',
-        email: '',
+        bankName: '',
+        accountNumber: '',
+        accountName: '',
         picName: '',
-        picPosition: '',
         picPhone: '',
-        picEmail: '',
-        npwp: '',
-        siup: '',
-        tdp: '',
-        established: ''
+        picPosition: '',
+        picEmail: ''
     })
 
     // Load data from Supabase based on logged-in vendor
@@ -91,20 +84,13 @@ function VendorProfile() {
                         companyName: userData.company_name || '',
                         companyType: userData.company_type || 'PT',
                         address: userData.address || '',
-                        city: userData.city || '',
-                        province: userData.province || '',
-                        postalCode: userData.postal_code || '',
-                        phone: userData.phone || '',
-                        fax: userData.fax || '',
-                        email: userData.email || '',
+                        bankName: userData.bank_name || '',
+                        accountNumber: userData.account_number || '',
+                        accountName: userData.account_name || '',
                         picName: userData.pic_name || '',
-                        picPosition: userData.pic_position || '',
                         picPhone: userData.pic_phone || '',
-                        picEmail: userData.pic_email || '',
-                        npwp: userData.npwp || '',
-                        siup: userData.siup || '',
-                        tdp: userData.tdp || '',
-                        established: userData.established ? String(userData.established) : ''
+                        picPosition: userData.pic_position || '',
+                        picEmail: userData.pic_email || ''
                     })
 
                     // Update localStorage (hanya untuk cache header, bukan primary storage)
@@ -117,7 +103,7 @@ function VendorProfile() {
                     window.dispatchEvent(new Event('profileUpdated'))
 
                     // Show incomplete modal if profile is not complete
-                    if (!userData.company_name || !userData.address || !userData.phone || !userData.pic_name) {
+                    if (!userData.company_name || !userData.address || !userData.pic_name || !userData.pic_phone) {
                         setShowIncompleteModal(true)
                     }
                 }
@@ -262,30 +248,34 @@ function VendorProfile() {
         try {
             const vendorUserId = localStorage.getItem('vendorUserId')
 
+            if (!vendorUserId) {
+                throw new Error('User ID tidak ditemukan. Silakan login kembali.')
+            }
+
             // Update all data in vendor_users table
-            const { error } = await supabase
+            const { data, error } = await supabase
                 .from('vendor_users')
                 .update({
                     company_name: profileData.companyName,
                     company_type: profileData.companyType,
                     address: profileData.address,
-                    city: profileData.city,
-                    province: profileData.province,
-                    postal_code: profileData.postalCode,
-                    phone: profileData.phone,
-                    fax: profileData.fax,
+                    bank_name: profileData.bankName || null,
+                    account_number: profileData.accountNumber || null,
+                    account_name: profileData.accountName || null,
                     pic_name: profileData.picName,
-                    pic_position: profileData.picPosition,
                     pic_phone: profileData.picPhone,
-                    pic_email: profileData.picEmail,
-                    npwp: profileData.npwp,
-                    siup: profileData.siup,
-                    tdp: profileData.tdp,
-                    established: profileData.established ? parseInt(profileData.established) : null
+                    pic_position: profileData.picPosition || null,
+                    pic_email: profileData.picEmail || null
                 })
                 .eq('id', parseInt(vendorUserId))
+                .select()
 
-            if (error) throw error
+            if (error) {
+                console.error('Supabase error:', error)
+                throw new Error(error.message || 'Gagal menyimpan ke database')
+            }
+
+            console.log('Update successful:', data)
 
             // Update localStorage for header
             localStorage.setItem('vendorProfile', JSON.stringify({
@@ -299,10 +289,11 @@ function VendorProfile() {
             window.dispatchEvent(new Event('profileUpdated'))
             setLoading(false)
             setIsEditing(false)
-            alert('Profil perusahaan berhasil disimpan!')
+            setNotification({ show: true, type: 'success', message: 'Profil perusahaan berhasil disimpan!' })
         } catch (err) {
             console.error('Error saving profile:', err)
-            alert('Gagal menyimpan profil. Silakan coba lagi.')
+            const errorMessage = err.message || 'Gagal menyimpan profil. Silakan coba lagi.'
+            setNotification({ show: true, type: 'error', message: errorMessage })
             setLoading(false)
         }
     }
@@ -317,7 +308,7 @@ function VendorProfile() {
 
     const isProfileComplete = () => {
         return profileData.companyName && profileData.address &&
-            profileData.phone && profileData.picName
+            profileData.picName && profileData.picPhone
     }
 
     const handleDeleteAccount = async () => {
@@ -492,7 +483,7 @@ function VendorProfile() {
                                                         setConfirmModal({ ...confirmModal, show: false })
                                                         try {
                                                             await supabase
-                                                                .from('vendors')
+                                                                .from('vendor_users')
                                                                 .update({ profile_image: null })
                                                                 .eq('id', vendorId)
                                                             setProfileImage('')
@@ -502,6 +493,7 @@ function VendorProfile() {
                                                                 profileImage: ''
                                                             }))
                                                             window.dispatchEvent(new Event('profileUpdated'))
+                                                            setNotification({ show: true, type: 'success', message: 'Foto profil berhasil dihapus' })
                                                         } catch (err) {
                                                             setNotification({ show: true, type: 'error', message: 'Gagal menghapus foto' })
                                                         }
@@ -540,7 +532,7 @@ function VendorProfile() {
                                         className="form-input"
                                     />
                                 </div>
-                                <div className="form-group">
+                                <div className="form-group span-2">
                                     <label htmlFor="companyType">Jenis Badan Usaha <span className="required">*</span></label>
                                     <select
                                         id="companyType"
@@ -558,65 +550,14 @@ function VendorProfile() {
                                         <option value="Koperasi">Koperasi</option>
                                     </select>
                                 </div>
-                                <div className="form-group">
-                                    <label htmlFor="established">Tahun Berdiri</label>
-                                    <input
-                                        type="number"
-                                        id="established"
-                                        name="established"
-                                        value={profileData.established}
-                                        onChange={handleInputChange}
-                                        placeholder="2020"
-                                        disabled={!isEditing}
-                                        min="1900"
-                                        max={new Date().getFullYear()}
-                                        className="form-input"
-                                    />
-                                </div>
-                                <div className="form-group">
-                                    <label htmlFor="npwp">NPWP</label>
-                                    <input
-                                        type="text"
-                                        id="npwp"
-                                        name="npwp"
-                                        value={profileData.npwp}
-                                        onChange={handleInputChange}
-                                        placeholder="00.000.000.0-000.000"
-                                        disabled={!isEditing}
-                                        className="form-input"
-                                    />
-                                </div>
-                                <div className="form-group">
-                                    <label htmlFor="siup">No. SIUP</label>
-                                    <input
-                                        type="text"
-                                        id="siup"
-                                        name="siup"
-                                        value={profileData.siup}
-                                        onChange={handleInputChange}
-                                        placeholder="Nomor SIUP"
-                                        disabled={!isEditing}
-                                        className="form-input"
-                                    />
-                                </div>
-                            </div>
-                        </section>
-
-                        {/* Address Information */}
-                        <section className="profile-section">
-                            <div className="section-header">
-                                <MapPin size={20} className="section-icon" />
-                                <h2>Alamat Perusahaan</h2>
-                            </div>
-                            <div className="form-grid">
                                 <div className="form-group span-2">
-                                    <label htmlFor="address">Alamat Lengkap <span className="required">*</span></label>
+                                    <label htmlFor="address">Alamat Lengkap Perusahaan <span className="required">*</span></label>
                                     <textarea
                                         id="address"
                                         name="address"
                                         value={profileData.address}
                                         onChange={handleInputChange}
-                                        placeholder="Jalan, Nomor, RT/RW, Kelurahan, Kecamatan"
+                                        placeholder="Jalan, Nomor, RT/RW, Kelurahan, Kecamatan, Kota, Provinsi, Kode Pos"
                                         disabled={!isEditing}
                                         rows={3}
                                         required
@@ -624,95 +565,41 @@ function VendorProfile() {
                                     />
                                 </div>
                                 <div className="form-group">
-                                    <label htmlFor="city">Kota/Kabupaten <span className="required">*</span></label>
+                                    <label htmlFor="bankName">Bank Pembayaran</label>
                                     <input
                                         type="text"
-                                        id="city"
-                                        name="city"
-                                        value={profileData.city}
+                                        id="bankName"
+                                        name="bankName"
+                                        value={profileData.bankName}
                                         onChange={handleInputChange}
-                                        placeholder="Jakarta"
+                                        placeholder="Bank Mandiri"
                                         disabled={!isEditing}
-                                        required
                                         className="form-input"
                                     />
                                 </div>
                                 <div className="form-group">
-                                    <label htmlFor="province">Provinsi <span className="required">*</span></label>
+                                    <label htmlFor="accountNumber">No. Rekening</label>
                                     <input
                                         type="text"
-                                        id="province"
-                                        name="province"
-                                        value={profileData.province}
+                                        id="accountNumber"
+                                        name="accountNumber"
+                                        value={profileData.accountNumber}
                                         onChange={handleInputChange}
-                                        placeholder="DKI Jakarta"
-                                        disabled={!isEditing}
-                                        required
-                                        className="form-input"
-                                    />
-                                </div>
-                                <div className="form-group">
-                                    <label htmlFor="postalCode">Kode Pos</label>
-                                    <input
-                                        type="text"
-                                        id="postalCode"
-                                        name="postalCode"
-                                        value={profileData.postalCode}
-                                        onChange={handleInputChange}
-                                        placeholder="12345"
-                                        disabled={!isEditing}
-                                        maxLength={5}
-                                        className="form-input"
-                                    />
-                                </div>
-                            </div>
-                        </section>
-
-                        {/* Contact Information */}
-                        <section className="profile-section">
-                            <div className="section-header">
-                                <Phone size={20} className="section-icon" />
-                                <h2>Kontak Perusahaan</h2>
-                            </div>
-                            <div className="form-grid">
-                                <div className="form-group">
-                                    <label htmlFor="phone">Telepon <span className="required">*</span></label>
-                                    <input
-                                        type="tel"
-                                        id="phone"
-                                        name="phone"
-                                        value={profileData.phone}
-                                        onChange={handleInputChange}
-                                        placeholder="021-12345678"
-                                        disabled={!isEditing}
-                                        required
-                                        className="form-input"
-                                    />
-                                </div>
-                                <div className="form-group">
-                                    <label htmlFor="fax">Fax</label>
-                                    <input
-                                        type="tel"
-                                        id="fax"
-                                        name="fax"
-                                        value={profileData.fax}
-                                        onChange={handleInputChange}
-                                        placeholder="021-12345679"
+                                        placeholder="1234567890"
                                         disabled={!isEditing}
                                         className="form-input"
                                     />
                                 </div>
                                 <div className="form-group span-2">
-                                    <label htmlFor="email">Email Perusahaan <span className="required">*</span></label>
+                                    <label htmlFor="accountName">Nama Rekening</label>
                                     <input
-                                        type="email"
-                                        id="email"
-                                        name="email"
-                                        value={profileData.email}
+                                        type="text"
+                                        id="accountName"
+                                        name="accountName"
+                                        value={profileData.accountName}
                                         onChange={handleInputChange}
-                                        placeholder="info@perusahaan.com"
+                                        placeholder="PT INDOTAMA JASA SERTIFIKASI"
                                         disabled={!isEditing}
-                                        required
                                         className="form-input"
                                     />
                                 </div>
@@ -741,19 +628,6 @@ function VendorProfile() {
                                     />
                                 </div>
                                 <div className="form-group">
-                                    <label htmlFor="picPosition">Jabatan</label>
-                                    <input
-                                        type="text"
-                                        id="picPosition"
-                                        name="picPosition"
-                                        value={profileData.picPosition}
-                                        onChange={handleInputChange}
-                                        placeholder="Direktur"
-                                        disabled={!isEditing}
-                                        className="form-input"
-                                    />
-                                </div>
-                                <div className="form-group">
                                     <label htmlFor="picPhone">No. Telepon <span className="required">*</span></label>
                                     <input
                                         type="tel"
@@ -768,15 +642,29 @@ function VendorProfile() {
                                     />
                                 </div>
                                 <div className="form-group">
-                                    <label htmlFor="picEmail">Email</label>
+                                    <label htmlFor="picPosition">Jabatan</label>
+                                    <input
+                                        type="text"
+                                        id="picPosition"
+                                        name="picPosition"
+                                        value={profileData.picPosition}
+                                        onChange={handleInputChange}
+                                        placeholder="Direktur"
+                                        disabled={!isEditing}
+                                        className="form-input"
+                                    />
+                                </div>
+                                <div className="form-group">
+                                    <label htmlFor="picEmail">Email Perusahaan <span className="required">*</span></label>
                                     <input
                                         type="email"
                                         id="picEmail"
                                         name="picEmail"
                                         value={profileData.picEmail}
                                         onChange={handleInputChange}
-                                        placeholder="budi@perusahaan.com"
+                                        placeholder="info@perusahaan.com"
                                         disabled={!isEditing}
+                                        required
                                         className="form-input"
                                     />
                                 </div>
