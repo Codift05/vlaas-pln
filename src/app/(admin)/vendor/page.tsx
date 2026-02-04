@@ -1038,7 +1038,7 @@ function DataVendor() {
                                         placeholder="Contoh: 1234567890"
                                     />
                                 </div>
-                                <div className="form-group-vendor full-width">
+                                <div className="form-group-vendor">
                                     <label htmlFor="namaRekening">Nama Rekening</label>
                                     <input
                                         type="text"
