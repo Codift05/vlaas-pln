@@ -23,12 +23,15 @@ const Overlay = styled.div`
   z-index: 999;
   opacity: 0;
   transition: opacity 0.3s ease;
+  pointer-events: none;
 
   &.active {
     opacity: 1;
+    pointer-events: auto;
   }
 
-  @media (max-width: 968px) {
+  /* Only show overlay on mobile/tablet portrait */
+  @media (max-width: 768px) {
     display: block;
     &.active {
       opacity: 1;
@@ -47,22 +50,63 @@ const SidebarWrapper = styled.div<{ $isExpanded: boolean }>`
   top: 0;
   box-shadow: 2px 0 4px rgba(0, 0, 0, 0.02);
   z-index: 1000;
-  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s ease;
   border-right: none;
   overflow: hidden;
 
-  /* Zoom adjustments - keep sidebar size consistent */
+  /* Large screens - 1537px+ */
+  @media (min-width: 1537px) {
+    width: ${props => props.$isExpanded ? '15rem' : '5rem'};
+  }
+
+  /* Medium-large screens - 1401px to 1536px */
   @media (max-width: 1536px) {
     width: ${props => props.$isExpanded ? '14rem' : '4.5rem'};
   }
 
+  /* Medium screens - 1201px to 1400px */
   @media (max-width: 1400px) {
     width: ${props => props.$isExpanded ? '13rem' : '4.5rem'};
   }
 
-  @media (max-width: 1200px) {
-    transform: translateX(${props => props.$isExpanded ? '0' : '-100%'});
-    width: 15rem;
+  /* Tablet landscape - 969px to 1200px - TETAP TAMPIL MINI */
+  @media (max-width: 1200px) and (min-width: 769px) {
+    width: 4.5rem;
+    transform: translateX(0);
+    
+    .sidebar-logo-img {
+      width: 2.5rem !important;
+    }
+    .nav-item { 
+      justify-content: center !important; 
+    }
+    .nav-text { 
+      opacity: 0 !important; 
+      visibility: hidden !important; 
+      width: 0 !important; 
+    }
+    .sidebar-header {
+      justify-content: center !important;
+    }
+    .sidebar-logo {
+      justify-content: center !important;
+    }
+  }
+
+  /* Tablet portrait & Mobile - 768px and below - DRAWER MODE */
+  @media (max-width: 768px) {
+    width: 17.5rem;
+    transform: translateX(-100%);
+    &.open {
+      transform: translateX(0);
+    }
+    
+    .sidebar-header { justify-content: flex-start; }
+    .sidebar-logo { justify-content: flex-start; }
+    .sidebar-logo-img { width: 120px !important; }
+    .sidebar-logo-info { opacity: 1; visibility: visible; }
+    .nav-item { justify-content: flex-start; }
+    .nav-text { opacity: 1 !important; visibility: visible !important; width: auto !important; }
   }
 
   .sidebar-header {
@@ -149,42 +193,6 @@ const SidebarWrapper = styled.div<{ $isExpanded: boolean }>`
     transition: opacity 0.2s;
     width: ${props => props.$isExpanded ? 'auto' : 0};
   }
-
-  @media (max-width: 1536px) {
-    width: ${props => props.$isExpanded ? '14rem' : '4.5rem'};
-  }
-
-  @media (max-width: 1400px) {
-    width: ${props => props.$isExpanded ? '13rem' : '4.5rem'};
-  }
-
-  @media (max-width: 1200px) {
-    width: 17.5rem;
-    transform: translateX(-100%);
-    &.open {
-      transform: translateX(0);
-    }
-    
-    .sidebar-header { justify-content: flex-start; }
-    .sidebar-logo { justify-content: flex-start; }
-    .sidebar-logo-info { opacity: 1; visibility: visible; }
-    .nav-item { justify-content: flex-start; }
-    .nav-text { opacity: 1; visibility: visible; width: auto; }
-  }
-
-  @media (max-width: 968px) {
-    width: 17.5rem;
-    transform: translateX(-100%);
-    &.open {
-      transform: translateX(0);
-    }
-    
-    .sidebar-header { justify-content: flex-start; }
-    .sidebar-logo { justify-content: flex-start; }
-    .sidebar-logo-info { opacity: 1; visibility: visible; }
-    .nav-item { justify-content: flex-start; }
-    .nav-text { opacity: 1; visibility: visible; width: auto; }
-  }
 `;
 
 const Sidebar: FC<SidebarProps> = ({ isOpen, onClose, isExpanded, toggleSidebar }) => {
@@ -192,7 +200,8 @@ const Sidebar: FC<SidebarProps> = ({ isOpen, onClose, isExpanded, toggleSidebar 
   const isActive = (path: string): string => pathname === path ? 'active' : ''
 
   const handleNavClick = (): void => {
-    if (window.innerWidth <= 968 && onClose) onClose()
+    // Only close sidebar on mobile/tablet portrait (drawer mode)
+    if (window.innerWidth <= 768 && onClose) onClose()
   }
 
   return (
