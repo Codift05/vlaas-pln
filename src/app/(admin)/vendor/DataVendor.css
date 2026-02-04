@@ -680,6 +680,26 @@
   border: 1px solid rgba(220, 38, 38, 0.1);
 }
 
+.status-pending {
+  background: #fef3c7;
+  color: #d97706;
+  border: 1px solid rgba(217, 119, 6, 0.15);
+}
+
+/* Spinning Animation */
+.spinning {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 /* Modern Action Buttons - Circular */
 .action-buttons-vendor {
   display: flex;

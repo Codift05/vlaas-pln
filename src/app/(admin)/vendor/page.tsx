@@ -1,17 +1,25 @@
 "use client"
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { Users, CheckCircle, Search, Eye, Edit, Trash2, PauseCircle, ClipboardList, Plus, Save, X, Briefcase } from 'lucide-react'
+import { Users, CheckCircle, Search, Eye, Edit, Trash2, PauseCircle, ClipboardList, Plus, Save, X, Briefcase, Mail, Send, RefreshCw, Copy, Key } from 'lucide-react'
 import { supabase } from '../../../lib/supabaseClient'
 import { updateVendorContractStatus } from '../../../services/vendorAccountService'
 import NotificationModal from '../../../components/NotificationModal'
 import ConfirmModal from '../../../components/ConfirmModal'
 import './DataVendor.css'
 
+// Generate 6-digit claim code untuk aktivasi vendor
+const generateClaimCode = () => {
+    return Math.floor(100000 + Math.random() * 900000).toString()
+}
+
 function DataVendor() {
     const searchParams = useSearchParams()
     const [vendors, setVendors] = useState([])
     const [loading, setLoading] = useState(true)
+    const [showClaimCodeModal, setShowClaimCodeModal] = useState(false)
+    const [newVendorClaimCode, setNewVendorClaimCode] = useState('')
+    const [newVendorName, setNewVendorName] = useState('')
     const [error, setError] = useState(null)
     const [notification, setNotification] = useState({ show: false, type: 'success' as 'success' | 'error' | 'warning' | 'info', message: '' })
     const [confirmModal, setConfirmModal] = useState({ show: false, title: '', message: '', onConfirm: () => { } })
@@ -23,6 +31,8 @@ function DataVendor() {
         telepon: '',
         email: '',
         kontakPerson: '',
+        jabatan: '',
+        npwp: '',
         status: 'Aktif',
         tanggalRegistrasi: new Date().toISOString().split('T')[0],
         bankPembayaran: '',
@@ -53,8 +63,9 @@ function DataVendor() {
             // Update vendor contract status first
             await updateVendorContractStatus()
 
+            // Fetch dari tabel vendors (master data perusahaan)
             const { data, error } = await supabase
-                .from('vendor_users')
+                .from('vendors')
                 .select('*')
                 .order('created_at', { ascending: false })
 
@@ -64,16 +75,22 @@ function DataVendor() {
             const formattedData = data.map(vendor => {
                 return {
                     id: vendor.id || '',
-                    nama: vendor.company_name || vendor.name || vendor.nama || '',
-                    alamat: vendor.address || vendor.alamat || '',
-                    telepon: vendor.pic_phone || vendor.phone || vendor.telepon || '',
-                    email: vendor.pic_email || vendor.email || '',
-                    kontakPerson: vendor.pic_name || vendor.kontak_person || vendor.contact_person || '',
+                    nama: vendor.nama || '',
+                    alamat: vendor.alamat || '',
+                    telepon: vendor.telepon || '',
+                    email: vendor.email || '',
+                    kontakPerson: vendor.kontak_person || '',
+                    jabatan: vendor.jabatan || '',
+                    npwp: vendor.npwp || '',
                     status: vendor.status || 'Aktif',
                     tanggalRegistrasi: vendor.created_at || vendor.tanggal_registrasi || '',
-                    bankPembayaran: vendor.bank_name || vendor.bank_pembayaran || '',
-                    noRekening: vendor.account_number || vendor.no_rekening || '',
-                    namaRekening: vendor.account_name || vendor.nama_rekening || ''
+                    kategori: vendor.kategori || '',
+                    // Claim code fields
+                    claimCode: vendor.claim_code || null,
+                    isClaimed: vendor.is_claimed || false,
+                    claimedByUserId: vendor.claimed_by_user_id || null,
+                    claimedAt: vendor.claimed_at || null,
+                    createdBy: vendor.created_by || null
                 }
             })
 
@@ -119,7 +136,8 @@ function DataVendor() {
         setCurrentPage(pageNumber)
     }
 
-    const getStatusClass = (status) => {
+    const getStatusClass = (status, isClaimed) => {
+        if (!isClaimed) return 'status-pending' // Belum diklaim
         if (status === 'Aktif') return 'status-active'
         if (status === 'Berkontrak') return 'status-dalam-kontrak'
         return 'status-inactive'
@@ -149,55 +167,158 @@ function DataVendor() {
         setLoading(true)
 
         try {
-            const payload = {
-                id: formData.id,
-                company_name: formData.nama,
-                address: formData.alamat,
-                pic_phone: formData.telepon,
-                pic_email: formData.email,
-                pic_name: formData.kontakPerson,
-                status: formData.status,
-                bank_name: formData.bankPembayaran || null,
-                account_number: formData.noRekening || null,
-                account_name: formData.namaRekening || null
-            }
+            // Get admin name from localStorage
+            const adminName = localStorage.getItem('userName') || localStorage.getItem('userEmail') || 'Admin PLN'
 
             if (isEditing) {
-                // Update existing vendor using editId to locate the record
+                // Update existing vendor di tabel vendors
+                const payload = {
+                    nama: formData.nama,
+                    alamat: formData.alamat,
+                    telepon: formData.telepon || null,
+                    email: formData.email || null,
+                    kontak_person: formData.kontakPerson || null,
+                    // jabatan: formData.jabatan || null, // TODO: Uncomment setelah migration dijalankan
+                    npwp: formData.npwp || null,
+                    status: formData.status,
+                    updated_at: new Date().toISOString()
+                }
+
                 const { error } = await supabase
-                    .from('vendor_users')
+                    .from('vendors')
                     .update(payload)
                     .eq('id', editId)
 
                 if (error) throw error
 
+                // ========================================
+                // SINKRONISASI KE VENDOR_USERS
+                // Update profil vendor user jika ada perubahan
+                // ========================================
+                try {
+                    // Cari vendor_user berdasarkan company_name atau email
+                    // Gunakan filter yang lebih aman
+                    let vendorUser = null
+                    let vendorUserFindError = null
+
+                    // Coba cari berdasarkan email dulu
+                    if (formData.email) {
+                        const { data, error } = await supabase
+                            .from('vendor_users')
+                            .select('id')
+                            .eq('email', formData.email)
+                            .maybeSingle()
+                        vendorUser = data
+                        vendorUserFindError = error
+                    }
+
+                    // Jika tidak ditemukan, coba cari berdasarkan pic_email
+                    if (!vendorUser && formData.email) {
+                        const { data, error } = await supabase
+                            .from('vendor_users')
+                            .select('id')
+                            .eq('pic_email', formData.email)
+                            .maybeSingle()
+                        vendorUser = data
+                        vendorUserFindError = error
+                    }
+
+                    // Jika tidak ditemukan, coba cari berdasarkan company_name
+                    if (!vendorUser && formData.nama) {
+                        const { data, error } = await supabase
+                            .from('vendor_users')
+                            .select('id')
+                            .eq('company_name', formData.nama)
+                            .maybeSingle()
+                        vendorUser = data
+                        vendorUserFindError = error
+                    }
+
+                    console.log('🔍 Found vendor_user:', vendorUser)
+
+                    if (vendorUser && !vendorUserFindError) {
+                        // Update data vendor_users dengan info terbaru dari admin
+                        const { error: vendorUserUpdateError } = await supabase
+                            .from('vendor_users')
+                            .update({
+                                company_name: formData.nama || null,
+                                pic_name: formData.kontakPerson || null,
+                                // pic_position: formData.jabatan || null, // TODO: Uncomment setelah migration
+                                pic_phone: formData.telepon || null,
+                                pic_email: formData.email || null,
+                                address: formData.alamat || null,
+                                bank_name: formData.bankPembayaran || null,
+                                account_number: formData.noRekening || null,
+                                account_name: formData.namaRekening || null
+                            })
+                            .eq('id', vendorUser.id)
+
+                        if (vendorUserUpdateError) {
+                            console.warn('Warning: Gagal sync ke vendor_users table:', vendorUserUpdateError)
+                        } else {
+                            console.log('✅ Vendor user data synced successfully')
+                        }
+                    } else {
+                        console.log('ℹ️ No vendor_user found to sync')
+                    }
+                } catch (syncError) {
+                    // Jangan throw error, cukup log warning
+                    console.warn('Warning: Sync to vendor_users table failed:', syncError)
+                }
+
                 // Auto-update status based on contracts after save
-                // This ensures status is synced with actual contracts
                 await updateVendorContractStatus()
 
+                // Refresh data vendor untuk update detail
+                await fetchVendors()
+
+                // Trigger event untuk update profil vendor (jika sedang dibuka)
+                window.dispatchEvent(new Event('vendorDataUpdated'))
+
                 setNotification({ show: true, type: 'success', message: 'Vendor berhasil diperbarui!' })
+                setShowModal(false)
             } else {
-                // Insert new vendor - create minimal vendor_users entry
-                // Password and email verification akan di-set nanti saat vendor register
-                const { error } = await supabase
-                    .from('vendor_users')
-                    .insert([{
-                        ...payload,
-                        email: formData.email,
-                        password: null, // Will be set when vendor registers
-                        created_at: new Date().toISOString()
-                    }])
+                // Generate 6-digit claim code untuk vendor baru
+                const claimCode = generateClaimCode()
+
+                // Generate unique ID (VND + timestamp)
+                const vendorId = `VND${Date.now()}`
+
+                // Insert ke tabel vendors (master data perusahaan)
+                const payload = {
+                    id: vendorId,
+                    nama: formData.nama,
+                    alamat: formData.alamat,
+                    telepon: formData.telepon || null,
+                    email: formData.email || null, // Email opsional
+                    kontak_person: formData.kontakPerson || null,
+                    // jabatan: formData.jabatan || null, // TODO: Uncomment setelah migration dijalankan
+                    npwp: formData.npwp || null,
+                    status: 'Aktif',
+                    claim_code: claimCode,
+                    is_claimed: false,
+                    created_by: adminName,
+                    created_at: new Date().toISOString()
+                }
+
+                const { data: insertedVendor, error } = await supabase
+                    .from('vendors')
+                    .insert([payload])
+                    .select()
+                    .single()
 
                 if (error) throw error
 
-                // Auto-update status based on contracts after save
-                await updateVendorContractStatus()
+                // Refresh data vendor
+                await fetchVendors()
 
-                setNotification({ show: true, type: 'success', message: 'Vendor berhasil ditambahkan!' })
+                // Tampilkan modal dengan kode aktivasi
+                setNewVendorName(formData.nama)
+                setNewVendorClaimCode(claimCode)
+                setShowModal(false)
+                setShowClaimCodeModal(true)
             }
 
-            setShowModal(false)
-            fetchVendors() // Refresh data
             resetForm()
         } catch (err) {
             console.error('Error saving vendor:', err)
@@ -205,6 +326,12 @@ function DataVendor() {
         } finally {
             setLoading(false)
         }
+    }
+
+    // Copy claim code to clipboard
+    const copyClaimCode = () => {
+        navigator.clipboard.writeText(newVendorClaimCode)
+        setNotification({ show: true, type: 'success', message: 'Kode aktivasi berhasil disalin!' })
     }
 
     const resetForm = () => {
@@ -215,6 +342,8 @@ function DataVendor() {
             telepon: '',
             email: '',
             kontakPerson: '',
+            jabatan: '',
+            npwp: '',
             status: 'Aktif',
             tanggalRegistrasi: new Date().toISOString().split('T')[0],
             bankPembayaran: '',
@@ -223,6 +352,53 @@ function DataVendor() {
         })
         setIsEditing(false)
         setEditId(null)
+    }
+
+    // Regenerate claim code untuk vendor yang belum claim
+    const handleRegenerateClaimCode = async (vendor) => {
+        setConfirmModal({
+            show: true,
+            title: 'Generate Ulang Kode Aktivasi',
+            message: `Generate ulang kode aktivasi untuk "${vendor.nama}"? Kode lama tidak akan berlaku lagi.`,
+            onConfirm: async () => {
+                setConfirmModal({ ...confirmModal, show: false })
+                setLoading(true)
+
+                try {
+                    const newCode = generateClaimCode()
+
+                    const { error } = await supabase
+                        .from('vendors')
+                        .update({ claim_code: newCode })
+                        .eq('id', vendor.id)
+
+                    if (error) throw error
+
+                    // Show new code
+                    setNewVendorName(vendor.nama)
+                    setNewVendorClaimCode(newCode)
+                    setShowClaimCodeModal(true)
+
+                    fetchVendors() // Refresh data
+                } catch (err) {
+                    console.error('Error regenerating claim code:', err)
+                    setNotification({
+                        show: true,
+                        type: 'error',
+                        message: `Gagal generate ulang kode: ${err.message}`
+                    })
+                } finally {
+                    setLoading(false)
+                }
+            }
+        })
+    }
+
+    // Show existing claim code
+    const handleShowClaimCode = (vendor) => {
+        setNewVendorName(vendor.nama)
+        setNewVendorClaimCode(vendor.claimCode)
+        setShowClaimCodeModal(true)
     }
 
     const handleCloseModal = () => {
@@ -239,6 +415,8 @@ function DataVendor() {
             telepon: vendor.telepon,
             email: vendor.email,
             kontakPerson: vendor.kontakPerson,
+            jabatan: vendor.jabatan || '',
+            npwp: vendor.npwp || '',
             status: vendor.status,
             tanggalRegistrasi: vendor.tanggalRegistrasi,
             bankPembayaran: vendor.bankPembayaran || '',
@@ -250,8 +428,60 @@ function DataVendor() {
     }
 
     // Handler for showing detail modal
-    const handleShowDetail = (vendor) => {
-        setDetailVendor(vendor);
+    const handleShowDetail = async (vendor) => {
+        // Jika vendor sudah diklaim, ambil data lengkap dari vendor_users
+        if (vendor.isClaimed) {
+            try {
+                let vendorUser = null
+                let error = null
+
+                // Coba cari berdasarkan email dulu
+                if (vendor.email) {
+                    const result = await supabase
+                        .from('vendor_users')
+                        .select('*')
+                        .eq('pic_email', vendor.email)
+                        .maybeSingle()
+                    vendorUser = result.data
+                    error = result.error
+                }
+
+                // Jika tidak ditemukan, coba cari berdasarkan company_name
+                if (!vendorUser && vendor.nama) {
+                    const result = await supabase
+                        .from('vendor_users')
+                        .select('*')
+                        .eq('company_name', vendor.nama)
+                        .maybeSingle()
+                    vendorUser = result.data
+                    error = result.error
+                }
+
+                console.log('🔍 Detail vendor_user found:', vendorUser)
+
+                if (vendorUser && !error) {
+                    // Merge data vendor dengan data vendor_users
+                    setDetailVendor({
+                        ...vendor,
+                        bankPembayaran: vendorUser.bank_name || vendor.bankPembayaran || '',
+                        noRekening: vendorUser.account_number || vendor.noRekening || '',
+                        namaRekening: vendorUser.account_name || vendor.namaRekening || '',
+                        jabatan: vendorUser.pic_position || vendor.jabatan || '',
+                        kontakPerson: vendorUser.pic_name || vendor.kontakPerson || '',
+                        telepon: vendorUser.pic_phone || vendor.telepon || '',
+                        email: vendorUser.pic_email || vendor.email || ''
+                    });
+                } else {
+                    console.log('ℹ️ No vendor_user found, using vendor data')
+                    setDetailVendor(vendor);
+                }
+            } catch (err) {
+                console.error('Error fetching vendor user data:', err)
+                setDetailVendor(vendor);
+            }
+        } else {
+            setDetailVendor(vendor);
+        }
         setShowDetailModal(true);
     };
     const handleCloseDetailModal = () => {
@@ -322,7 +552,7 @@ function DataVendor() {
 
                     // 4. Jika tidak dipakai, lanjutkan delete
                     const { error } = await supabase
-                        .from('vendor_users')
+                        .from('vendors')
                         .delete()
                         .eq('id', id)
 
@@ -473,8 +703,12 @@ function DataVendor() {
                             </div>
                         )}
                     </div>
-                    <button className="btn-primary-vendor" onClick={() => setShowModal(true)}>
-                        <Plus size={18} /> Tambah Vendor Baru
+                    <button
+                        className="btn-primary-vendor"
+                        onClick={() => setShowModal(true)}
+                        style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+                    >
+                        <Mail size={18} /> Undang Vendor Baru
                     </button>
                 </div>
             </div>
@@ -514,15 +748,54 @@ function DataVendor() {
                                     {columnVisibility.email && <td className="vendor-email">{vendor.email}</td>}
                                     {columnVisibility.status && (
                                         <td>
-                                            <span className={`status-badge ${getStatusClass(vendor.status)}`}>
-                                                {vendor.status}
-                                            </span>
+                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                                <span className={`status-badge ${getStatusClass(vendor.status, vendor.isClaimed)}`}>
+                                                    {vendor.status}
+                                                </span>
+                                                {!vendor.isClaimed && vendor.claimCode && (
+                                                    <span style={{
+                                                        fontSize: '11px',
+                                                        color: '#f59e0b',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        gap: '4px'
+                                                    }}>
+                                                        <Key size={12} /> Belum diklaim
+                                                    </span>
+                                                )}
+                                            </div>
                                         </td>
                                     )}
                                     <td>
                                         <div className="action-buttons-vendor">
                                             <button className="btn-icon-vendor btn-view" title="Lihat Detail" onClick={() => handleShowDetail(vendor)}><Eye size={16} /></button>
                                             <button className="btn-icon-vendor btn-edit" title="Edit" onClick={() => handleEdit(vendor)}><Edit size={16} /></button>
+                                            {!vendor.isClaimed && vendor.claimCode && (
+                                                <>
+                                                    <button
+                                                        className="btn-icon-vendor"
+                                                        title="Lihat Kode Aktivasi"
+                                                        onClick={() => handleShowClaimCode(vendor)}
+                                                        style={{
+                                                            background: '#22c55e',
+                                                            color: 'white'
+                                                        }}
+                                                    >
+                                                        <Key size={16} />
+                                                    </button>
+                                                    <button
+                                                        className="btn-icon-vendor"
+                                                        title="Generate Ulang Kode"
+                                                        onClick={() => handleRegenerateClaimCode(vendor)}
+                                                        style={{
+                                                            background: '#f59e0b',
+                                                            color: 'white'
+                                                        }}
+                                                    >
+                                                        <RefreshCw size={16} />
+                                                    </button>
+                                                </>
+                                            )}
                                             <button className="btn-icon-vendor btn-delete" title="Hapus" onClick={() => handleDelete(vendor.id)}><Trash2 size={16} /></button>
                                         </div>
                                     </td>
@@ -599,39 +872,71 @@ function DataVendor() {
                             <h2>{isEditing ? 'Edit Vendor' : 'Tambah Vendor Baru'}</h2>
                             <button className="modal-close-vendor" onClick={handleCloseModal}>✕</button>
                         </div>
+
+                        {/* Claim Code Info Banner (only for new vendor) */}
+                        {!isEditing && (
+                            <div style={{
+                                background: 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)',
+                                border: '1px solid #22c55e',
+                                borderRadius: '12px',
+                                padding: '16px 20px',
+                                margin: '20px 40px 0 40px',
+                                display: 'flex',
+                                alignItems: 'flex-start',
+                                gap: '12px'
+                            }}>
+                                <Key size={24} style={{ color: '#16a34a', flexShrink: 0, marginTop: '2px' }} />
+                                <div>
+                                    <div style={{ fontWeight: 600, color: '#15803d', marginBottom: '4px' }}>
+                                        Sistem Kode Aktivasi
+                                    </div>
+                                    <div style={{ fontSize: '13px', color: '#475569', lineHeight: '1.5' }}>
+                                        Setelah data vendor disimpan, sistem akan menghasilkan <strong>Kode Aktivasi 6 digit</strong>.
+                                        Berikan kode ini kepada vendor (via WhatsApp, telepon, atau langsung).
+                                        Vendor dapat membuat akun di halaman <code>/vendor-activate</code> dengan memasukkan kode tersebut.
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
                         <form onSubmit={handleSubmit} className="modal-form-vendor">
 
                             <div className="form-grid-vendor">
-                                <div className="form-group-vendor">
-                                    <label htmlFor="id">ID Vendor <span className="required-vendor">*</span></label>
-                                    <input
-                                        type="text"
-                                        id="id"
-                                        name="id"
-                                        value={formData.id}
-                                        onChange={handleInputChange}
-                                        placeholder="Contoh: VND013"
-                                        required
-                                        disabled={isEditing}
-                                    />
-                                </div>
-                                <div className="form-group-vendor">
-                                    <label htmlFor="status">Status <span className="required-vendor">*</span></label>
-                                    <select
-                                        id="status"
-                                        name="status"
-                                        value={formData.status}
-                                        onChange={handleInputChange}
-                                        required
-                                    >
-                                        <option value="Aktif">Aktif</option>
-                                        <option value="Berkontrak">Berkontrak</option>
-                                        <option value="Tidak Aktif">Tidak Aktif</option>
-                                    </select>
-                                    <small style={{ color: '#6b7280', fontSize: '12px', marginTop: '4px', display: 'block' }}>
-                                        💡 Status akan otomatis disesuaikan dengan kontrak aktif setelah disimpan
-                                    </small>
-                                </div>
+                                {isEditing && (
+                                    <div className="form-group-vendor">
+                                        <label htmlFor="id">ID Vendor <span className="required-vendor">*</span></label>
+                                        <input
+                                            type="text"
+                                            id="id"
+                                            name="id"
+                                            value={formData.id}
+                                            onChange={handleInputChange}
+                                            placeholder="Contoh: VND013"
+                                            required
+                                            disabled={isEditing}
+                                        />
+                                    </div>
+                                )}
+                                {isEditing && (
+                                    <div className="form-group-vendor">
+                                        <label htmlFor="status">Status <span className="required-vendor">*</span></label>
+                                        <select
+                                            id="status"
+                                            name="status"
+                                            value={formData.status}
+                                            onChange={handleInputChange}
+                                            required
+                                        >
+                                            <option value="Aktif">Aktif</option>
+                                            <option value="Berkontrak">Berkontrak</option>
+                                            <option value="Belum Diklaim">Belum Diklaim</option>
+                                            <option value="Tidak Aktif">Tidak Aktif</option>
+                                        </select>
+                                        <small style={{ color: '#6b7280', fontSize: '12px', marginTop: '4px', display: 'block' }}>
+                                            💡 Status akan otomatis disesuaikan dengan kontrak aktif setelah disimpan
+                                        </small>
+                                    </div>
+                                )}
                                 <div className="form-group-vendor full-width">
                                     <label htmlFor="nama">Nama Vendor <span className="required-vendor">*</span></label>
                                     <input
@@ -657,7 +962,18 @@ function DataVendor() {
                                     />
                                 </div>
                                 <div className="form-group-vendor">
-                                    <label htmlFor="telepon">Telepon <span className="required-vendor">*</span></label>
+                                    <label htmlFor="npwp">NPWP</label>
+                                    <input
+                                        type="text"
+                                        id="npwp"
+                                        name="npwp"
+                                        value={formData.npwp}
+                                        onChange={handleInputChange}
+                                        placeholder="Contoh: 12.345.678.9-012.345"
+                                    />
+                                </div>
+                                <div className="form-group-vendor">
+                                    <label htmlFor="telepon">Telepon</label>
                                     <input
                                         type="tel"
                                         id="telepon"
@@ -665,23 +981,21 @@ function DataVendor() {
                                         value={formData.telepon}
                                         onChange={handleInputChange}
                                         placeholder="Contoh: 021-1234567"
-                                        required
                                     />
                                 </div>
                                 <div className="form-group-vendor">
-                                    <label htmlFor="email">Email <span className="required-vendor">*</span></label>
+                                    <label htmlFor="email">Email Vendor</label>
                                     <input
                                         type="email"
                                         id="email"
                                         name="email"
                                         value={formData.email}
                                         onChange={handleInputChange}
-                                        placeholder="Contoh: info@vendor.com"
-                                        required
+                                        placeholder="Opsional: info@vendor.com"
                                     />
                                 </div>
                                 <div className="form-group-vendor">
-                                    <label htmlFor="kontakPerson">Kontak Person <span className="required-vendor">*</span></label>
+                                    <label htmlFor="kontakPerson">Kontak Person</label>
                                     <input
                                         type="text"
                                         id="kontakPerson"
@@ -689,18 +1003,17 @@ function DataVendor() {
                                         value={formData.kontakPerson}
                                         onChange={handleInputChange}
                                         placeholder="Contoh: John Doe"
-                                        required
                                     />
                                 </div>
                                 <div className="form-group-vendor">
-                                    <label htmlFor="tanggalRegistrasi">Tanggal Registrasi <span className="required-vendor">*</span></label>
+                                    <label htmlFor="jabatan">Jabatan</label>
                                     <input
-                                        type="date"
-                                        id="tanggalRegistrasi"
-                                        name="tanggalRegistrasi"
-                                        value={formData.tanggalRegistrasi}
+                                        type="text"
+                                        id="jabatan"
+                                        name="jabatan"
+                                        value={formData.jabatan}
                                         onChange={handleInputChange}
-                                        required
+                                        placeholder="Contoh: Direktur"
                                     />
                                 </div>
                                 <div className="form-group-vendor">
@@ -741,8 +1054,31 @@ function DataVendor() {
                                 <button type="button" className="btn-cancel-vendor" onClick={handleCloseModal}>
                                     Batal
                                 </button>
-                                <button type="submit" className="btn-submit-vendor" disabled={loading}>
-                                    <Save size={18} /> {isEditing ? 'Update Vendor' : 'Simpan Vendor'}
+                                <button
+                                    type="submit"
+                                    className="btn-submit-vendor"
+                                    disabled={loading}
+                                    style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '8px',
+                                        background: isEditing ? undefined : 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)'
+                                    }}
+                                >
+                                    {loading ? (
+                                        <>
+                                            <RefreshCw size={18} className="spinning" />
+                                            Menyimpan...
+                                        </>
+                                    ) : isEditing ? (
+                                        <>
+                                            <Save size={18} /> Update Vendor
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Plus size={18} /> Simpan & Generate Kode
+                                        </>
+                                    )}
                                 </button>
                             </div>
                         </form>
@@ -793,6 +1129,10 @@ function DataVendor() {
                                     <div className="detail-value-vendor" style={{ background: '#f9fafb', border: '1px solid #e5e7eb', padding: '10px 14px', fontSize: 14, color: '#1f2937' }}>{detailVendor.kontakPerson}</div>
                                 </div>
                                 <div className="detail-group-vendor full-width">
+                                    <span className="detail-label-vendor" style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: '0.5px', color: '#6b7280', marginBottom: 6 }}>Jabatan</span>
+                                    <div className="detail-value-vendor" style={{ background: '#f9fafb', border: '1px solid #e5e7eb', padding: '10px 14px', fontSize: 14, color: '#1f2937' }}>{detailVendor.jabatan || '-'}</div>
+                                </div>
+                                <div className="detail-group-vendor full-width">
                                     <span className="detail-label-vendor" style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: '0.5px', color: '#6b7280', marginBottom: 6 }}>Alamat</span>
                                     <div className="detail-value-vendor" style={{ background: '#f9fafb', border: '1px solid #e5e7eb', padding: '10px 14px', fontSize: 14, color: '#1f2937' }}>{detailVendor.alamat}</div>
                                 </div>
@@ -815,6 +1155,126 @@ function DataVendor() {
                                     Tutup
                                 </button>
                             </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Modal Claim Code - Ditampilkan setelah vendor baru dibuat */}
+            {showClaimCodeModal && (
+                <div className="modal-overlay-vendor" onClick={() => setShowClaimCodeModal(false)}>
+                    <div className="modal-content-vendor" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '500px' }}>
+                        <div className="modal-header-vendor" style={{
+                            borderBottom: '1px solid #e5e7eb',
+                            paddingBottom: 16,
+                            marginBottom: 0,
+                            background: 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)'
+                        }}>
+                            <h2 style={{ fontSize: 20, fontWeight: 700, margin: 0, color: '#15803d', display: 'flex', alignItems: 'center', gap: 10 }}>
+                                <Key size={24} /> Vendor Berhasil Ditambahkan!
+                            </h2>
+                            <button
+                                className="modal-close-vendor"
+                                onClick={() => setShowClaimCodeModal(false)}
+                                style={{ fontSize: 24, background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', padding: 4 }}
+                            >
+                                ✕
+                            </button>
+                        </div>
+                        <div style={{ padding: '32px 40px' }}>
+                            <div style={{ textAlign: 'center' }}>
+                                <div style={{
+                                    fontSize: 15,
+                                    color: '#374151',
+                                    marginBottom: 24,
+                                    lineHeight: 1.6
+                                }}>
+                                    Vendor <strong>"{newVendorName}"</strong> telah ditambahkan. <br />
+                                    Berikan kode aktivasi berikut kepada vendor:
+                                </div>
+
+                                {/* Claim Code Display */}
+                                <div style={{
+                                    background: '#1f2937',
+                                    borderRadius: '16px',
+                                    padding: '24px 32px',
+                                    marginBottom: 24
+                                }}>
+                                    <div style={{
+                                        fontFamily: 'monospace',
+                                        fontSize: '48px',
+                                        fontWeight: 700,
+                                        color: '#22c55e',
+                                        letterSpacing: '12px',
+                                        textAlign: 'center'
+                                    }}>
+                                        {newVendorClaimCode}
+                                    </div>
+                                </div>
+
+                                {/* Copy Button */}
+                                <button
+                                    onClick={copyClaimCode}
+                                    style={{
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        gap: '8px',
+                                        padding: '12px 24px',
+                                        background: '#2563eb',
+                                        color: 'white',
+                                        border: 'none',
+                                        borderRadius: '8px',
+                                        fontSize: '14px',
+                                        fontWeight: 600,
+                                        cursor: 'pointer',
+                                        marginBottom: 24
+                                    }}
+                                >
+                                    <Copy size={18} />
+                                    Salin Kode
+                                </button>
+
+                                {/* Instructions */}
+                                <div style={{
+                                    background: '#fef3c7',
+                                    border: '1px solid #f59e0b',
+                                    borderRadius: '8px',
+                                    padding: '16px',
+                                    textAlign: 'left',
+                                    fontSize: '13px',
+                                    color: '#92400e',
+                                    lineHeight: 1.6
+                                }}>
+                                    <strong>⚠️ Penting:</strong>
+                                    <ul style={{ margin: '8px 0 0 16px', paddingLeft: 0 }}>
+                                        <li>Berikan kode ini kepada vendor via WhatsApp, telepon, atau langsung</li>
+                                        <li>Vendor dapat aktivasi di: <code style={{ background: '#fef9c3', padding: '2px 6px', borderRadius: 4 }}>/vendor-activate</code></li>
+                                        <li>Kode ini hanya bisa digunakan satu kali</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <div style={{
+                            padding: '16px 40px 24px',
+                            borderTop: '1px solid #e5e7eb',
+                            display: 'flex',
+                            justifyContent: 'center'
+                        }}>
+                            <button
+                                onClick={() => setShowClaimCodeModal(false)}
+                                style={{
+                                    padding: '10px 32px',
+                                    background: '#f3f4f6',
+                                    border: '1px solid #d1d5db',
+                                    borderRadius: '8px',
+                                    fontSize: '14px',
+                                    fontWeight: 500,
+                                    cursor: 'pointer',
+                                    color: '#374151'
+                                }}
+                            >
+                                Tutup
+                            </button>
                         </div>
                     </div>
                 </div>
