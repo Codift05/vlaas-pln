@@ -962,14 +962,25 @@ function DataVendor() {
                                     />
                                 </div>
                                 <div className="form-group-vendor">
-                                    <label htmlFor="npwp">NPWP</label>
+                                    <label htmlFor="kontakPerson">Kontak Person</label>
                                     <input
                                         type="text"
-                                        id="npwp"
-                                        name="npwp"
-                                        value={formData.npwp}
+                                        id="kontakPerson"
+                                        name="kontakPerson"
+                                        value={formData.kontakPerson}
                                         onChange={handleInputChange}
-                                        placeholder="Contoh: 12.345.678.9-012.345"
+                                        placeholder="Contoh: John Doe"
+                                    />
+                                </div>
+                                <div className="form-group-vendor">
+                                    <label htmlFor="jabatan">Jabatan</label>
+                                    <input
+                                        type="text"
+                                        id="jabatan"
+                                        name="jabatan"
+                                        value={formData.jabatan}
+                                        onChange={handleInputChange}
+                                        placeholder="Contoh: Direktur"
                                     />
                                 </div>
                                 <div className="form-group-vendor">
@@ -994,29 +1005,7 @@ function DataVendor() {
                                         placeholder="Opsional: info@vendor.com"
                                     />
                                 </div>
-                                <div className="form-group-vendor">
-                                    <label htmlFor="kontakPerson">Kontak Person</label>
-                                    <input
-                                        type="text"
-                                        id="kontakPerson"
-                                        name="kontakPerson"
-                                        value={formData.kontakPerson}
-                                        onChange={handleInputChange}
-                                        placeholder="Contoh: John Doe"
-                                    />
-                                </div>
-                                <div className="form-group-vendor">
-                                    <label htmlFor="jabatan">Jabatan</label>
-                                    <input
-                                        type="text"
-                                        id="jabatan"
-                                        name="jabatan"
-                                        value={formData.jabatan}
-                                        onChange={handleInputChange}
-                                        placeholder="Contoh: Direktur"
-                                    />
-                                </div>
-                                <div className="form-group-vendor">
+                                <div className="form-group-vendor full-width">
                                     <label htmlFor="bankPembayaran">Bank Pembayaran</label>
                                     <input
                                         type="text"
