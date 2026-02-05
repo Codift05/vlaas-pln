@@ -33,6 +33,11 @@ export default function VendorActivatePage() {
         const verifyToken = async () => {
             // Jika ada token di URL, verifikasi langsung
             if (token) {
+                console.log('🔍 Verifying activation token...', {
+                    tokenLength: token.length,
+                    tokenPreview: token.substring(0, 10) + '...'
+                })
+
                 try {
                     // Find vendor with this activation token
                     const { data: vendor, error: fetchError } = await supabase
@@ -41,7 +46,14 @@ export default function VendorActivatePage() {
                         .eq('activation_token', token)
                         .single()
 
+                    console.log('📋 Query result:', {
+                        found: !!vendor,
+                        error: fetchError?.message,
+                        vendorEmail: vendor?.email
+                    })
+
                     if (fetchError || !vendor) {
+                        console.error('❌ Token verification failed:', fetchError)
                         setError('Link aktivasi tidak valid atau sudah tidak berlaku.')
                         setLoading(false)
                         return
@@ -49,6 +61,7 @@ export default function VendorActivatePage() {
 
                     // Check if already activated
                     if (vendor.is_activated) {
+                        console.log('⚠️ Account already activated')
                         setError('Akun ini sudah diaktifkan sebelumnya. Silakan login.')
                         setLoading(false)
                         return
@@ -56,22 +69,32 @@ export default function VendorActivatePage() {
 
                     // Check if token expired
                     const tokenExpires = new Date(vendor.activation_token_expires)
-                    if (tokenExpires < new Date()) {
+                    const now = new Date()
+                    console.log('⏰ Token expiry check:', {
+                        expires: tokenExpires.toISOString(),
+                        now: now.toISOString(),
+                        isExpired: tokenExpires < now
+                    })
+
+                    if (tokenExpires < now) {
+                        console.log('❌ Token expired')
                         setError('Link aktivasi sudah kadaluarsa. Silakan hubungi admin PLN untuk mengirim ulang undangan.')
                         setLoading(false)
                         return
                     }
 
+                    console.log('✅ Token valid, showing password form')
                     setVendorData(vendor)
                     setMode('password')
                     setLoading(false)
                 } catch (err) {
-                    console.error('Error verifying token:', err)
+                    console.error('❌ Error verifying token:', err)
                     setError('Terjadi kesalahan saat memverifikasi link aktivasi.')
                     setLoading(false)
                 }
             } else {
                 // Tidak ada token, tampilkan form input kode aktivasi
+                console.log('ℹ️ No token found, showing claim code form')
                 setMode('code')
                 setLoading(false)
             }

@@ -8,6 +8,14 @@ export interface VendorAuthResult {
     message?: string
 }
 
+// Simple password hashing (same as backend)
+const hashPassword = (password: string): string => {
+    return crypto
+        .createHash('sha256')
+        .update(password + (process.env.NEXT_PUBLIC_PASSWORD_SALT || 'sakti_pln_salt'))
+        .digest('hex')
+}
+
 // Temporary storage for verification codes (in production, use database)
 interface VerificationEntry {
     code: string
@@ -38,15 +46,21 @@ export const requestEmailVerification = async (email: string, companyName?: stri
         // Check if email already registered
         const { data: existingVendor } = await supabase
             .from('vendor_users')
-            .select('id')
+            .select('id, is_activated')
             .eq('email', email)
-            .single()
+            .maybeSingle()
 
-        if (existingVendor) {
+        // Only block if vendor is already activated (completed registration)
+        if (existingVendor?.is_activated) {
             return {
                 success: false,
-                error: 'Email sudah terdaftar. Silakan gunakan email lain atau login.'
+                error: 'Email sudah terdaftar dan aktif. Silakan login.'
             }
+        }
+
+        // If vendor exists but not activated (pending invitation), allow re-verification
+        if (existingVendor && !existingVendor.is_activated) {
+            console.log('⚠️ Email exists but not activated (pending invitation). Allowing verification for self-registration.')
         }
 
         // Generate 6-digit verification code
@@ -340,11 +354,14 @@ export const resetPassword = async (
             }
         }
 
+        // Hash password before saving
+        const hashedPassword = hashPassword(newPassword)
+
         // Update password and clear reset token
         const { error: updateError } = await supabase
             .from('vendor_users')
             .update({
-                password: newPassword, // In production, hash this password
+                password: hashedPassword, // Save hashed password
                 reset_token: null,
                 reset_token_expires: null
             })
@@ -411,26 +428,83 @@ export const registerVendor = async (vendorData: {
             }
         }
 
-        // Check if email already exists
+        // Check if vendor already exists
         const { data: existingVendor } = await supabase
             .from('vendor_users')
-            .select('id')
+            .select('id, is_activated')
             .eq('email', vendorData.email)
-            .single()
+            .maybeSingle()
 
-        if (existingVendor) {
+        // Only block if vendor is already activated
+        if (existingVendor?.is_activated) {
             return {
                 success: false,
-                error: 'Email sudah terdaftar'
+                error: 'Email sudah terdaftar dan aktif'
             }
         }
 
-        // Insert new vendor
+        // Hash password for security
+        const hashedPassword = hashPassword(vendorData.password)
+
+        // If vendor exists but not activated (from invitation), update the record
+        if (existingVendor && !existingVendor.is_activated) {
+            console.log('📝 Updating pending invitation vendor to self-registered')
+
+            const { data: updatedVendor, error: updateError } = await supabase
+                .from('vendor_users')
+                .update({
+                    password: hashedPassword,
+                    company_name: vendorData.companyName,
+                    company_type: vendorData.companyType || 'PT',
+                    phone: vendorData.phone,
+                    address: vendorData.address,
+                    city: vendorData.city,
+                    province: vendorData.province,
+                    postal_code: vendorData.postalCode,
+                    fax: vendorData.fax,
+                    pic_name: vendorData.picName,
+                    pic_position: vendorData.picPosition,
+                    pic_phone: vendorData.picPhone,
+                    pic_email: vendorData.picEmail,
+                    npwp: vendorData.npwp,
+                    siup: vendorData.siup,
+                    tdp: vendorData.tdp,
+                    established: vendorData.established,
+                    status: 'Aktif',
+                    is_activated: true, // Mark as activated via self-registration
+                    activated_at: new Date().toISOString(),
+                    activation_token: null, // Clear invitation token
+                    activation_token_expires: null,
+                    updated_at: new Date().toISOString()
+                })
+                .eq('id', existingVendor.id)
+                .select()
+                .single()
+
+            if (updateError) {
+                console.error('Error updating vendor:', updateError)
+                return {
+                    success: false,
+                    error: 'Gagal mendaftar. Silakan coba lagi.'
+                }
+            }
+
+            // Clear verification codeAkun Anda sudah aktif. 
+            clearVerificationCode(vendorData.email)
+
+            return {
+                success: true,
+                message: 'Pendaftaran berhasil! Akun Anda sudah aktif. Silakan login.',
+                data: updatedVendor
+            }
+        }
+
+        // Insert new vendor (normal self-registration flow)
         const { data: newVendor, error: insertError } = await supabase
             .from('vendor_users')
             .insert([{
                 email: vendorData.email,
-                password: vendorData.password, // In production, hash this
+                password: hashedPassword, // Use hashed password
                 company_name: vendorData.companyName,
                 company_type: vendorData.companyType || 'PT',
                 phone: vendorData.phone,
@@ -442,6 +516,14 @@ export const registerVendor = async (vendorData: {
                 pic_name: vendorData.picName,
                 pic_position: vendorData.picPosition,
                 pic_phone: vendorData.picPhone,
+                pic_email: vendorData.picEmail,
+                npwp: vendorData.npwp,
+                siup: vendorData.siup,
+                tdp: vendorData.tdp,
+                established: vendorData.established,
+                status: 'Aktif',
+                is_activated: true, // Self-registered vendors are immediately activated
+                activated_at: new Date().toISOString(),
                 pic_email: vendorData.picEmail,
                 npwp: vendorData.npwp,
                 siup: vendorData.siup,

@@ -16,6 +16,15 @@ import {
 import { supabase } from '../lib/supabaseClient'
 import NotificationModal from './NotificationModal'
 import styled from 'styled-components'
+import crypto from 'crypto'
+
+// Password hashing function (same as backend and vendorAuthService)
+const hashPassword = (password: string): string => {
+  return crypto
+    .createHash('sha256')
+    .update(password + (process.env.NEXT_PUBLIC_PASSWORD_SALT || 'sakti_pln_salt'))
+    .digest('hex')
+}
 
 interface Platform {
   logo: string
@@ -951,6 +960,15 @@ const Login: FC = () => {
   useEffect(() => {
     if (typeof window !== 'undefined') {
       setDevMode(localStorage.getItem('devMode') === 'true')
+
+      // Load Remember Me data
+      const savedRememberMe = localStorage.getItem('rememberMe') === 'true'
+      const savedEmail = localStorage.getItem('savedEmail') || ''
+
+      if (savedRememberMe && savedEmail) {
+        setRememberMe(true)
+        setEmail(savedEmail)
+      }
     }
   }, [])
 
@@ -1225,12 +1243,15 @@ const Login: FC = () => {
     try {
       if (devMode) {
         if (isVendorLogin) {
+          // In dev mode, hash password before checking
+          const hashedPassword = hashPassword(password)
+
           // In dev mode, still authenticate properly to get the real user ID
           const { data: user, error: authError } = await supabase
             .from('vendor_users')
             .select('*')
             .eq('email', email)
-            .eq('password', password)
+            .eq('password', hashedPassword)
             .single()
 
           if (authError || !user) {
@@ -1239,9 +1260,16 @@ const Login: FC = () => {
             return
           }
 
+          // Check if account is not activated yet (pending invitation)
+          if (user.is_activated === false) {
+            setError('Akun Anda belum diaktifkan. Silakan cek email untuk link aktivasi.')
+            setLoading(false)
+            return
+          }
+
           // Check if account is pending approval
-          if (user.status === 'Pending') {
-            setError('Akun Anda masih dalam proses verifikasi oleh Admin. Password login akan dikirimkan ke email Anda setelah data diverifikasi.')
+          if (user.status === 'Pending' || user.status === 'Menunggu Aktivasi') {
+            setError('Akun Anda masih dalam proses verifikasi. Silakan cek email.')
             setLoading(false)
             return
           }
@@ -1280,12 +1308,15 @@ const Login: FC = () => {
       }
 
       if (isVendorLogin) {
+        // Hash password before checking
+        const hashedPassword = hashPassword(password)
+
         // Authenticate vendor from vendor_users table
         const { data: user, error: authError } = await supabase
           .from('vendor_users')
           .select('*')
           .eq('email', email)
-          .eq('password', password)
+          .eq('password', hashedPassword)
           .single()
 
         if (authError || !user) {
@@ -1294,9 +1325,16 @@ const Login: FC = () => {
           return
         }
 
+        // Check if account is not activated yet (pending invitation)
+        if (user.is_activated === false) {
+          setError('Akun Anda belum diaktifkan. Silakan cek email untuk link aktivasi atau hubungi admin.')
+          setLoading(false)
+          return
+        }
+
         // Check if account is pending approval
-        if (user.status === 'Pending') {
-          setError('Akun Anda masih dalam proses verifikasi oleh Admin. Password login akan dikirimkan ke email Anda setelah data diverifikasi.')
+        if (user.status === 'Pending' || user.status === 'Menunggu Aktivasi') {
+          setError('Akun Anda masih dalam proses verifikasi. Silakan cek email untuk aktivasi.')
           setLoading(false)
           return
         }
@@ -1322,8 +1360,13 @@ const Login: FC = () => {
           profileImage: user.profile_image || ''
         }))
 
+        // Handle Remember Me
         if (rememberMe) {
           localStorage.setItem('rememberMe', 'true')
+          localStorage.setItem('savedEmail', email)
+        } else {
+          localStorage.removeItem('rememberMe')
+          localStorage.removeItem('savedEmail')
         }
 
         console.log('Vendor logged in:', user.id, user.email)
@@ -1334,8 +1377,13 @@ const Login: FC = () => {
         if (result.success) {
           console.log('Login berhasil:', 'data' in result ? result.data : null)
 
+          // Handle Remember Me
           if (rememberMe) {
             localStorage.setItem('rememberMe', 'true')
+            localStorage.setItem('savedEmail', email)
+          } else {
+            localStorage.removeItem('rememberMe')
+            localStorage.removeItem('savedEmail')
           }
 
           router.push('/dashboard')
