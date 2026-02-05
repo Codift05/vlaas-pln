@@ -1503,6 +1503,9 @@ const Login: FC = () => {
                   Belum punya akun vendor? <a href="#" className="register-link" onClick={(e) => { e.preventDefault(); setIsRegisterMode(true); setError(''); }}>Daftar Sekarang</a>
                 </p>
                 <p className="register-text" style={{ marginTop: '10px' }}>
+                  Ingin melakukan aktivasi akun? <a href="/vendor-activate" className="register-link">Aktifkan di sini</a>
+                </p>
+                <p className="register-text" style={{ marginTop: '10px' }}>
                   Akun dinonaktifkan? <a href="#" className="register-link" onClick={(e) => { e.preventDefault(); setIsReactivateMode(true); setError(''); }}>Aktifkan Kembali</a>
                 </p>
               </>
