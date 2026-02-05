@@ -349,19 +349,22 @@ const LoginContainer = styled.div`
   /* Error Message */
   .error-message {
     display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 12px 16px;
-    background: #fee;
-    border: 1px solid #fcc;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 16px 20px;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
     border-radius: 8px;
-    color: #c33;
+    color: #991b1b;
     font-size: 14px;
     margin-bottom: 20px;
+    line-height: 1.6;
   }
 
   .error-icon {
     font-size: 18px;
+    flex-shrink: 0;
+    margin-top: 1px;
   }
 
   .register-text {
@@ -678,20 +681,19 @@ const LoginContainer = styled.div`
 
   /* Verification UI Elements */
   .verification-intro {
-    background: #fffbf0;
-    border: 1px solid #ffd966;
-    border-left: 4px solid #f9a825;
-    padding: 14px 16px;
-    margin: 20px 0;
+    background: #fef9e7;
+    border: 1px solid #fde68a;
+    padding: 12px 16px;
+    margin: 16px 0;
     border-radius: 6px;
     display: flex;
     align-items: flex-start;
-    gap: 12px;
+    gap: 10px;
   }
 
   .verification-intro .warning-icon {
-    color: #f9a825;
-    font-size: 20px;
+    color: #f59e0b;
+    font-size: 16px;
     flex-shrink: 0;
     margin-top: 2px;
   }
@@ -701,15 +703,15 @@ const LoginContainer = styled.div`
   }
 
   .verification-intro .warning-title {
-    margin: 0 0 4px 0;
-    color: #333;
-    font-size: 14px;
-    font-weight: 600;
+    margin: 0;
+    color: #78350f;
+    font-size: 13px;
+    font-weight: 500;
   }
 
   .verification-intro .warning-text {
     margin: 0;
-    color: #666;
+    color: #78350f;
     font-size: 13px;
     line-height: 1.5;
   }
@@ -788,19 +790,18 @@ const LoginContainer = styled.div`
   }
 
   .verification-success {
-    background: #e8f5e9;
-    border-left: 4px solid #4caf50;
-    padding: 20px;
-    margin: 20px 0;
-    border-radius: 8px;
-    text-align: center;
+    background: #f0f9ff;
+    border: 1px solid #bae6fd;
+    padding: 12px 16px;
+    margin: 16px 0;
+    border-radius: 6px;
   }
 
   .verification-success p {
-    margin: 8px 0;
-    color: #2e7d32;
-    font-size: 14px;
-    font-weight: 600;
+    margin: 0;
+    color: #0c4a6e;
+    font-size: 13px;
+    line-height: 1.5;
   }
 
   .email-display {
@@ -1648,12 +1649,17 @@ const Login: FC = () => {
               {registerStep === 2 && (
                 <form onSubmit={handleVerifyCode}>
                   <div className="verification-success">
-                    <p>Kode verifikasi telah dikirim ke:</p>
-                    <p className="email-display">{verificationData.email}</p>
+                    <div className="warning-content">
+                      <p style={{ marginBottom: '4px' }}>Kode verifikasi telah dikirim ke:</p>
+                      <p className="email-display" style={{ fontSize: '15px', fontWeight: '600' }}>{verificationData.email}</p>
+                    </div>
                   </div>
 
                   <div className="verification-intro">
-                    <p>Silakan cek <strong>inbox</strong> atau <strong>folder spam</strong> email Anda. Masukkan kode 6 digit yang dikirimkan (berlaku 15 menit).</p>
+                    <div className="warning-icon">⚠</div>
+                    <div className="warning-content">
+                      <p className="warning-text">Silakan cek <strong>inbox</strong> atau <strong>folder spam</strong> email Anda. Masukkan kode 6 digit yang dikirimkan (berlaku 15 menit).</p>
+                    </div>
                   </div>
 
                   <div className="input-group">
@@ -1736,8 +1742,10 @@ const Login: FC = () => {
               {registerStep === 3 && (
                 <>
                   <div className="verification-success" style={{ marginBottom: '20px' }}>
-                    <p>Email berhasil diverifikasi!</p>
-                    <p>Silakan lengkapi data perusahaan Anda.</p>
+                    <div className="warning-content">
+                      <p style={{ marginBottom: '4px' }}>Email berhasil diverifikasi!</p>
+                      <p>Silakan lengkapi data perusahaan Anda.</p>
+                    </div>
                   </div>
 
                   <form onSubmit={handleRegister}>
@@ -1821,9 +1829,13 @@ const Login: FC = () => {
                           type="text"
                           placeholder="1234567890"
                           value={registerData.accountNumber}
-                          onChange={(e) => setRegisterData({ ...registerData, accountNumber: e.target.value })}
+                          onChange={(e) => {
+                            const numericOnly = e.target.value.replace(/\D/g, '');
+                            setRegisterData({ ...registerData, accountNumber: numericOnly })
+                          }}
                           className="input-field"
                           disabled={loading}
+                          inputMode="numeric"
                         />
                       </div>
 
@@ -1866,13 +1878,17 @@ const Login: FC = () => {
                           No. Telepon <span className="required">*</span>
                         </label>
                         <input
-                          type="tel"
-                          placeholder="0812-3456-7890"
+                          type="text"
+                          placeholder="08123456789"
                           value={registerData.picPhone}
-                          onChange={(e) => setRegisterData({ ...registerData, picPhone: e.target.value })}
+                          onChange={(e) => {
+                            const numericOnly = e.target.value.replace(/\D/g, '');
+                            setRegisterData({ ...registerData, picPhone: numericOnly })
+                          }}
                           className="input-field"
                           required
                           disabled={loading}
+                          inputMode="numeric"
                         />
                       </div>
                     </div>
