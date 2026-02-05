@@ -1648,13 +1648,12 @@ const Login: FC = () => {
               {registerStep === 2 && (
                 <form onSubmit={handleVerifyCode}>
                   <div className="verification-success">
-                    <p>✅ Kode verifikasi telah dikirim ke:</p>
+                    <p>Kode verifikasi telah dikirim ke:</p>
                     <p className="email-display">{verificationData.email}</p>
                   </div>
 
                   <div className="verification-intro">
-                    <p>📬 Silakan cek <strong>inbox</strong> atau <strong>folder spam</strong> email Anda.</p>
-                    <p>Masukkan kode 6 digit yang dikirimkan (berlaku 15 menit).</p>
+                    <p>Silakan cek <strong>inbox</strong> atau <strong>folder spam</strong> email Anda. Masukkan kode 6 digit yang dikirimkan (berlaku 15 menit).</p>
                   </div>
 
                   <div className="input-group">
@@ -1677,10 +1676,6 @@ const Login: FC = () => {
 
                   {/* Button Group - Center aligned */}
                   <div style={{ display: 'flex', justifyContent: 'center', gap: '12px', marginTop: '24px' }}>
-                    <button type="submit" className="submit-btn" disabled={loading} style={{ flex: '0 0 auto', minWidth: '160px' }}>
-                      {loading ? 'Memverifikasi...' : '✓ Verifikasi Email'}
-                    </button>
-
                     <button
                       type="button"
                       className="submit-btn"
@@ -1688,13 +1683,35 @@ const Login: FC = () => {
                         setVerificationData({ ...verificationData, code: '' });
                         setRegisterStep(1);
                       }}
-                      style={{ 
-                        flex: '0 0 auto', 
-                        minWidth: '160px',
-                        background: 'linear-gradient(135deg, #1e88e5 0%, #1565c0 100%)'
+                      style={{
+                        flex: 1,
+                        background: 'linear-gradient(135deg, #1e88e5 0%, #1565c0 100%)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '8px'
                       }}
                     >
-                      🔄 Kirim Ulang Kode
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
+                        <path d="M21 3v5h-5" />
+                        <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
+                        <path d="M3 21v-5h5" />
+                      </svg>
+                      Kirim Ulang Kode
+                    </button>
+
+                    <button type="submit" className="submit-btn" disabled={loading} style={{ flex: 1, background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                      {loading ? (
+                        'Memverifikasi...'
+                      ) : (
+                        <>
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="20 6 9 17 4 12" />
+                          </svg>
+                          Verifikasi Email
+                        </>
+                      )}
                     </button>
                   </div>
 
@@ -1719,7 +1736,7 @@ const Login: FC = () => {
               {registerStep === 3 && (
                 <>
                   <div className="verification-success" style={{ marginBottom: '20px' }}>
-                    <p>✅ Email berhasil diverifikasi!</p>
+                    <p>Email berhasil diverifikasi!</p>
                     <p>Silakan lengkapi data perusahaan Anda.</p>
                   </div>
 
