@@ -121,7 +121,7 @@ export async function POST(request) {
             },
         });
 
-        console.log('✅ File uploaded:', response.data.name, '| ID:', response.data.id);
+        console.log('File uploaded:', response.data.name, '| ID:', response.data.id);
 
         return NextResponse.json({ success: true, file: response.data });
     } catch (err) {
