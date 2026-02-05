@@ -1,11 +1,11 @@
 "use client"
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '../../lib/supabaseClient'
 import { Eye, EyeOff, Lock, CheckCircle, AlertCircle, Loader2, Key, Building2 } from 'lucide-react'
 import './VendorActivate.css'
 
-export default function VendorActivatePage() {
+function ActivateContent() {
     const router = useRouter()
     const searchParams = useSearchParams()
     const token = searchParams.get('token')
@@ -525,5 +525,20 @@ export default function VendorActivatePage() {
                 </div>
             </div>
         </div>
+    )
+}
+
+export default function VendorActivatePage() {
+    return (
+        <Suspense fallback={
+            <div className="activate-container">
+                <div className="activate-card loading-card">
+                    <Loader2 size={48} className="spinning" />
+                    <p>Memuat halaman aktivasi...</p>
+                </div>
+            </div>
+        }>
+            <ActivateContent />
+        </Suspense>
     )
 }
