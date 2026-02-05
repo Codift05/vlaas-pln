@@ -287,71 +287,84 @@ const LoginContainer = styled.div`
   .submit-btn {
     min-width: 180px;
     width: auto;
-    padding: 12px 28px;
-    background: #1e88e5;
+    padding: 14px 32px;
+    background: linear-gradient(135deg, #1e88e5 0%, #1565c0 100%);
     color: white;
     border: none;
-    border-radius: 6px;
+    border-radius: 8px;
     font-size: 15px;
-    font-weight: bold;
+    font-weight: 600;
     cursor: pointer;
-    transition: transform 0.2s, box-shadow 0.2s;
-    letter-spacing: 1px;
+    transition: all 0.3s ease;
+    letter-spacing: 0.5px;
     margin-right: 18px;
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
     vertical-align: middle;
     text-align: center;
+    box-shadow: 0 2px 8px rgba(30, 136, 229, 0.2);
   }
   .submit-btn:hover:not(:disabled) {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(30, 136, 229, 0.3);
-    background: #1565c0;
+    box-shadow: 0 6px 16px rgba(30, 136, 229, 0.35);
+    background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
   }
   .submit-btn:disabled {
     opacity: 0.6;
     cursor: not-allowed;
+    transform: none;
   }
   .back-btn {
     min-width: 180px;
     width: auto;
-    padding: 12px 28px;
+    padding: 14px 32px;
     background: #fff;
     color: #1e88e5;
-    border: 2px solid #1e88e5;
-    border-radius: 6px;
+    border: 2px solid #e3f2fd;
+    border-radius: 8px;
     font-size: 15px;
-    font-weight: bold;
+    font-weight: 600;
     cursor: pointer;
-    transition: transform 0.2s, background 0.2s, color 0.2s, box-shadow 0.2s;
-    letter-spacing: 1px;
-    display: inline-block;
+    transition: all 0.3s ease;
+    letter-spacing: 0.5px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
     vertical-align: middle;
     margin-left: 0;
     text-align: center;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
   }
   .back-btn:hover:not(:disabled) {
     transform: translateY(-2px);
     background: #e3f2fd;
     color: #1565c0;
-    box-shadow: 0 4px 12px rgba(30, 136, 229, 0.15);
+    border-color: #1e88e5;
+    box-shadow: 0 4px 12px rgba(30, 136, 229, 0.2);
   }
 
   /* Error Message */
   .error-message {
     display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 12px 16px;
-    background: #fee;
-    border: 1px solid #fcc;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 16px 20px;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
     border-radius: 8px;
-    color: #c33;
+    color: #991b1b;
     font-size: 14px;
     margin-bottom: 20px;
+    line-height: 1.6;
   }
 
   .error-icon {
     font-size: 18px;
+    flex-shrink: 0;
+    margin-top: 1px;
   }
 
   .register-text {
@@ -668,20 +681,19 @@ const LoginContainer = styled.div`
 
   /* Verification UI Elements */
   .verification-intro {
-    background: #fffbf0;
-    border: 1px solid #ffd966;
-    border-left: 4px solid #f9a825;
-    padding: 14px 16px;
-    margin: 20px 0;
+    background: #fef9e7;
+    border: 1px solid #fde68a;
+    padding: 12px 16px;
+    margin: 16px 0;
     border-radius: 6px;
     display: flex;
     align-items: flex-start;
-    gap: 12px;
+    gap: 10px;
   }
 
   .verification-intro .warning-icon {
-    color: #f9a825;
-    font-size: 20px;
+    color: #f59e0b;
+    font-size: 16px;
     flex-shrink: 0;
     margin-top: 2px;
   }
@@ -691,15 +703,15 @@ const LoginContainer = styled.div`
   }
 
   .verification-intro .warning-title {
-    margin: 0 0 4px 0;
-    color: #333;
-    font-size: 14px;
-    font-weight: 600;
+    margin: 0;
+    color: #78350f;
+    font-size: 13px;
+    font-weight: 500;
   }
 
   .verification-intro .warning-text {
     margin: 0;
-    color: #666;
+    color: #78350f;
     font-size: 13px;
     line-height: 1.5;
   }
@@ -778,19 +790,18 @@ const LoginContainer = styled.div`
   }
 
   .verification-success {
-    background: #e8f5e9;
-    border-left: 4px solid #4caf50;
-    padding: 20px;
-    margin: 20px 0;
-    border-radius: 8px;
-    text-align: center;
+    background: #f0f9ff;
+    border: 1px solid #bae6fd;
+    padding: 12px 16px;
+    margin: 16px 0;
+    border-radius: 6px;
   }
 
   .verification-success p {
-    margin: 8px 0;
-    color: #2e7d32;
-    font-size: 14px;
-    font-weight: 600;
+    margin: 0;
+    color: #0c4a6e;
+    font-size: 13px;
+    line-height: 1.5;
   }
 
   .email-display {
@@ -1503,6 +1514,9 @@ const Login: FC = () => {
                   Belum punya akun vendor? <a href="#" className="register-link" onClick={(e) => { e.preventDefault(); setIsRegisterMode(true); setError(''); }}>Daftar Sekarang</a>
                 </p>
                 <p className="register-text" style={{ marginTop: '10px' }}>
+                  Ingin melakukan aktivasi akun? <a href="/vendor-activate" className="register-link">Aktifkan di sini</a>
+                </p>
+                <p className="register-text" style={{ marginTop: '10px' }}>
                   Akun dinonaktifkan? <a href="#" className="register-link" onClick={(e) => { e.preventDefault(); setIsReactivateMode(true); setError(''); }}>Aktifkan Kembali</a>
                 </p>
               </>
@@ -1635,13 +1649,17 @@ const Login: FC = () => {
               {registerStep === 2 && (
                 <form onSubmit={handleVerifyCode}>
                   <div className="verification-success">
-                    <p>✅ Kode verifikasi telah dikirim ke:</p>
-                    <p className="email-display">{verificationData.email}</p>
+                    <div className="warning-content">
+                      <p style={{ marginBottom: '4px' }}>Kode verifikasi telah dikirim ke:</p>
+                      <p className="email-display" style={{ fontSize: '15px', fontWeight: '600' }}>{verificationData.email}</p>
+                    </div>
                   </div>
 
                   <div className="verification-intro">
-                    <p>📬 Silakan cek <strong>inbox</strong> atau <strong>folder spam</strong> email Anda.</p>
-                    <p>Masukkan kode 6 digit yang dikirimkan (berlaku 15 menit).</p>
+                    <div className="warning-icon">⚠</div>
+                    <div className="warning-content">
+                      <p className="warning-text">Silakan cek <strong>inbox</strong> atau <strong>folder spam</strong> email Anda. Masukkan kode 6 digit yang dikirimkan (berlaku 15 menit).</p>
+                    </div>
                   </div>
 
                   <div className="input-group">
@@ -1662,34 +1680,61 @@ const Login: FC = () => {
                     />
                   </div>
 
-                  <button type="submit" className="submit-btn" disabled={loading} style={{ marginTop: '20px' }}>
-                    {loading ? 'Memverifikasi...' : '✓ Verifikasi Email'}
-                  </button>
-
-                  <div className="resend-code">
+                  {/* Button Group - Center aligned */}
+                  <div style={{ display: 'flex', justifyContent: 'center', gap: '12px', marginTop: '24px' }}>
                     <button
                       type="button"
-                      className="link-button"
+                      className="submit-btn"
                       onClick={() => {
                         setVerificationData({ ...verificationData, code: '' });
                         setRegisterStep(1);
                       }}
+                      style={{
+                        flex: 1,
+                        background: 'linear-gradient(135deg, #1e88e5 0%, #1565c0 100%)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '8px'
+                      }}
                     >
-                      🔄 Kirim Ulang Kode
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
+                        <path d="M21 3v5h-5" />
+                        <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
+                        <path d="M3 21v-5h5" />
+                      </svg>
+                      Kirim Ulang Kode
+                    </button>
+
+                    <button type="submit" className="submit-btn" disabled={loading} style={{ flex: 1, background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                      {loading ? (
+                        'Memverifikasi...'
+                      ) : (
+                        <>
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="20 6 9 17 4 12" />
+                          </svg>
+                          Verifikasi Email
+                        </>
+                      )}
                     </button>
                   </div>
 
-                  <button
-                    type="button"
-                    className="back-btn"
-                    onClick={() => {
-                      setIsRegisterMode(false);
-                      setRegisterStep(1);
-                      setError('');
-                    }}
-                  >
-                    Batal
-                  </button>
+                  {/* Cancel Button - Right aligned */}
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '16px' }}>
+                    <button
+                      type="button"
+                      className="back-btn"
+                      onClick={() => {
+                        setIsRegisterMode(false);
+                        setRegisterStep(1);
+                        setError('');
+                      }}
+                    >
+                      Batal
+                    </button>
+                  </div>
                 </form>
               )}
 
@@ -1697,8 +1742,10 @@ const Login: FC = () => {
               {registerStep === 3 && (
                 <>
                   <div className="verification-success" style={{ marginBottom: '20px' }}>
-                    <p>✅ Email berhasil diverifikasi!</p>
-                    <p>Silakan lengkapi data perusahaan Anda.</p>
+                    <div className="warning-content">
+                      <p style={{ marginBottom: '4px' }}>Email berhasil diverifikasi!</p>
+                      <p>Silakan lengkapi data perusahaan Anda.</p>
+                    </div>
                   </div>
 
                   <form onSubmit={handleRegister}>
@@ -1782,9 +1829,13 @@ const Login: FC = () => {
                           type="text"
                           placeholder="1234567890"
                           value={registerData.accountNumber}
-                          onChange={(e) => setRegisterData({ ...registerData, accountNumber: e.target.value })}
+                          onChange={(e) => {
+                            const numericOnly = e.target.value.replace(/\D/g, '');
+                            setRegisterData({ ...registerData, accountNumber: numericOnly })
+                          }}
                           className="input-field"
                           disabled={loading}
+                          inputMode="numeric"
                         />
                       </div>
 
@@ -1827,13 +1878,17 @@ const Login: FC = () => {
                           No. Telepon <span className="required">*</span>
                         </label>
                         <input
-                          type="tel"
-                          placeholder="0812-3456-7890"
+                          type="text"
+                          placeholder="08123456789"
                           value={registerData.picPhone}
-                          onChange={(e) => setRegisterData({ ...registerData, picPhone: e.target.value })}
+                          onChange={(e) => {
+                            const numericOnly = e.target.value.replace(/\D/g, '');
+                            setRegisterData({ ...registerData, picPhone: numericOnly })
+                          }}
                           className="input-field"
                           required
                           disabled={loading}
+                          inputMode="numeric"
                         />
                       </div>
                     </div>

@@ -309,7 +309,9 @@ export default function VendorActivatePage() {
             <div className="activate-container">
                 <div className="activate-card">
                     <div className="activate-header">
-                        <div className="logo">⚡ SAKTI PLN</div>
+                        <div className="logo">
+                            <img src="/images/Logo SAKTI 2.png" alt="SAKTI PLN" />
+                        </div>
                         <h1>Aktivasi Akun Vendor</h1>
                         <p className="subtitle">Masukkan kode aktivasi yang Anda terima dari Admin PLN</p>
                     </div>
@@ -374,7 +376,9 @@ export default function VendorActivatePage() {
         <div className="activate-container">
             <div className="activate-card">
                 <div className="activate-header">
-                    <div className="logo">⚡ SAKTI PLN</div>
+                    <div className="logo">
+                        <img src="/images/Logo SAKTI 2.png" alt="SAKTI PLN" />
+                    </div>
                     <h1>Aktivasi Akun Vendor</h1>
                     <p className="subtitle">Buat password untuk mengaktifkan akun Anda</p>
                 </div>

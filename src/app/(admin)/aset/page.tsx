@@ -7,6 +7,12 @@ import { autoSyncVendor } from '../../../services/vendorService'
 import { updateVendorContractStatus } from '../../../services/vendorAccountService'
 import './ManajemenAset.css'
 
+// Helper function untuk format currency dengan titik dan koma
+const formatCurrency = (value) => {
+    if (!value) return '0'
+    return value.toLocaleString('id-ID')
+}
+
 function ManajemenAset() {
     // Debug log removed
     const searchParams = useSearchParams()
@@ -225,6 +231,8 @@ function ManajemenAset() {
 
                 if (!historyError && historyData) {
                     allHistory = historyData
+                    console.log('📊 Total History Fetched:', allHistory.length)
+                    console.log('📊 Sample History:', allHistory.slice(0, 2))
                 }
             } catch (historyErr) {
                 console.warn('Contract history table not available yet:', historyErr)
@@ -235,19 +243,47 @@ function ManajemenAset() {
                 // Find history for this contract
                 const contractHistory = allHistory
                     .filter(h => h.contract_id === contract.id)
-                    .map(h => ({
-                        id: h.id,
-                        action: h.action || '',
-                        user: h.user_name || 'Admin',
-                        details: h.details || '',
-                        date: h.created_at ? new Date(h.created_at).toLocaleDateString('id-ID', {
-                            day: '2-digit',
-                            month: 'short',
-                            year: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit'
-                        }) : ''
-                    }))
+                    .map(h => {
+                        // Parse progress_date dari kolom baru ATAU dari details text
+                        let progressDate = h.progress_date || null
+                        if (!progressDate && h.details) {
+                            // Try to parse "Tanggal: 2025-11-05 08:56" from details
+                            const dateMatch = h.details.match(/Tanggal:\s*(\d{4}-\d{2}-\d{2}\s*\d{2}:\d{2})/)
+                            if (dateMatch) {
+                                progressDate = dateMatch[1]
+                            }
+                        }
+
+                        return {
+                            id: h.id,
+                            action: h.action || '',
+                            user: h.user_name || 'Admin',
+                            details: h.details || '',
+                            created_at: h.created_at, // Record creation timestamp
+                            progress_date: progressDate, // User-input date for calculation
+                            file_url: h.file_url || null,
+                            file_name: h.file_name || null,
+                            date: h.created_at ? new Date(h.created_at).toLocaleDateString('id-ID', {
+                                day: '2-digit',
+                                month: 'short',
+                                year: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                            }) : ''
+                        }
+                    })
+
+                // Debug: Log contract with progress tracker
+                if (contractHistory.some(h => h.action?.includes('Progress Tracker'))) {
+                    const progressEntries = contractHistory.filter(h => h.action?.includes('Progress Tracker'))
+                    console.log('🔍 Contract dengan Progress:', {
+                        id: contract.id,
+                        name: contract.name,
+                        totalProgress: progressEntries.length,
+                        latestProgressDate: progressEntries[0]?.progress_date,
+                        latestCreatedAt: progressEntries[0]?.created_at
+                    })
+                }
 
                 // Calculate latest progress from progress tracker history
                 let latestProgress = contract.progress || 0
@@ -328,42 +364,54 @@ function ManajemenAset() {
     }
 
     // Helper function: Check progress update status
+    // Return: { status: 'normal'|'no-progress'|'stale', daysSinceUpdate: number }
+    // USES progress_date (user-input date) for calculation, NOT created_at
     const getProgressUpdateStatus = (history, status) => {
         // Only check for active contracts
-        if (status !== 'Dalam Pekerjaan') return 'normal'
+        if (status !== 'Dalam Pekerjaan') {
+            return { status: 'normal', daysSinceUpdate: 0 }
+        }
 
         // Filter progress tracker entries
         const progressHistory = history.filter(h => h && h.action && h.action.includes('Progress Tracker'))
 
         if (progressHistory.length === 0) {
-            return 'no-progress' // No progress tracker at all
+            return { status: 'no-progress', daysSinceUpdate: null } // No progress tracker at all
         }
 
         // Get the most recent progress tracker
         const latestProgress = progressHistory[0] // Already sorted DESC
-        if (!latestProgress || !latestProgress.date) return 'no-progress'
 
-        // Parse date from format "04 Feb 2026, 14.15"
+        // Use progress_date (user-input) first, fallback to created_at
+        const dateToUse = latestProgress.progress_date || latestProgress.created_at
+
+        if (!dateToUse) {
+            return { status: 'no-progress', daysSinceUpdate: null }
+        }
+
+        // Calculate days since update using the INPUT date
         try {
-            const datePart = latestProgress.date.split(',')[0].trim() // "04 Feb 2026"
-            const [day, monthStr, year] = datePart.split(' ')
-            const monthMap = {
-                'Jan': 0, 'Feb': 1, 'Mar': 2, 'Apr': 3, 'Mei': 4, 'Jun': 5,
-                'Jul': 6, 'Agu': 7, 'Sep': 8, 'Okt': 9, 'Nov': 10, 'Des': 11
-            }
-            const lastUpdateDate = new Date(parseInt(year), monthMap[monthStr], parseInt(day))
+            const lastUpdateDate = new Date(dateToUse)
             const today = new Date()
             const diffTime = today.getTime() - lastUpdateDate.getTime()
             const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24))
 
+            console.log('📅 Progress Date Calculation:', {
+                progressDate: latestProgress.progress_date,
+                createdAt: latestProgress.created_at,
+                dateUsed: dateToUse,
+                diffDays,
+                isStale: diffDays >= 30
+            })
+
             // If no update in last 30 days (1 month)
             if (diffDays >= 30) {
-                return 'stale' // Progress exists but outdated
+                return { status: 'stale', daysSinceUpdate: diffDays } // Progress exists but outdated
             }
-            return 'normal'
+            return { status: 'normal', daysSinceUpdate: diffDays }
         } catch (err) {
-            console.warn('Error parsing progress date:', err)
-            return 'normal'
+            console.warn('Error parsing progress timestamp:', err)
+            return { status: 'normal', daysSinceUpdate: 0 }
         }
     }
 
@@ -469,6 +517,8 @@ function ManajemenAset() {
         date: '',
         time: ''
     })
+    const [progressFile, setProgressFile] = useState(null) // File PDF untuk progress tracker
+    const [progressFileUploading, setProgressFileUploading] = useState(false)
     const [activeHistoryTab, setActiveHistoryTab] = useState('all') // 'all', 'amendments', 'progress'
 
     // State for Payment Stages
@@ -695,25 +745,79 @@ function ManajemenAset() {
             const percentage = progressFormData.percentage || 0;
             console.log('Submitting Progress:', { contractId: progressFormData.contractId, percentage });
 
-            // 1. Add History Entry first (this is the critical part)
+            // 1. Handle file upload if present (optional)
+            let fileUrl = null
+            let fileName = null
+            let googleDriveId = null
+
+            if (progressFile) {
+                setProgressFileUploading(true)
+                try {
+                    // Get contract info for folder naming
+                    const contract = assets.find(a => a.id === progressFormData.contractId)
+                    const formData = new FormData()
+                    formData.append('file', progressFile)
+                    formData.append('tipeAnggaran', contract?.budgetType || 'Progress')
+                    formData.append('namaKontrak', contract?.name || 'Progress')
+                    formData.append('nomorKontrak', contract?.invoiceNumber || progressFormData.contractId)
+                    formData.append('contractId', progressFormData.contractId)
+
+                    const uploadRes = await fetch('/api/upload-contract', {
+                        method: 'POST',
+                        body: formData
+                    })
+
+                    if (uploadRes.ok) {
+                        const uploadData = await uploadRes.json()
+                        fileUrl = uploadData.fileUrl || uploadData.webViewLink
+                        fileName = progressFile.name
+                        googleDriveId = uploadData.fileId
+                    } else {
+                        console.warn('File upload failed, continuing without file')
+                    }
+                } catch (uploadErr) {
+                    console.warn('File upload error:', uploadErr)
+                    // Continue without file - it's optional
+                } finally {
+                    setProgressFileUploading(false)
+                }
+            }
+
+            // 2. Build progress_date from user input
+            let progressDate = null
+            if (progressFormData.date) {
+                const timeStr = progressFormData.time || '00:00'
+                progressDate = `${progressFormData.date} ${timeStr}`
+            }
+
+            // 3. Add History Entry with progress_date and file info
             const progressDateTime = progressFormData.date && progressFormData.time
                 ? `${progressFormData.date} ${progressFormData.time}`
                 : '';
+
+            const historyPayload = {
+                contract_id: progressFormData.contractId,
+                action: `Progress Tracker: ${progressFormData.title} (${percentage}%)`,
+                user_name: 'Admin',
+                details: `Progress: ${percentage}%. Status: ${progressFormData.status}. ${progressFormData.description || 'Tidak ada keterangan tambahan.'} ${progressDateTime ? `Tanggal: ${progressDateTime}` : ''}`,
+                progress_date: progressDate, // Store the user-input date for calculation!
+                file_url: fileUrl,
+                file_name: fileName,
+                google_drive_id: googleDriveId
+            }
+
+            console.log('Inserting history with progress_date:', progressDate)
+
             const { error: historyError } = await supabase
                 .from('contract_history')
-                .insert([{
-                    contract_id: progressFormData.contractId,
-                    action: `Progress Tracker: ${progressFormData.title} (${percentage}%)`,
-                    user_name: 'Admin',
-                    details: `Progress: ${percentage}%. Status: ${progressFormData.status}. ${progressFormData.description || 'Tidak ada keterangan tambahan.'} ${progressDateTime ? `Tanggal: ${progressDateTime}` : ''}`
-                }])
+                .insert([historyPayload])
 
             if (historyError) {
                 console.error('Supabase History Error:', historyError);
                 throw historyError;
             }
 
-            // 2. Update Contract Progress in database
+            // 4. Update Contract Progress in database
             const { error: updateError } = await supabase
                 .from('contracts')
                 .update({ progress: percentage })
@@ -724,7 +828,7 @@ function ManajemenAset() {
                 // Log but don't throw - we already saved to history which is the source of truth
             }
 
-            showAlert('success', 'Berhasil', 'Progress tracker berhasil ditambahkan!')
+            showAlert('success', 'Berhasil', 'Progress tracker berhasil ditambahkan!' + (fileUrl ? ' File berhasil diupload.' : ''))
 
             // Store the contract ID before closing modal
             const contractId = progressFormData.contractId
@@ -740,6 +844,7 @@ function ManajemenAset() {
                 date: '',
                 time: ''
             })
+            setProgressFile(null) // Reset file
 
             // Refresh data to get updated history
             await fetchContracts()
@@ -888,7 +993,7 @@ function ManajemenAset() {
                     const oldAmount = Number(oldData.amount || 0)
                     const newAmount = Number(formData.amount || 0)
                     if (oldAmount !== newAmount) {
-                        changeDetails.push(`Nilai: ${oldAmount.toLocaleString('id-ID')} ➝ ${newAmount.toLocaleString('id-ID')}`)
+                        changeDetails.push(`Nilai: ${formatCurrency(oldAmount)} ➝ ${formatCurrency(newAmount)}`)
                     }
 
                     if (oldData.status !== formData.status) changeDetails.push(`Status: "${oldData.status}" ➝ "${formData.status}"`)
@@ -1112,8 +1217,8 @@ function ManajemenAset() {
     try {
         // Calculate no progress stats
         const noProgressCount = assets.filter(a => {
-            const progressStatus = getProgressUpdateStatus(a.history || [], a.status)
-            return progressStatus === 'no-progress' || progressStatus === 'stale'
+            const progressInfo = getProgressUpdateStatus(a.history || [], a.status)
+            return progressInfo.status === 'no-progress' || progressInfo.status === 'stale'
         }).length
 
         return (
@@ -1393,12 +1498,12 @@ function ManajemenAset() {
                                 {filteredAssets.length > 0 ? (
                                     filteredAssets.map((asset) => {
                                         const deadlineStatus = getDeadlineStatus(asset.endDate, asset.status)
-                                        const progressStatus = getProgressUpdateStatus(asset.history || [], asset.status)
+                                        const progressInfo = getProgressUpdateStatus(asset.history || [], asset.status)
                                         const rowStyle = {
                                             background: expandedContractId === asset.id ? '#f8fafc' : undefined,
                                             borderLeft: deadlineStatus === 'overdue' ? '3px solid #ef4444' :
                                                 deadlineStatus === 'warning' ? '3px solid #f59e0b' :
-                                                    progressStatus !== 'normal' ? '3px solid #ca8a04' :
+                                                    progressInfo.status !== 'normal' ? '3px solid #ca8a04' :
                                                         undefined
                                         }
 
@@ -1449,13 +1554,13 @@ function ManajemenAset() {
                                                                 )}
 
                                                                 {/* Badge Progress Warning - No Update in 1 Month */}
-                                                                {progressStatus !== 'normal' && (
+                                                                {progressInfo.status !== 'normal' && (
                                                                     <div className="progress-warning-badge">
                                                                         <AlertTriangle size={12} />
                                                                         <span>
-                                                                            {progressStatus === 'no-progress'
+                                                                            {progressInfo.status === 'no-progress'
                                                                                 ? 'Belum Ada Progress'
-                                                                                : 'Tidak Update (>1 Bulan)'}
+                                                                                : `Tidak Update (${progressInfo.daysSinceUpdate} hari)`}
                                                                         </span>
                                                                     </div>
                                                                 )}
@@ -1467,7 +1572,7 @@ function ManajemenAset() {
                                                     )}
                                                     {columnVisibility.name && <td className="asset-name">{asset.name}</td>}
                                                     {columnVisibility.vendorName && <td className="asset-vendor">{asset.vendorName}</td>}
-                                                    {columnVisibility.amount && <td>{asset.amount?.toLocaleString('id-ID', { style: 'currency', currency: 'IDR' })}</td>}
+                                                    {columnVisibility.amount && <td>Rp {formatCurrency(asset.amount)}</td>}
                                                     {columnVisibility.budgetType && (
                                                         <td>
                                                             <span className={`budget-badge budget-${asset.budgetType.toLowerCase()}`}>
@@ -1782,9 +1887,34 @@ function ManajemenAset() {
                                                                                                     </div>
                                                                                                 </div>
                                                                                                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', justifyContent: 'center', gap: '8px' }}>
-                                                                                                    <span style={{ fontSize: '12px', padding: '6px 12px', background: '#eff6ff', color: '#2563eb', borderRadius: '20px', fontWeight: 600, border: '1px solid #dbeafe' }}>
-                                                                                                        Dokumen Tersimpan
-                                                                                                    </span>
+                                                                                                    {/* Show file download button if file exists */}
+                                                                                                    {log.file_url ? (
+                                                                                                        <a
+                                                                                                            href={log.file_url}
+                                                                                                            target="_blank"
+                                                                                                            rel="noopener noreferrer"
+                                                                                                            style={{
+                                                                                                                fontSize: '12px',
+                                                                                                                padding: '6px 12px',
+                                                                                                                background: '#dcfce7',
+                                                                                                                color: '#16a34a',
+                                                                                                                borderRadius: '20px',
+                                                                                                                fontWeight: 600,
+                                                                                                                border: '1px solid #bbf7d0',
+                                                                                                                textDecoration: 'none',
+                                                                                                                display: 'inline-flex',
+                                                                                                                alignItems: 'center',
+                                                                                                                gap: '6px'
+                                                                                                            }}
+                                                                                                        >
+                                                                                                            <FileText size={14} />
+                                                                                                            {log.file_name || 'Unduh File'}
+                                                                                                        </a>
+                                                                                                    ) : (
+                                                                                                        <span style={{ fontSize: '12px', padding: '6px 12px', background: '#eff6ff', color: '#2563eb', borderRadius: '20px', fontWeight: 600, border: '1px solid #dbeafe' }}>
+                                                                                                            Dokumen Tersimpan
+                                                                                                        </span>
+                                                                                                    )}
                                                                                                     <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
                                                                                                         <button
                                                                                                             onClick={() => handleOpenHistoryDetail(log)}
@@ -1931,7 +2061,7 @@ function ManajemenAset() {
                                             </div>
                                             <div className="detail-item">
                                                 <label className="detail-label">Nilai Kontrak</label>
-                                                <div className="detail-value">Rp {selectedAsset.amount?.toLocaleString('id-ID')}</div>
+                                                <div className="detail-value">Rp {formatCurrency(selectedAsset.amount)}</div>
                                             </div>
                                             <div className="detail-item full-width">
                                                 <label className="detail-label">Nama Pekerjaan / Kontrak</label>
@@ -2226,13 +2356,33 @@ function ManajemenAset() {
                                         <div className="form-group">
                                             <label htmlFor="amount">Nilai Kontrak (Rp) <span className="required">*</span></label>
                                             <input
-                                                type="number"
+                                                type="text"
                                                 id="amount"
                                                 name="amount"
-                                                value={formData.amount}
-                                                onChange={handleInputChange}
+                                                value={formData.amount ? formatCurrency(Number(formData.amount.toString().replace(/\D/g, ''))) : ''}
+                                                onChange={(e) => {
+                                                    // Hapus semua karakter non-digit
+                                                    const numericValue = e.target.value.replace(/\D/g, '')
+                                                    handleInputChange({
+                                                        target: {
+                                                            name: 'amount',
+                                                            value: numericValue
+                                                        }
+                                                    })
+                                                }}
+                                                onBlur={(e) => {
+                                                    // Pastikan value disimpan sebagai number
+                                                    const numericValue = e.target.value.replace(/\D/g, '')
+                                                    if (numericValue) {
+                                                        handleInputChange({
+                                                            target: {
+                                                                name: 'amount',
+                                                                value: numericValue
+                                                            }
+                                                        })
+                                                    }
+                                                }}
                                                 placeholder="Contoh: 1500000000"
-                                                min="0"
                                                 required
                                             />
                                         </div>
@@ -2579,14 +2729,80 @@ function ManajemenAset() {
                                                 rows={4}
                                             />
                                         </div>
+
+                                        {/* File Upload - Optional */}
+                                        <div className="form-modern-group">
+                                            <label className="form-modern-label">Dokumen Pendukung (Opsional)</label>
+                                            <div style={{
+                                                border: '2px dashed #e2e8f0',
+                                                borderRadius: '12px',
+                                                padding: '20px',
+                                                textAlign: 'center',
+                                                background: progressFile ? '#f0fdf4' : '#f8fafc',
+                                                transition: 'all 0.2s'
+                                            }}>
+                                                {progressFile ? (
+                                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px' }}>
+                                                        <FileText size={24} style={{ color: '#16a34a' }} />
+                                                        <div style={{ textAlign: 'left' }}>
+                                                            <div style={{ fontWeight: 600, color: '#16a34a' }}>{progressFile.name}</div>
+                                                            <div style={{ fontSize: '12px', color: '#64748b' }}>
+                                                                {(progressFile.size / 1024 / 1024).toFixed(2)} MB
+                                                            </div>
+                                                        </div>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setProgressFile(null)}
+                                                            style={{
+                                                                background: '#fee2e2',
+                                                                color: '#dc2626',
+                                                                border: 'none',
+                                                                borderRadius: '8px',
+                                                                padding: '8px',
+                                                                cursor: 'pointer'
+                                                            }}
+                                                        >
+                                                            <X size={16} />
+                                                        </button>
+                                                    </div>
+                                                ) : (
+                                                    <label style={{ cursor: 'pointer', display: 'block' }}>
+                                                        <Upload size={32} style={{ color: '#94a3b8', marginBottom: '8px' }} />
+                                                        <div style={{ color: '#64748b', marginBottom: '4px' }}>
+                                                            Klik untuk upload file PDF
+                                                        </div>
+                                                        <div style={{ fontSize: '12px', color: '#94a3b8' }}>
+                                                            Maksimal 10MB
+                                                        </div>
+                                                        <input
+                                                            type="file"
+                                                            accept=".pdf"
+                                                            onChange={(e) => {
+                                                                const file = e.target.files?.[0]
+                                                                if (file && file.size <= 10 * 1024 * 1024) {
+                                                                    setProgressFile(file)
+                                                                } else if (file) {
+                                                                    showAlert('error', 'Error', 'Ukuran file maksimal 10MB')
+                                                                }
+                                                            }}
+                                                            style={{ display: 'none' }}
+                                                        />
+                                                    </label>
+                                                )}
+                                            </div>
+                                        </div>
                                     </div>
 
                                     <div className="modal-modern-footer">
-                                        <button type="button" className="btn-modern-cancel" onClick={() => setShowProgressModal(false)}>
+                                        <button type="button" className="btn-modern-cancel" onClick={() => { setShowProgressModal(false); setProgressFile(null); }}>
                                             Batal
                                         </button>
-                                        <button type="submit" className="btn-modern-submit">
-                                            <Save size={18} /> Simpan Progress
+                                        <button type="submit" className="btn-modern-submit" disabled={progressFileUploading}>
+                                            {progressFileUploading ? (
+                                                <>Mengupload...</>
+                                            ) : (
+                                                <><Save size={18} /> Simpan Progress</>
+                                            )}
                                         </button>
                                     </div>
                                 </form>
@@ -2909,14 +3125,30 @@ function ManajemenAset() {
                                 </div>
 
                                 <div style={{ padding: '20px', borderTop: '1px solid #e2e8f0', display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
-                                    <button
-                                        style={{
-                                            display: 'flex', alignItems: 'center', gap: '8px',
-                                            padding: '10px 16px', borderRadius: '8px', border: '1px solid #e2e8f0', background: 'white', color: '#475569', fontWeight: 600, cursor: 'pointer'
-                                        }}
-                                    >
-                                        <FileText size={16} /> Unduh Dokumen Pendukung
-                                    </button>
+                                    {/* Show download button only if file exists */}
+                                    {selectedHistoryLog.file_url ? (
+                                        <a
+                                            href={selectedHistoryLog.file_url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            style={{
+                                                display: 'flex', alignItems: 'center', gap: '8px',
+                                                padding: '10px 16px', borderRadius: '8px', border: '1px solid #bbf7d0', background: '#dcfce7', color: '#16a34a', fontWeight: 600, cursor: 'pointer', textDecoration: 'none'
+                                            }}
+                                        >
+                                            <FileText size={16} /> {selectedHistoryLog.file_name || 'Unduh Dokumen'}
+                                        </a>
+                                    ) : (
+                                        <button
+                                            disabled
+                                            style={{
+                                                display: 'flex', alignItems: 'center', gap: '8px',
+                                                padding: '10px 16px', borderRadius: '8px', border: '1px solid #e2e8f0', background: '#f1f5f9', color: '#94a3b8', fontWeight: 600, cursor: 'not-allowed'
+                                            }}
+                                        >
+                                            <FileText size={16} /> Tidak Ada Dokumen
+                                        </button>
+                                    )}
                                     <button
                                         onClick={handleCloseHistoryDetail}
                                         className="btn-primary"

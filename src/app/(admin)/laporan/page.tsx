@@ -64,6 +64,12 @@ function Laporan() {
         }
     }
 
+    // Helper function untuk format currency dengan titik dan koma
+    const formatCurrency = (value: number) => {
+        if (!value) return '0'
+        return value.toLocaleString('id-ID')
+    }
+
     // const [sidebarOpen, setSidebarOpen] = useState(false) // Handled by layout
     const [dateRange, setDateRange] = useState({ value: 'tahun-ini', label: 'Tahun Ini' })
     const [filterStatus, setFilterStatus] = useState({ value: 'all', label: 'Semua Status' })
@@ -1272,7 +1278,7 @@ function Laporan() {
                                                         <td>{contract.name}</td>
                                                         <td>{contract.vendor_name || '-'}</td>
                                                         <td style={{ textAlign: 'right', fontWeight: 600 }}>
-                                                            {contract.amount.toLocaleString('id-ID', { style: 'currency', currency: 'IDR' })}
+                                                            Rp {formatCurrency(contract.amount)}
                                                         </td>
                                                         <td>
                                                             <span className={`status-badge status-${contract.status?.toLowerCase().replace(/\s+/g, '-')}`}>
@@ -1355,7 +1361,7 @@ function Laporan() {
                                                             <td>{contract.name}</td>
                                                             <td>{contract.vendor_name || '-'}</td>
                                                             <td style={{ textAlign: 'right', fontWeight: 600 }}>
-                                                                {contract.amount.toLocaleString('id-ID', { style: 'currency', currency: 'IDR' })}
+                                                                Rp {formatCurrency(contract.amount)}
                                                             </td>
                                                             <td>
                                                                 <span className={`status-badge status-${contract.status?.toLowerCase().replace(/\s+/g, '-')}`}>

@@ -61,6 +61,34 @@ export function getDriveClient() {
         const token = JSON.parse(fs.readFileSync(TOKEN_PATH, 'utf-8'));
         oAuth2Client.setCredentials(token);
 
+        // Auto-refresh token mechanism
+        // Setiap kali token di-refresh oleh googleapis, simpan token baru
+        oAuth2Client.on('tokens', (tokens) => {
+            console.log('🔄 Token refreshed automatically');
+
+            // Jika ada refresh_token baru, update keduanya
+            if (tokens.refresh_token) {
+                token.refresh_token = tokens.refresh_token;
+            }
+
+            // Update access_token dan expiry_date
+            if (tokens.access_token) {
+                token.access_token = tokens.access_token;
+            }
+
+            if (tokens.expiry_date) {
+                token.expiry_date = tokens.expiry_date;
+            }
+
+            // Simpan token yang sudah di-update ke file
+            try {
+                fs.writeFileSync(TOKEN_PATH, JSON.stringify(token, null, 2));
+                console.log('✅ New token saved to token.json');
+            } catch (error) {
+                console.error('❌ Failed to save refreshed token:', error);
+            }
+        });
+
         const drive = google.drive({ version: 'v3', auth: oAuth2Client });
         return drive;
     } catch (error: any) {
