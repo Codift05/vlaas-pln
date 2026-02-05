@@ -45,10 +45,11 @@ const MainContent = styled.div<{ $isExpanded: boolean }>`
   display: flex;
   flex-direction: column;
   position: relative;
-  z-index: 1;
+  z-index: 10;
   min-height: 100vh;
+  pointer-events: auto;
 
-  /* Zoom 110-125% detection - effective width reduces */
+  /* Large screens */
   @media (max-width: 1536px) {
     margin-left: ${props => props.$isExpanded ? '14rem' : '4.5rem'};
   }
@@ -57,11 +58,13 @@ const MainContent = styled.div<{ $isExpanded: boolean }>`
     margin-left: ${props => props.$isExpanded ? '13rem' : '4.5rem'};
   }
 
-  @media (max-width: 1200px) {
-    margin-left: 0 !important;
+  /* Tablet landscape - sidebar tetap tampil mini */
+  @media (max-width: 1200px) and (min-width: 769px) {
+    margin-left: 4.5rem;
   }
 
-  @media (max-width: 968px) {
+  /* Mobile/Tablet portrait - sidebar jadi drawer */
+  @media (max-width: 768px) {
     margin-left: 0 !important;
   }
 `;

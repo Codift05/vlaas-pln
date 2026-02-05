@@ -1,0 +1,159 @@
+@startuml VLAAS_UseCase
+
+skinparam backgroundColor #FEFEFE
+skinparam actorStyle awesome
+skinparam usecase {
+    BackgroundColor #E3F2FD
+    BorderColor #1976D2
+}
+skinparam actor {
+    BackgroundColor #FFF3E0
+    BorderColor #F57C00
+}
+
+title **VLAAS/SAKTI - Use Case Diagram**\n
+
+' ============ ACTORS ============
+actor "Admin PLN" as Admin #lightblue
+actor "Vendor" as Vendor #lightyellow
+actor "Super Admin" as SuperAdmin #lightgreen
+
+' ============ SYSTEM BOUNDARY ============
+rectangle "SAKTI - Sistem Administrasi Kontrak Terpadu Instansi" {
+    
+    ' === MANAJEMEN KONTRAK ===
+    package "Manajemen Kontrak" {
+        usecase "Lihat Daftar Kontrak" as UC1
+        usecase "Tambah Kontrak Baru" as UC2
+        usecase "Edit Data Kontrak" as UC3
+        usecase "Hapus Kontrak" as UC4
+        usecase "Upload Dokumen Kontrak" as UC5
+        usecase "Lihat Detail Kontrak" as UC6
+        usecase "Update Progress Kontrak" as UC7
+        usecase "Kelola Termin Pembayaran" as UC8
+        usecase "Kelola Amandemen" as UC9
+    }
+    
+    ' === MANAJEMEN VENDOR ===
+    package "Manajemen Vendor" {
+        usecase "Lihat Daftar Vendor" as UC10
+        usecase "Tambah Vendor Baru" as UC11
+        usecase "Edit Data Vendor" as UC12
+        usecase "Hapus Vendor" as UC13
+        usecase "Generate Claim Code" as UC14
+        usecase "Lihat Detail Vendor" as UC15
+    }
+    
+    ' === APPROVAL SYSTEM ===
+    package "Sistem Approval" {
+        usecase "Lihat Surat Pengajuan" as UC16
+        usecase "Approve Surat" as UC17
+        usecase "Reject Surat" as UC18
+        usecase "Lihat Pengajuan Akun" as UC19
+        usecase "Approve Akun Vendor" as UC20
+        usecase "Reject Akun Vendor" as UC21
+    }
+    
+    ' === VENDOR PORTAL ===
+    package "Portal Vendor" {
+        usecase "Login Portal Vendor" as UC22
+        usecase "Aktivasi Akun (Claim Code)" as UC23
+        usecase "Lihat Kontrak Sendiri" as UC24
+        usecase "Ajukan Surat" as UC25
+        usecase "Lihat Status Pengajuan" as UC26
+        usecase "Update Profil Vendor" as UC27
+    }
+    
+    ' === DASHBOARD & LAPORAN ===
+    package "Dashboard & Laporan" {
+        usecase "Lihat Dashboard" as UC28
+        usecase "Lihat Statistik Kontrak" as UC29
+        usecase "Export Laporan" as UC30
+        usecase "Lihat Riwayat Aktivitas" as UC31
+    }
+    
+    ' === PENGATURAN SISTEM ===
+    package "Pengaturan Sistem" {
+        usecase "Kelola User Admin" as UC32
+        usecase "Kelola Role & Akses" as UC33
+        usecase "Pengaturan Notifikasi" as UC34
+        usecase "Konfigurasi Telegram Bot" as UC35
+    }
+}
+
+' ============ ADMIN CONNECTIONS ============
+Admin --> UC1
+Admin --> UC2
+Admin --> UC3
+Admin --> UC4
+Admin --> UC5
+Admin --> UC6
+Admin --> UC7
+Admin --> UC8
+Admin --> UC9
+
+Admin --> UC10
+Admin --> UC11
+Admin --> UC12
+Admin --> UC13
+Admin --> UC14
+Admin --> UC15
+
+Admin --> UC16
+Admin --> UC17
+Admin --> UC18
+Admin --> UC19
+Admin --> UC20
+Admin --> UC21
+
+Admin --> UC28
+Admin --> UC29
+Admin --> UC30
+Admin --> UC31
+
+' ============ VENDOR CONNECTIONS ============
+Vendor --> UC22
+Vendor --> UC23
+Vendor --> UC24
+Vendor --> UC25
+Vendor --> UC26
+Vendor --> UC27
+
+' ============ SUPER ADMIN CONNECTIONS ============
+SuperAdmin --> UC32
+SuperAdmin --> UC33
+SuperAdmin --> UC34
+SuperAdmin --> UC35
+SuperAdmin --|> Admin : extends
+
+' ============ RELATIONSHIPS ============
+UC2 ..> UC5 : <<include>>
+UC6 ..> UC8 : <<include>>
+UC6 ..> UC9 : <<include>>
+UC23 ..> UC22 : <<include>>
+UC25 ..> UC26 : <<include>>
+
+note right of Admin
+  **Admin PLN dapat:**
+  - Mengelola semua kontrak
+  - Mengelola vendor
+  - Menyetujui/menolak pengajuan
+  - Melihat laporan & dashboard
+end note
+
+note left of Vendor
+  **Vendor dapat:**
+  - Mengakses portal khusus
+  - Melihat kontrak sendiri
+  - Mengajukan surat
+  - Update profil
+end note
+
+note bottom of SuperAdmin
+  **Super Admin dapat:**
+  - Semua akses Admin
+  - Kelola user & role
+  - Konfigurasi sistem
+end note
+
+@enduml

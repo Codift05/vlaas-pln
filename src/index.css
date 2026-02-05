@@ -124,3 +124,26 @@ button:focus-visible {
   animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   width: 100%;
 }
+
+/* ===========================================
+   FIX: Ensure all interactive elements are clickable
+   across all zoom levels (75%-200%)
+   =========================================== */
+
+/* Global fix for button clicks at any zoom level */
+button,
+a,
+input,
+select,
+textarea,
+[role="button"],
+[tabindex] {
+  position: relative;
+  z-index: auto;
+}
+
+/* Ensure decorative elements don't block interactions */
+*::before,
+*::after {
+  pointer-events: none;
+}

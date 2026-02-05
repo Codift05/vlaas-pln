@@ -680,6 +680,26 @@
   border: 1px solid rgba(220, 38, 38, 0.1);
 }
 
+.status-pending {
+  background: #fef3c7;
+  color: #d97706;
+  border: 1px solid rgba(217, 119, 6, 0.15);
+}
+
+/* Spinning Animation */
+.spinning {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 /* Modern Action Buttons - Circular */
 .action-buttons-vendor {
   display: flex;
@@ -1261,4 +1281,45 @@
 .column-selector-btn-vendor:hover svg,
 .column-selector-btn-vendor:focus svg {
   color: #2196f3;
+}
+
+/* ===========================================
+   FIX: Responsive Navigation & Button Clicks
+   =========================================== */
+
+/* Ensure all interactive elements are clickable */
+.btn-primary-vendor,
+.btn-icon-vendor,
+.btn-submit-vendor,
+.btn-cancel-vendor,
+.column-selector-btn-vendor,
+.search-input-vendor,
+.pagination-btn-vendor {
+  position: relative;
+  z-index: 5;
+  pointer-events: auto;
+}
+
+/* Fix for tablet landscape view (sidebar mini visible) */
+@media (max-width: 1200px) and (min-width: 769px) {
+  .action-bar-vendor {
+    flex-wrap: wrap;
+  }
+  
+  .search-section-vendor {
+    max-width: 100%;
+  }
+  
+  .stats-grid-vendor {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Ensure modal has higher z-index */
+.modal-overlay-vendor {
+  z-index: 9999;
+}
+
+.modal-content-vendor {
+  z-index: 10000;
 }

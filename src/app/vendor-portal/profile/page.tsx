@@ -113,6 +113,18 @@ function VendorProfile() {
         }
 
         loadVendorProfile()
+
+        // Listen untuk update dari admin (saat admin edit vendor)
+        const handleVendorDataUpdate = () => {
+            console.log('📢 Vendor data updated by admin, reloading...')
+            loadVendorProfile()
+        }
+
+        window.addEventListener('vendorDataUpdated', handleVendorDataUpdate)
+
+        return () => {
+            window.removeEventListener('vendorDataUpdated', handleVendorDataUpdate)
+        }
     }, [])
 
     const handleInputChange = (e) => {
@@ -276,6 +288,42 @@ function VendorProfile() {
             }
 
             console.log('Update successful:', data)
+
+            // ========================================
+            // SINKRONISASI DATA KE TABEL VENDORS
+            // Update jabatan dan kontak person di master data vendor
+            // ========================================
+            try {
+                // Cari vendor berdasarkan company_name atau email
+                const { data: vendorData, error: vendorFindError } = await supabase
+                    .from('vendors')
+                    .select('id')
+                    .or(`nama.eq.${profileData.companyName},email.eq.${profileData.picEmail}`)
+                    .maybeSingle()
+
+                if (vendorData && !vendorFindError) {
+                    // Update data vendor dengan info terbaru dari user
+                    const { error: vendorUpdateError } = await supabase
+                        .from('vendors')
+                        .update({
+                            kontak_person: profileData.picName,
+                            // jabatan: profileData.picPosition || null, // TODO: Uncomment setelah migration dijalankan
+                            telepon: profileData.picPhone || null,
+                            email: profileData.picEmail || null,
+                            updated_at: new Date().toISOString()
+                        })
+                        .eq('id', vendorData.id)
+
+                    if (vendorUpdateError) {
+                        console.warn('Warning: Gagal sync ke vendors table:', vendorUpdateError)
+                    } else {
+                        console.log('✅ Vendor data synced successfully')
+                    }
+                }
+            } catch (syncError) {
+                // Jangan throw error, cukup log warning
+                console.warn('Warning: Sync to vendors table failed:', syncError)
+            }
 
             // Update localStorage for header
             localStorage.setItem('vendorProfile', JSON.stringify({
