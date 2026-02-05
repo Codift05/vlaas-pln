@@ -7,6 +7,12 @@ import { autoSyncVendor } from '../../../services/vendorService'
 import { updateVendorContractStatus } from '../../../services/vendorAccountService'
 import './ManajemenAset.css'
 
+// Helper function untuk format currency dengan titik dan koma
+const formatCurrency = (value) => {
+    if (!value) return '0'
+    return value.toLocaleString('id-ID')
+}
+
 function ManajemenAset() {
     // Debug log removed
     const searchParams = useSearchParams()
@@ -987,7 +993,7 @@ function ManajemenAset() {
                     const oldAmount = Number(oldData.amount || 0)
                     const newAmount = Number(formData.amount || 0)
                     if (oldAmount !== newAmount) {
-                        changeDetails.push(`Nilai: ${oldAmount.toLocaleString('id-ID')} ➝ ${newAmount.toLocaleString('id-ID')}`)
+                        changeDetails.push(`Nilai: ${formatCurrency(oldAmount)} ➝ ${formatCurrency(newAmount)}`)
                     }
 
                     if (oldData.status !== formData.status) changeDetails.push(`Status: "${oldData.status}" ➝ "${formData.status}"`)
@@ -1566,7 +1572,7 @@ function ManajemenAset() {
                                                     )}
                                                     {columnVisibility.name && <td className="asset-name">{asset.name}</td>}
                                                     {columnVisibility.vendorName && <td className="asset-vendor">{asset.vendorName}</td>}
-                                                    {columnVisibility.amount && <td>{asset.amount?.toLocaleString('id-ID', { style: 'currency', currency: 'IDR' })}</td>}
+                                                    {columnVisibility.amount && <td>Rp {formatCurrency(asset.amount)}</td>}
                                                     {columnVisibility.budgetType && (
                                                         <td>
                                                             <span className={`budget-badge budget-${asset.budgetType.toLowerCase()}`}>
@@ -2055,7 +2061,7 @@ function ManajemenAset() {
                                             </div>
                                             <div className="detail-item">
                                                 <label className="detail-label">Nilai Kontrak</label>
-                                                <div className="detail-value">Rp {selectedAsset.amount?.toLocaleString('id-ID')}</div>
+                                                <div className="detail-value">Rp {formatCurrency(selectedAsset.amount)}</div>
                                             </div>
                                             <div className="detail-item full-width">
                                                 <label className="detail-label">Nama Pekerjaan / Kontrak</label>
@@ -2350,13 +2356,33 @@ function ManajemenAset() {
                                         <div className="form-group">
                                             <label htmlFor="amount">Nilai Kontrak (Rp) <span className="required">*</span></label>
                                             <input
-                                                type="number"
+                                                type="text"
                                                 id="amount"
                                                 name="amount"
-                                                value={formData.amount}
-                                                onChange={handleInputChange}
+                                                value={formData.amount ? formatCurrency(Number(formData.amount.toString().replace(/\D/g, ''))) : ''}
+                                                onChange={(e) => {
+                                                    // Hapus semua karakter non-digit
+                                                    const numericValue = e.target.value.replace(/\D/g, '')
+                                                    handleInputChange({
+                                                        target: {
+                                                            name: 'amount',
+                                                            value: numericValue
+                                                        }
+                                                    })
+                                                }}
+                                                onBlur={(e) => {
+                                                    // Pastikan value disimpan sebagai number
+                                                    const numericValue = e.target.value.replace(/\D/g, '')
+                                                    if (numericValue) {
+                                                        handleInputChange({
+                                                            target: {
+                                                                name: 'amount',
+                                                                value: numericValue
+                                                            }
+                                                        })
+                                                    }
+                                                }}
                                                 placeholder="Contoh: 1500000000"
-                                                min="0"
                                                 required
                                             />
                                         </div>
