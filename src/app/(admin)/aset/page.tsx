@@ -327,6 +327,46 @@ function ManajemenAset() {
         return `status-${normalized.replace(/\s+/g, '-')}`
     }
 
+    // Helper function: Check progress update status
+    const getProgressUpdateStatus = (history, status) => {
+        // Only check for active contracts
+        if (status !== 'Dalam Pekerjaan') return 'normal'
+
+        // Filter progress tracker entries
+        const progressHistory = history.filter(h => h && h.action && h.action.includes('Progress Tracker'))
+
+        if (progressHistory.length === 0) {
+            return 'no-progress' // No progress tracker at all
+        }
+
+        // Get the most recent progress tracker
+        const latestProgress = progressHistory[0] // Already sorted DESC
+        if (!latestProgress || !latestProgress.date) return 'no-progress'
+
+        // Parse date from format "04 Feb 2026, 14.15"
+        try {
+            const datePart = latestProgress.date.split(',')[0].trim() // "04 Feb 2026"
+            const [day, monthStr, year] = datePart.split(' ')
+            const monthMap = {
+                'Jan': 0, 'Feb': 1, 'Mar': 2, 'Apr': 3, 'Mei': 4, 'Jun': 5,
+                'Jul': 6, 'Agu': 7, 'Sep': 8, 'Okt': 9, 'Nov': 10, 'Des': 11
+            }
+            const lastUpdateDate = new Date(parseInt(year), monthMap[monthStr], parseInt(day))
+            const today = new Date()
+            const diffTime = today.getTime() - lastUpdateDate.getTime()
+            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24))
+
+            // If no update in last 30 days (1 month)
+            if (diffDays >= 30) {
+                return 'stale' // Progress exists but outdated
+            }
+            return 'normal'
+        } catch (err) {
+            console.warn('Error parsing progress date:', err)
+            return 'normal'
+        }
+    }
+
     // State untuk mode edit
     const [isEditing, setIsEditing] = useState(false);
     const [editId, setEditId] = useState(null);
@@ -1070,6 +1110,12 @@ function ManajemenAset() {
 
 
     try {
+        // Calculate no progress stats
+        const noProgressCount = assets.filter(a => {
+            const progressStatus = getProgressUpdateStatus(a.history || [], a.status)
+            return progressStatus === 'no-progress' || progressStatus === 'stale'
+        }).length
+
         return (
             <>
                 {/* Deadline Alert Cards */}
@@ -1117,6 +1163,17 @@ function ManajemenAset() {
                         <div className="deadline-stat-content">
                             <div className="deadline-stat-number">{deadlineStats.warning}</div>
                             <div className="deadline-stat-label">Mendekati Deadline</div>
+                        </div>
+                    </div>
+
+                    {/* No Progress Update */}
+                    <div className="deadline-stat-card">
+                        <div className="deadline-stat-icon" style={{ background: '#fef3c7', color: '#ca8a04' }}>
+                            <AlertTriangle size={24} />
+                        </div>
+                        <div className="deadline-stat-content">
+                            <div className="deadline-stat-number">{noProgressCount}</div>
+                            <div className="deadline-stat-label">Tanpa Update (1 Bulan)</div>
                         </div>
                     </div>
                 </div>
@@ -1336,11 +1393,13 @@ function ManajemenAset() {
                                 {filteredAssets.length > 0 ? (
                                     filteredAssets.map((asset) => {
                                         const deadlineStatus = getDeadlineStatus(asset.endDate, asset.status)
+                                        const progressStatus = getProgressUpdateStatus(asset.history || [], asset.status)
                                         const rowStyle = {
                                             background: expandedContractId === asset.id ? '#f8fafc' : undefined,
                                             borderLeft: deadlineStatus === 'overdue' ? '3px solid #ef4444' :
                                                 deadlineStatus === 'warning' ? '3px solid #f59e0b' :
-                                                    undefined
+                                                    progressStatus !== 'normal' ? '3px solid #ca8a04' :
+                                                        undefined
                                         }
 
                                         return (
@@ -1360,7 +1419,7 @@ function ManajemenAset() {
                                                     {columnVisibility.id && (
                                                         <td className="asset-id">
                                                             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                                                                {/* Badge di atas nomor kontrak */}
+                                                                {/* Badge di atas nomor kontrak - Deadline Warning */}
                                                                 {(deadlineStatus === 'overdue' || deadlineStatus === 'warning') && (
                                                                     <div style={{
                                                                         background: deadlineStatus === 'overdue' ? '#fee2e2' : '#fef3c7',
@@ -1388,6 +1447,19 @@ function ManajemenAset() {
                                                                         )}
                                                                     </div>
                                                                 )}
+
+                                                                {/* Badge Progress Warning - No Update in 1 Month */}
+                                                                {progressStatus !== 'normal' && (
+                                                                    <div className="progress-warning-badge">
+                                                                        <AlertTriangle size={12} />
+                                                                        <span>
+                                                                            {progressStatus === 'no-progress'
+                                                                                ? 'Belum Ada Progress'
+                                                                                : 'Tidak Update (>1 Bulan)'}
+                                                                        </span>
+                                                                    </div>
+                                                                )}
+
                                                                 {/* Nomor Kontrak */}
                                                                 <span>{asset.invoiceNumber || asset.id}</span>
                                                             </div>

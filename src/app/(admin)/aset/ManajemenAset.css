@@ -458,7 +458,7 @@ textarea:focus {
   cursor: pointer;
   border-radius: 8px;
   transition: all 0.2s ease;
-  user-select: none;
+  user-select: none; 
 }
 
 .column-option:hover {
@@ -684,6 +684,31 @@ textarea:focus {
   font-family: var(--font-inter);
   letter-spacing: 0.3px;
   line-height: 1;
+}
+
+/* Progress Warning Badge - For contracts without progress update */
+.progress-warning-badge {
+  background: #fef9c3;
+  color: #ca8a04;
+  padding: 4px 8px;
+  font-size: 10px;
+  font-weight: 600;
+  border-radius: 6px;
+  border-left: 3px solid #ca8a04;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  width: fit-content;
+  animation: pulse-warning 2s infinite;
+}
+
+@keyframes pulse-warning {
+  0%, 100% {
+    background: #fef9c3;
+  }
+  50% {
+    background: #fef3c7;
+  }
 }
 
 .status-active,
