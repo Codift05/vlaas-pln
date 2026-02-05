@@ -70,12 +70,14 @@
     font-size: 15px;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.3s;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(30, 136, 229, 0.2);
 }
 
 .btn-primary-activate:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(30, 136, 229, 0.4);
+    box-shadow: 0 6px 16px rgba(30, 136, 229, 0.4);
+    background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
 }
 
 .redirect-loader {
@@ -314,12 +316,14 @@
     font-size: 16px;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.3s;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(30, 136, 229, 0.2);
 }
 
 .btn-submit-activate:hover:not(:disabled) {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(30, 136, 229, 0.4);
+    box-shadow: 0 6px 16px rgba(30, 136, 229, 0.4);
+    background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
 }
 
 .btn-submit-activate:disabled {

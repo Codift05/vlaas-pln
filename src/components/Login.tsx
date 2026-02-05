@@ -287,53 +287,63 @@ const LoginContainer = styled.div`
   .submit-btn {
     min-width: 180px;
     width: auto;
-    padding: 12px 28px;
-    background: #1e88e5;
+    padding: 14px 32px;
+    background: linear-gradient(135deg, #1e88e5 0%, #1565c0 100%);
     color: white;
     border: none;
-    border-radius: 6px;
+    border-radius: 8px;
     font-size: 15px;
-    font-weight: bold;
+    font-weight: 600;
     cursor: pointer;
-    transition: transform 0.2s, box-shadow 0.2s;
-    letter-spacing: 1px;
+    transition: all 0.3s ease;
+    letter-spacing: 0.5px;
     margin-right: 18px;
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
     vertical-align: middle;
     text-align: center;
+    box-shadow: 0 2px 8px rgba(30, 136, 229, 0.2);
   }
   .submit-btn:hover:not(:disabled) {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(30, 136, 229, 0.3);
-    background: #1565c0;
+    box-shadow: 0 6px 16px rgba(30, 136, 229, 0.35);
+    background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
   }
   .submit-btn:disabled {
     opacity: 0.6;
     cursor: not-allowed;
+    transform: none;
   }
   .back-btn {
     min-width: 180px;
     width: auto;
-    padding: 12px 28px;
+    padding: 14px 32px;
     background: #fff;
     color: #1e88e5;
-    border: 2px solid #1e88e5;
-    border-radius: 6px;
+    border: 2px solid #e3f2fd;
+    border-radius: 8px;
     font-size: 15px;
-    font-weight: bold;
+    font-weight: 600;
     cursor: pointer;
-    transition: transform 0.2s, background 0.2s, color 0.2s, box-shadow 0.2s;
-    letter-spacing: 1px;
-    display: inline-block;
+    transition: all 0.3s ease;
+    letter-spacing: 0.5px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
     vertical-align: middle;
     margin-left: 0;
     text-align: center;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
   }
   .back-btn:hover:not(:disabled) {
     transform: translateY(-2px);
     background: #e3f2fd;
     color: #1565c0;
-    box-shadow: 0 4px 12px rgba(30, 136, 229, 0.15);
+    border-color: #1e88e5;
+    box-shadow: 0 4px 12px rgba(30, 136, 229, 0.2);
   }
 
   /* Error Message */
@@ -1665,34 +1675,43 @@ const Login: FC = () => {
                     />
                   </div>
 
-                  <button type="submit" className="submit-btn" disabled={loading} style={{ marginTop: '20px' }}>
-                    {loading ? 'Memverifikasi...' : '✓ Verifikasi Email'}
-                  </button>
+                  {/* Button Group - Center aligned */}
+                  <div style={{ display: 'flex', justifyContent: 'center', gap: '12px', marginTop: '24px' }}>
+                    <button type="submit" className="submit-btn" disabled={loading} style={{ flex: '0 0 auto', minWidth: '160px' }}>
+                      {loading ? 'Memverifikasi...' : '✓ Verifikasi Email'}
+                    </button>
 
-                  <div className="resend-code">
                     <button
                       type="button"
-                      className="link-button"
+                      className="submit-btn"
                       onClick={() => {
                         setVerificationData({ ...verificationData, code: '' });
                         setRegisterStep(1);
+                      }}
+                      style={{ 
+                        flex: '0 0 auto', 
+                        minWidth: '160px',
+                        background: 'linear-gradient(135deg, #1e88e5 0%, #1565c0 100%)'
                       }}
                     >
                       🔄 Kirim Ulang Kode
                     </button>
                   </div>
 
-                  <button
-                    type="button"
-                    className="back-btn"
-                    onClick={() => {
-                      setIsRegisterMode(false);
-                      setRegisterStep(1);
-                      setError('');
-                    }}
-                  >
-                    Batal
-                  </button>
+                  {/* Cancel Button - Right aligned */}
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '16px' }}>
+                    <button
+                      type="button"
+                      className="back-btn"
+                      onClick={() => {
+                        setIsRegisterMode(false);
+                        setRegisterStep(1);
+                        setError('');
+                      }}
+                    >
+                      Batal
+                    </button>
+                  </div>
                 </form>
               )}
 
