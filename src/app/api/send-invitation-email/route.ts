@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
         const mailOptions = {
             from: `"SAKTI PLN - Undangan Vendor" <${process.env.GMAIL_USER}>`,
             to: email,
-            subject: '🎉 Undangan Bergabung sebagai Vendor - SAKTI PLN',
+            subject: 'Undangan Bergabung sebagai Vendor - SAKTI PLN',
             html: `
                 <!DOCTYPE html>
                 <html>
@@ -223,9 +223,9 @@ export async function POST(request: NextRequest) {
                             <div class="info-box">
                                 <strong>⏰ Penting:</strong>
                                 <ul style="margin: 10px 0 0 0; padding-left: 20px;">
-                                    <li>Link aktivasi ini berlaku selama <strong>72 jam</strong></li>
+                                    <li>Link aktivasi ini berlaku selama <strong>7 hari</strong></li>
                                     <li>Jangan bagikan link ini kepada siapa pun</li>
-                                    <li>Jika link kadaluarsa, hubungi admin PLN</li>
+                                    <li>Jika link kadaluarsa, hubungi admin PLN untuk mengirim ulang undangan</li>
                                 </ul>
                             </div>
                             

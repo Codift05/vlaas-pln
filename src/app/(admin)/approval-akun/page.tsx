@@ -5,7 +5,16 @@ import { supabase } from '../../../lib/supabaseClient'
 import { Eye, CheckCircle, XCircle, Clock, FileText, Mail, Phone, MapPin, Building2, CreditCard, Trash2 } from 'lucide-react'
 import NotificationModal from '../../../components/NotificationModal'
 import ConfirmModal from '../../../components/ConfirmModal'
+import crypto from 'crypto'
 import './ApprovalAkun.css'
+
+// Password hashing function (same as Login and vendorAuthService)
+const hashPassword = (password: string): string => {
+    return crypto
+        .createHash('sha256')
+        .update(password + (process.env.NEXT_PUBLIC_PASSWORD_SALT || 'sakti_pln_salt'))
+        .digest('hex')
+}
 
 interface VendorAccount {
     id: number
@@ -147,18 +156,58 @@ function ApprovalAkun() {
                         tempPassword += chars.charAt(Math.floor(Math.random() * chars.length))
                     }
 
-                    // Update status dan password
+                    console.log('Generated password (plain text):', tempPassword)
+
+                    // Hash password before saving to database
+                    const hashedPassword = hashPassword(tempPassword)
+                    console.log('Hashed password for DB:', hashedPassword.substring(0, 20) + '...')
+
+                    // Update status, password, dan aktivasi di vendor_users
                     const { error: updateError } = await supabase
                         .from('vendor_users')
                         .update({
                             status: 'Aktif',
-                            password: tempPassword
+                            password: hashedPassword, // Save hashed password
+                            is_activated: true, // Activate account
+                            activated_at: new Date().toISOString()
                         })
                         .eq('id', account.id)
 
                     if (updateError) throw updateError
 
-                    // Kirim email dengan password
+                    // Generate unique vendor ID (format: VND-XXXXX)
+                    const vendorId = `VND-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substring(2, 7).toUpperCase()}`
+
+                    // Insert data ke tabel vendors untuk halaman Data Vendor
+                    const { error: vendorInsertError } = await supabase
+                        .from('vendors')
+                        .insert([{
+                            id: vendorId, // ID wajib karena VARCHAR(50) NOT NULL
+                            nama: account.company_name,
+                            alamat: account.address || '',
+                            telepon: account.pic_phone || '',
+                            email: account.email,
+                            kontak_person: account.pic_name || '',
+                            jabatan: account.pic_position || '',
+                            npwp: '', // NPWP not available in self-registration
+                            status: 'Aktif',
+                            is_claimed: true,
+                            claimed_by_user_id: account.id,
+                            claimed_at: new Date().toISOString(),
+                            created_at: new Date().toISOString(),
+                            updated_at: new Date().toISOString(),
+                            // Additional fields from self-registration
+                            bank_pembayaran: account.bank_name || '',
+                            no_rekening: account.account_number || '',
+                            nama_rekening: account.account_name || ''
+                        }])
+
+                    if (vendorInsertError) {
+                        console.error('Error creating vendor entry:', vendorInsertError)
+                        // Don't fail the whole approval process
+                    }
+
+                    // Kirim email dengan password PLAIN TEXT
                     try {
                         const emailResponse = await fetch('/api/send-account-approval-email', {
                             method: 'POST',
@@ -168,7 +217,7 @@ function ApprovalAkun() {
                             body: JSON.stringify({
                                 email: account.email,
                                 companyName: account.company_name,
-                                password: tempPassword
+                                password: tempPassword // Send plain text password to email
                             }),
                         })
 

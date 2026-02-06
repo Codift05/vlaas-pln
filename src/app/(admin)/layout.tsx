@@ -4,6 +4,7 @@ import styled from 'styled-components'
 import dynamic from 'next/dynamic'
 import LoadingSpinner from '../../components/LoadingSpinner'
 import ProtectedRoute from '../../components/ProtectedRoute'
+import { prefetchAllData } from '../../lib/dataStore'
 
 // Dynamic imports untuk code splitting
 const Sidebar = dynamic(() => import('../../components/Sidebar'), {
@@ -102,6 +103,10 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       setIsExpanded(saved === 'true')
     }
     setIsHydrated(true)
+
+    // 🚀 PREFETCH: Load semua data di background saat user masuk
+    // Ini membuat navigasi ke halaman lain terasa INSTANT
+    prefetchAllData()
   }, [])
 
   // Save sidebar state to localStorage when changed
