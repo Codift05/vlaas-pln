@@ -453,7 +453,7 @@ export const registerVendor = async (vendorData: {
             const { data: updatedVendor, error: updateError } = await supabase
                 .from('vendor_users')
                 .update({
-                    password: hashedPassword,
+                    password: 'PENDING_APPROVAL', // Password sementara, akan diganti saat admin approve
                     company_name: vendorData.companyName,
                     company_type: vendorData.companyType || 'PT',
                     phone: vendorData.phone,
@@ -470,9 +470,8 @@ export const registerVendor = async (vendorData: {
                     siup: vendorData.siup,
                     tdp: vendorData.tdp,
                     established: vendorData.established,
-                    status: 'Aktif',
-                    is_activated: true, // Mark as activated via self-registration
-                    activated_at: new Date().toISOString(),
+                    status: 'Pending', // Menunggu approval admin
+                    is_activated: false, // Belum aktif, menunggu admin
                     activation_token: null, // Clear invitation token
                     activation_token_expires: null,
                     updated_at: new Date().toISOString()
@@ -489,22 +488,23 @@ export const registerVendor = async (vendorData: {
                 }
             }
 
-            // Clear verification codeAkun Anda sudah aktif. 
+            // Clear verification code
             clearVerificationCode(vendorData.email)
 
             return {
                 success: true,
-                message: 'Pendaftaran berhasil! Akun Anda sudah aktif. Silakan login.',
+                message: 'Pendaftaran berhasil! Data Anda sedang dalam proses verifikasi oleh Admin. Password untuk login akan dikirimkan ke email setelah data diverifikasi.',
                 data: updatedVendor
             }
         }
 
         // Insert new vendor (normal self-registration flow)
+        // Status 'Pending' - menunggu approval admin sebelum bisa login
         const { data: newVendor, error: insertError } = await supabase
             .from('vendor_users')
             .insert([{
                 email: vendorData.email,
-                password: hashedPassword, // Use hashed password
+                password: 'PENDING_APPROVAL', // Password sementara, akan diganti saat admin approve
                 company_name: vendorData.companyName,
                 company_type: vendorData.companyType || 'PT',
                 phone: vendorData.phone,
@@ -521,15 +521,8 @@ export const registerVendor = async (vendorData: {
                 siup: vendorData.siup,
                 tdp: vendorData.tdp,
                 established: vendorData.established,
-                status: 'Aktif',
-                is_activated: true, // Self-registered vendors are immediately activated
-                activated_at: new Date().toISOString(),
-                pic_email: vendorData.picEmail,
-                npwp: vendorData.npwp,
-                siup: vendorData.siup,
-                tdp: vendorData.tdp,
-                established: vendorData.established,
-                status: 'Aktif', // Set default status
+                status: 'Pending', // Menunggu approval admin
+                is_activated: false, // Belum aktif sampai admin approve
                 created_at: new Date().toISOString()
             }])
             .select()
@@ -548,7 +541,7 @@ export const registerVendor = async (vendorData: {
 
         return {
             success: true,
-            message: 'Pendaftaran berhasil! Silakan login.',
+            message: 'Pendaftaran berhasil! Data Anda sedang dalam proses verifikasi oleh Admin. Password untuk login akan dikirimkan ke email setelah data diverifikasi.',
             data: newVendor
         }
     } catch (error) {

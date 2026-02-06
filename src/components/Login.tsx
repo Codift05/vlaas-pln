@@ -1269,7 +1269,14 @@ const Login: FC = () => {
 
           // Check if account is pending approval
           if (user.status === 'Pending' || user.status === 'Menunggu Aktivasi') {
-            setError('Akun Anda masih dalam proses verifikasi. Silakan cek email.')
+            setError('Akun Anda masih dalam proses verifikasi oleh Admin. Password login akan dikirimkan ke email Anda setelah akun disetujui.')
+            setLoading(false)
+            return
+          }
+
+          // Check if account is rejected
+          if (user.status === 'Ditolak') {
+            setError('Maaf, pengajuan akun Anda telah ditolak oleh Admin. Silakan hubungi admin untuk informasi lebih lanjut.')
             setLoading(false)
             return
           }
@@ -1334,7 +1341,21 @@ const Login: FC = () => {
 
         // Check if account is pending approval
         if (user.status === 'Pending' || user.status === 'Menunggu Aktivasi') {
-          setError('Akun Anda masih dalam proses verifikasi. Silakan cek email untuk aktivasi.')
+          setError('Akun Anda masih dalam proses verifikasi oleh Admin. Password login akan dikirimkan ke email Anda setelah akun disetujui.')
+          setLoading(false)
+          return
+        }
+
+        // Check if account is rejected
+        if (user.status === 'Ditolak') {
+          setError('Maaf, pengajuan akun Anda telah ditolak oleh Admin. Silakan hubungi admin untuk informasi lebih lanjut.')
+          setLoading(false)
+          return
+        }
+
+        // Check if account is deactivated
+        if (user.status === 'Tidak Aktif') {
+          setError('Akun Anda telah dinonaktifkan.')
           setLoading(false)
           return
         }
