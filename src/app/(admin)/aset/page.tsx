@@ -3,6 +3,7 @@ import { useState, useRef, useEffect, Fragment } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { Eye, Edit, Trash2, Search, ChevronDown, ChevronUp, Plus, Save, Upload, Calendar, Clock, ArrowRight, FileText, AlertCircle, AlertTriangle, FileCheck, History, Activity, X, CheckCircle, Info, AlertOctagon } from 'lucide-react'
 import { supabase } from '../../../lib/supabaseClient'
+import { getContracts, getContractHistory, invalidateCache } from '../../../lib/dataStore'
 import { autoSyncVendor } from '../../../services/vendorService'
 import { updateVendorContractStatus } from '../../../services/vendorAccountService'
 import './ManajemenAset.css'
@@ -211,32 +212,22 @@ function ManajemenAset() {
         }
     }
 
-    // Fetch data contracts & history from Supabase
-    const fetchContracts = async () => {
+    // Loading state untuk UI feedback
+    const [isLoading, setIsLoading] = useState(true)
+
+    // Fetch data contracts & history - MENGGUNAKAN CACHE dari dataStore
+    const fetchContracts = async (forceRefresh = false) => {
+        const startTime = performance.now()
+        setIsLoading(true)
+
         try {
-            const { data, error } = await supabase
-                .from('contracts')
-                .select('*')
-                .order('created_at', { ascending: false })
+            // 🚀 CACHED DATA - Jika data sudah di-prefetch, akan return instant
+            const [data, allHistory] = await Promise.all([
+                getContracts(forceRefresh),
+                getContractHistory(forceRefresh)
+            ])
 
-            if (error) throw error
-
-            // Fetch all contract history in one query for better performance
-            let allHistory = []
-            try {
-                const { data: historyData, error: historyError } = await supabase
-                    .from('contract_history')
-                    .select('*')
-                    .order('created_at', { ascending: false })
-
-                if (!historyError && historyData) {
-                    allHistory = historyData
-                    console.log('📊 Total History Fetched:', allHistory.length)
-                    console.log('📊 Sample History:', allHistory.slice(0, 2))
-                }
-            } catch (historyErr) {
-                console.warn('Contract history table not available yet:', historyErr)
-            }
+            console.log('📊 Contracts:', data.length, '| History:', allHistory.length)
 
             // Format data sesuai struktur UI
             const formattedData = data.map(contract => {
@@ -318,9 +309,15 @@ function ManajemenAset() {
                 }
             })
             setAssets(formattedData)
+
+            // Performance logging
+            const endTime = performance.now()
+            console.log(`⚡ Data loaded in ${(endTime - startTime).toFixed(0)}ms`)
         } catch (err) {
             console.error('Error fetching contracts:', err)
             setAssets([])
+        } finally {
+            setIsLoading(false)
         }
     }
 

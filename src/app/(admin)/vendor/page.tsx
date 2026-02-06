@@ -125,21 +125,21 @@ function DataVendor() {
     }
 
     const fetchVendors = useCallback(async () => {
+        const startTime = performance.now()
         try {
             setLoading(true)
 
-            // Update vendor contract status first
-            await updateVendorContractStatus()
+            // 🚀 PARALLEL EXECUTION - Status update & Data fetch bersamaan
+            const [, , vendorsResult] = await Promise.all([
+                updateVendorContractStatus(),      // Tidak perlu await hasilnya
+                syncVendorClaimedStatus(),         // Tidak perlu await hasilnya
+                supabase
+                    .from('vendors')
+                    .select('*')
+                    .order('created_at', { ascending: false })
+            ])
 
-            // Sync vendor claimed status with vendor_users activation status
-            await syncVendorClaimedStatus()
-
-            // Fetch dari tabel vendors (master data perusahaan)
-            const { data, error } = await supabase
-                .from('vendors')
-                .select('*')
-                .order('created_at', { ascending: false })
-
+            const { data, error } = vendorsResult
             if (error) throw error
 
             // Map DB columns to frontend format
@@ -166,6 +166,10 @@ function DataVendor() {
             })
 
             setVendors(formattedData)
+
+            // Performance logging
+            const endTime = performance.now()
+            console.log(`⚡ Vendors loaded in ${(endTime - startTime).toFixed(0)}ms`)
         } catch (err) {
             console.error('Error fetching vendors:', err)
             setError('Gagal mengambil data vendor')
