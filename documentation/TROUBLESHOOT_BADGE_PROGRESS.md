@@ -70,17 +70,17 @@ WHERE created_at IS NULL;
 **Solution:**
 Ubah status kontrak menjadi "Dalam Pekerjaan"
 
-#### **Scenario F: Days < 30**
+#### **Scenario F: Days < 7**
 ```
-🕐 Calculation: { diffDays: 15, isStale: false }
-✅ NORMAL. Days: 15
+🕐 Calculation: { diffDays: 5, isStale: false }
+✅ NORMAL. Days: 5
 ```
-**Problem:** Progress masih fresh (< 1 bulan)
+**Problem:** Progress masih fresh (< 7 hari)
 
 **Solution:**
-Ini NORMAL behavior! Badge hanya muncul jika >= 30 hari
+Ini NORMAL behavior! Badge hanya muncul jika >= 7 hari
 
-#### **Scenario G: Days >= 30 tapi Badge Tidak Muncul**
+#### **Scenario G: Days >= 7 tapi Badge Tidak Muncul**
 ```
 🕐 Calculation: { diffDays: 92, isStale: true }
 ⚠️ STALE! Days: 92
@@ -144,12 +144,12 @@ ORDER BY ch.created_at DESC;
 - Status = "Dalam Pekerjaan" ✅
 - Ada entry Progress Tracker ✅
 - `created_at` terisi ✅
-- Hari sejak update >= 30 hari ✅
+- Hari sejak update >= 7 hari ✅
 
 ### ❌ Badge TIDAK Muncul Jika:
 - Status bukan "Dalam Pekerjaan" (misal: "Terbayar", "Selesai")
 - Belum ada Progress Tracker sama sekali
-- Progress update masih fresh (< 30 hari)
+- Progress update masih fresh (< 7 hari)
 - Browser cache belum di-clear
 
 ---

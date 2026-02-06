@@ -398,11 +398,11 @@ function ManajemenAset() {
                 createdAt: latestProgress.created_at,
                 dateUsed: dateToUse,
                 diffDays,
-                isStale: diffDays >= 30
+                isStale: diffDays >= 7
             })
 
-            // If no update in last 30 days (1 month)
-            if (diffDays >= 30) {
+            // If no update in last 7 days
+            if (diffDays >= 7) {
                 return { status: 'stale', daysSinceUpdate: diffDays } // Progress exists but outdated
             }
             return { status: 'normal', daysSinceUpdate: diffDays }
