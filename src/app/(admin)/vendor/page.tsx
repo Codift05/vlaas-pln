@@ -349,6 +349,58 @@ function DataVendor() {
                 setNotification({ show: true, type: 'success', message: 'Vendor berhasil diperbarui!' })
                 setShowModal(false)
             } else {
+                // ========================================
+                // VALIDASI DUPLIKASI EMAIL DAN NAMA VENDOR
+                // ========================================
+
+                // 1. Validasi duplikasi nama vendor
+                if (formData.nama && formData.nama.trim() !== '') {
+                    const { data: existingVendorByName, error: checkNameError } = await supabase
+                        .from('vendors')
+                        .select('id, nama, email')
+                        .eq('nama', formData.nama.trim())
+                        .maybeSingle()
+
+                    if (checkNameError) {
+                        console.error('Error checking vendor name:', checkNameError)
+                        throw new Error('Gagal memeriksa duplikasi nama vendor')
+                    }
+
+                    if (existingVendorByName) {
+                        setLoading(false)
+                        setNotification({
+                            show: true,
+                            type: 'error',
+                            message: `Vendor dengan nama "${formData.nama}" sudah terdaftar dalam sistem. Gunakan nama lain atau periksa data vendor yang sudah ada.`
+                        })
+                        return // Stop proses insert
+                    }
+                }
+
+                // 2. Validasi duplikasi email
+                if (formData.email && formData.email.trim() !== '') {
+                    const { data: existingVendorByEmail, error: checkEmailError } = await supabase
+                        .from('vendors')
+                        .select('id, nama, email')
+                        .eq('email', formData.email.trim())
+                        .maybeSingle()
+
+                    if (checkEmailError) {
+                        console.error('Error checking email:', checkEmailError)
+                        throw new Error('Gagal memeriksa duplikasi email')
+                    }
+
+                    if (existingVendorByEmail) {
+                        setLoading(false)
+                        setNotification({
+                            show: true,
+                            type: 'error',
+                            message: `Email ${formData.email} sudah terdaftar untuk vendor "${existingVendorByEmail.nama}". Gunakan email lain.`
+                        })
+                        return // Stop proses insert
+                    }
+                }
+
                 // Generate 6-digit claim code untuk vendor baru
                 const claimCode = generateClaimCode()
 
