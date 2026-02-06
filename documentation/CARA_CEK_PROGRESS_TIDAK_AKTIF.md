@@ -2,7 +2,7 @@
 
 ## 🎯 Ringkasan
 
-Sistem ini mendeteksi kontrak yang tidak memiliki update progress tracker dalam 1 bulan (30 hari) menggunakan **timestamp `created_at`** dari tabel `contract_history` di database.
+Sistem ini mendeteksi kontrak yang tidak memiliki update progress tracker dalam 7 hari menggunakan **timestamp `created_at`** dari tabel `contract_history` di database.
 
 ---
 
@@ -34,8 +34,8 @@ ORDER BY created_at DESC;
 2. Filter history untuk cari entry dengan action "Progress Tracker"
 3. Ambil entry terbaru (index 0, karena sudah sorted DESC)
 4. Hitung selisih hari dari created_at ke hari ini
-5. Jika >= 30 hari → status: 'stale' (tidak update)
-6. Jika < 30 hari → status: 'normal'
+5. Jika >= 7 hari → status: 'stale' (tidak update)
+6. Jika < 7 hari → status: 'normal'
 7. Jika tidak ada progress → status: 'no-progress'
 ```
 
@@ -76,7 +76,7 @@ async function checkProgressStatus(contractId) {
         contractId,
         lastUpdate: data[0].created_at,
         daysSinceUpdate: diffDays,
-        status: diffDays >= 30 ? '⚠️ STALE (>1 bulan)' : '✅ NORMAL'
+        status: diffDays >= 7 ? '⚠️ STALE (>7 hari)' : '✅ NORMAL'
     })
 }
 
@@ -109,7 +109,7 @@ SELECT
     CURRENT_DATE - DATE(lp.last_progress_update) as days_since_update,
     CASE 
         WHEN lp.last_progress_update IS NULL THEN '❌ NO PROGRESS'
-        WHEN CURRENT_DATE - DATE(lp.last_progress_update) >= 30 THEN '⚠️ STALE (>1 bulan)'
+        WHEN CURRENT_DATE - DATE(lp.last_progress_update) >= 7 THEN '⚠️ STALE (>7 hari)'
         ELSE '✅ NORMAL'
     END as progress_status
 FROM contracts c
@@ -140,7 +140,7 @@ SELECT
     EXTRACT(DAY FROM (NOW() - lp.last_progress_update)) as days_since_update,
     CASE 
         WHEN lp.last_progress_update IS NULL THEN '❌ NO PROGRESS'
-        WHEN EXTRACT(DAY FROM (NOW() - lp.last_progress_update)) >= 30 THEN '⚠️ STALE (>1 bulan)'
+        WHEN EXTRACT(DAY FROM (NOW() - lp.last_progress_update)) >= 7 THEN '⚠️ STALE (>7 hari)'
         ELSE '✅ NORMAL'
     END as progress_status
 FROM contracts c
@@ -153,8 +153,8 @@ ORDER BY days_since_update DESC NULLS FIRST;
 ```
 id                  | name              | last_progress_update | days_since_update | progress_status
 --------------------|-------------------|---------------------|-------------------|------------------
-0008.SPK/...        | Pekerjaan Tower   | 2025-11-05 10:00    | 92                | ⚠️ STALE (>1 bulan)
-0024.SPK/...        | Tower Kritis      | 2026-01-20 14:30    | 16                | ✅ NORMAL
+0008.SPK/...        | Pekerjaan Tower   | 2025-11-05 10:00    | 92                | ⚠️ STALE (>7 hari)
+0024.SPK/...        | Tower Kritis      | 2026-01-20 14:30    | 16                | ⚠️ STALE (>7 hari)
 0064.SPK/...        | Pengamanan ROW    | NULL                | NULL              | ❌ NO PROGRESS
 ```
 
@@ -178,7 +178,7 @@ Expected Result:
 }
 ```
 
-### Test Case 2: Kontrak Progress Lama (>30 hari)
+### Test Case 2: Kontrak Progress Lama (>7 hari)
 ```javascript
 Contract: {
     id: '0008.SPK/DAN.01.03/F4704Q000/2025',
@@ -199,7 +199,7 @@ Expected Result:
 }
 ```
 
-### Test Case 3: Kontrak Progress Baru (<30 hari)
+### Test Case 3: Kontrak Progress Baru (<7 hari)
 ```javascript
 Contract: {
     id: '0024.SPK/DAN.01.03/F4704Q000/2025',
@@ -207,7 +207,7 @@ Contract: {
     history: [
         {
             action: 'Progress Tracker: Pemasangan (40%)',
-            created_at: '2026-01-20T14:30:00.000Z' // 16 hari yang lalu
+            created_at: '2026-02-01T14:30:00.000Z' // 5 hari yang lalu
         }
     ]
 }
@@ -215,7 +215,7 @@ Contract: {
 Expected Result:
 {
     status: 'normal',
-    daysSinceUpdate: 16,
+    daysSinceUpdate: 5,
     badge: null (tidak tampil)
 }
 ```
@@ -243,7 +243,7 @@ Expected Result:
 
 3. **Stats Card**
    ```
-   ⚠️ Tanpa Update (1 Bulan)
+   ⚠️ Tanpa Update (7 Hari)
    Count: 2
    ```
 
@@ -277,7 +277,7 @@ Sistem sekarang sudah dilengkapi dengan console.log otomatis. Untuk melihatnya:
 - ✅ Apakah status kontrak = "Dalam Pekerjaan"?
 - ✅ Apakah `created_at` terisi di database?
 - ✅ Apakah ada entry Progress Tracker di history?
-- ✅ Apakah `diffDays >= 30`?
+- ✅ Apakah `diffDays >= 7`?
 
 ### 3. **Cek Manual di Database**
 
@@ -335,7 +335,7 @@ ALTER COLUMN contract_id TYPE uuid USING contract_id::uuid;
 - ✅ Menggunakan `created_at` dari database (lebih akurat)
 - ✅ Tidak parsing manual dari string tanggal
 - ✅ Hanya berlaku untuk kontrak "Dalam Pekerjaan"
-- ✅ Threshold: 30 hari (1 bulan)
+- ✅ Threshold: 7 hari
 - ✅ Badge tampil di kolom Nomor Kontrak
 - ✅ Stats counter di atas tabel
 
