@@ -42,13 +42,25 @@ export async function POST(request: NextRequest) {
             .eq('activation_token', token)
             .single()
 
+        console.log('🔍 Token lookup result:', {
+            token: token.substring(0, 10) + '...',
+            found: !!vendor,
+            error: fetchError?.message
+        })
+
         if (fetchError || !vendor) {
-            console.error('Vendor not found:', fetchError)
+            console.error('❌ Vendor not found with token:', fetchError)
             return NextResponse.json(
-                { success: false, error: 'Link aktivasi tidak valid' },
+                { success: false, error: 'Link aktivasi tidak valid atau sudah tidak berlaku' },
                 { status: 400 }
             )
         }
+
+        console.log('✅ Vendor found:', {
+            email: vendor.email,
+            isActivated: vendor.is_activated,
+            tokenExpires: vendor.activation_token_expires
+        })
 
         // Check if already activated
         if (vendor.is_activated) {
@@ -89,6 +101,22 @@ export async function POST(request: NextRequest) {
                 { success: false, error: 'Gagal mengaktifkan akun' },
                 { status: 500 }
             )
+        }
+
+        // Also update the vendors table to mark as claimed
+        const { error: vendorsUpdateError } = await supabaseAdmin
+            .from('vendors')
+            .update({
+                is_claimed: true,
+                claimed_at: new Date().toISOString(),
+                claimed_by_user_id: vendor.id,
+                status: 'Aktif'
+            })
+            .eq('email', vendor.email)
+
+        if (vendorsUpdateError) {
+            console.error('Error updating vendors table:', vendorsUpdateError)
+            // Don't fail the activation, just log it
         }
 
         console.log('✅ Vendor account activated:', vendor.email)
