@@ -66,6 +66,8 @@ function ApprovalAkun() {
     const fetchAccounts = async () => {
         try {
             setLoading(true)
+            // Hanya ambil akun vendor yang mendaftar sendiri (self-registration)
+            // Ambil semua akun vendor_users
             const { data, error } = await supabase
                 .from('vendor_users')
                 .select('*')
@@ -73,7 +75,16 @@ function ApprovalAkun() {
 
             if (error) throw error
 
-            setAccounts(data || [])
+            // Filter: tampilkan semua self-registered vendor (yang daftar mandiri)
+            // Self-registration ditandai: password awalnya 'PENDING_APPROVAL' atau status 'Pending'/'Ditolak'
+            // Juga tampilkan yang sudah diapprove dari self-registration (invited_by IS NULL)
+            const selfRegistered = (data || []).filter(acc =>
+                acc.status === 'Pending' ||
+                acc.status === 'Ditolak' ||
+                !acc.invited_by // Bukan dari undangan admin
+            )
+
+            setAccounts(selfRegistered)
         } catch (err) {
             console.error('Error fetching accounts:', err)
             setNotification({ show: true, type: 'error', message: 'Gagal memuat data akun vendor' })
@@ -261,21 +272,39 @@ function ApprovalAkun() {
         setConfirmModal({
             show: true,
             title: 'Tolak Akun Vendor',
-            message: `Apakah Anda yakin ingin menolak akun vendor "${account.company_name}"?`,
+            message: `Apakah Anda yakin ingin menolak akun vendor "${account.company_name}"? Akun ini TIDAK akan masuk ke Data Vendor.`,
             onConfirm: async () => {
                 setConfirmModal({ ...confirmModal, show: false })
                 try {
+                    // Update status menjadi 'Ditolak' - TIDAK insert ke tabel vendors
                     const { error } = await supabase
                         .from('vendor_users')
-                        .update({ status: 'Ditolak' })
+                        .update({
+                            status: 'Ditolak',
+                            is_activated: false
+                        })
                         .eq('id', account.id)
 
                     if (error) throw error
 
+                    // Kirim email pemberitahuan penolakan
+                    try {
+                        await fetch('/api/send-account-rejection-email', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                email: account.email,
+                                companyName: account.company_name
+                            }),
+                        })
+                    } catch (emailError) {
+                        console.warn('Email rejection notification failed:', emailError)
+                    }
+
                     setNotification({
                         show: true,
                         type: 'success',
-                        message: `Akun vendor "${account.company_name}" ditolak`
+                        message: `Akun vendor "${account.company_name}" ditolak. Data tidak masuk ke Data Vendor.`
                     })
 
                     fetchAccounts()
