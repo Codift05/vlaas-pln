@@ -938,6 +938,33 @@ function ManajemenAset() {
         e.preventDefault()
 
         try {
+            // Validasi: Cek duplikasi nomor kontrak/nomor surat
+            if (!isEditing) {
+                // Untuk tambah baru, cek apakah nomor kontrak sudah ada
+                // Nomor kontrak disimpan di field nomor_surat
+                const contractNumber = formData.invoiceNumber || formData.id
+                if (contractNumber) {
+                    const { data: existingContracts, error: checkError } = await supabase
+                        .from('contracts')
+                        .select('id, nomor_surat, name')
+                        .eq('nomor_surat', contractNumber)
+
+                    if (checkError) {
+                        console.warn('Error checking duplicate:', checkError)
+                    }
+
+                    if (existingContracts && existingContracts.length > 0) {
+                        const existing = existingContracts[0]
+                        showAlert(
+                            'error',
+                            'Nomor Kontrak Sudah Ada',
+                            `Nomor kontrak "${contractNumber}" sudah terdaftar dalam sistem untuk kontrak "${existing.name}". Silakan gunakan nomor kontrak yang berbeda.`
+                        )
+                        return
+                    }
+                }
+            }
+
             if (isEditing) {
                 // Get old data once for both vendor sync and history log
                 const oldData = assets.find(a => a.id === editId)
@@ -1111,12 +1138,11 @@ function ManajemenAset() {
 
             const errorMessage = err.message || err.error_description || 'Terjadi kesalahan yang tidak diketahui.'
 
+            // Handle duplicate key error
             if (errorMessage.includes('duplicate key') || err.code === '23505') {
-                if (errorMessage.includes('duplicate key') || err.code === '23505') {
-                    showAlert('error', 'Gagal', 'Nomor Kontrak (ID) tersebut sudah ada di sistem. Gunakan nomor lain.')
-                } else {
-                    showAlert('error', 'Gagal', 'Gagal menyimpan data: ' + errorMessage)
-                }
+                showAlert('error', 'Nomor Kontrak Sudah Ada', `Nomor kontrak "${formData.id}" sudah terdaftar dalam sistem. Silakan gunakan nomor kontrak yang berbeda.`)
+            } else {
+                showAlert('error', 'Gagal', 'Gagal menyimpan data: ' + errorMessage)
             }
         }
     }
