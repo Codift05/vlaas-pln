@@ -1304,7 +1304,7 @@ function ManajemenAset() {
                         </div>
                         <div className="deadline-stat-content">
                             <div className="deadline-stat-number">{noProgressCount}</div>
-                            <div className="deadline-stat-label">Tanpa Update (1 Bulan)</div>
+                            <div className="deadline-stat-label">Tanpa Update (1 Minggu)</div>
                         </div>
                     </div>
                 </div>
