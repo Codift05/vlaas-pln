@@ -18,6 +18,7 @@
     "dependencies": {
         "@supabase/supabase-js": "^2.0.0",
         "critters": "^0.0.23",
+        "crypto-js": "^4.2.0",
         "googleapis": "^129.0.0",
         "jspdf": "^3.0.4",
         "jspdf-autotable": "^5.0.2",
@@ -36,6 +37,7 @@
         "@testing-library/jest-dom": "^6.1.5",
         "@testing-library/react": "^14.1.2",
         "@testing-library/user-event": "^14.5.1",
+        "@types/crypto-js": "^4.2.2",
         "@types/jest": "^29.5.11",
         "@types/node": "^25.0.3",
         "@types/nodemailer": "^7.0.5",
