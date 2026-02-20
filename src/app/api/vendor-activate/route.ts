@@ -1,20 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import crypto from 'crypto'
+import { hashPassword } from '../../../lib/passwordUtils'
 
 // Create a separate Supabase client with service role for admin operations
 const supabaseAdmin = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 )
-
-// Simple password hashing (in production, use bcrypt)
-const hashPassword = (password: string): string => {
-    return crypto
-        .createHash('sha256')
-        .update(password + (process.env.PASSWORD_SALT || 'sakti_pln_salt'))
-        .digest('hex')
-}
 
 export async function POST(request: NextRequest) {
     try {

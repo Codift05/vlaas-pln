@@ -5,16 +5,8 @@ import { supabase } from '../../../lib/supabaseClient'
 import { Eye, CheckCircle, XCircle, Clock, FileText, Mail, Phone, MapPin, Building2, CreditCard, Trash2 } from 'lucide-react'
 import NotificationModal from '../../../components/NotificationModal'
 import ConfirmModal from '../../../components/ConfirmModal'
-import crypto from 'crypto'
+import { hashPassword, generatePassword } from '../../../lib/passwordUtils'
 import './ApprovalAkun.css'
-
-// Password hashing function (same as Login and vendorAuthService)
-const hashPassword = (password: string): string => {
-    return crypto
-        .createHash('sha256')
-        .update(password + (process.env.NEXT_PUBLIC_PASSWORD_SALT || 'sakti_pln_salt'))
-        .digest('hex')
-}
 
 interface VendorAccount {
     id: number
@@ -161,11 +153,7 @@ function ApprovalAkun() {
                 setConfirmModal({ ...confirmModal, show: false })
                 try {
                     // Generate random password (kombinasi huruf dan angka, 12 karakter)
-                    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
-                    let tempPassword = ''
-                    for (let i = 0; i < 12; i++) {
-                        tempPassword += chars.charAt(Math.floor(Math.random() * chars.length))
-                    }
+                    const tempPassword = generatePassword(12)
 
                     console.log('Generated password (plain text):', tempPassword)
 

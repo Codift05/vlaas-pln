@@ -461,27 +461,136 @@ function Laporan() {
 
     const handleExport = async (format: string) => {
         if (format === 'CSV') {
-            const headers = ['ID', 'Nama Kontrak', 'Vendor', 'Status', 'Nilai', 'Tgl Buat', 'Tgl Mulai']
-            const rows = allContracts.map(c => [
-                c.id,
-                `"${c.name || ''}"`, // Quote to handle commas
-                `"${c.vendor_name || ''}"`,
-                c.status,
-                c.amount,
-                c.created_at ? new Date(c.created_at).toLocaleDateString() : '',
-                c.start_date ? new Date(c.start_date).toLocaleDateString() : ''
-            ])
+            const now = new Date()
+            const exportDate = now.toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })
+            const exportTime = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
 
-            const csvContent = [
-                headers.join(','),
-                ...rows.map(row => row.join(','))
-            ].join('\n')
+            // Helper: escape cell value for CSV
+            const esc = (v: any) => {
+                const s = String(v ?? '')
+                return s.includes(',') || s.includes('"') || s.includes('\n') ? `"${s.replace(/"/g, '""')}"` : s
+            }
+            const row = (...cols: any[]) => cols.map(esc).join(',')
+            const sep = () => ''
+            const sectionHeader = (title: string) => `"=== ${title} ===",,,,,,,,,,`
+
+            // Derive totals
+            const totalValue = allContracts.reduce((s, c) => s + (Number(c.amount) || 0), 0)
+            const paidValue = allContracts
+                .filter(c => (c.status || '').toLowerCase() === 'terbayar')
+                .reduce((s, c) => s + (Number(c.amount) || 0), 0)
+
+            const budgetRows = [
+                ['Dalam Pekerjaan / Aktif', budgetData.dalamProses],
+                ['Dalam Pemeriksaan', budgetData.dalamPemeriksaan],
+                ['Telah Diperiksa', budgetData.telahDiperiksa],
+                ['Terbayar', budgetData.terbayar],
+                ['Terkontrak', budgetData.terkontrak],
+                ['Selesai', budgetData.selesai],
+            ]
+
+            // ─── SECTION 1: Cover ───────────────────────────────────────────
+            const lines: string[] = [
+                row('LAPORAN KONTRAK', '', '', '', '', '', '', '', '', '', ''),
+                row('PLN (Persero) UPT Manado'),
+                sep(),
+                row('Tanggal Export', `${exportDate} ${exportTime}`),
+                row('Periode', dateRange.label),
+                row('Filter Status', filterStatus.label),
+                sep(),
+
+                // ─── SECTION 2: Ringkasan KPI ────────────────────────────
+                sectionHeader('RINGKASAN KPI'),
+                row('Indikator', 'Nilai'),
+                row('Total Kontrak', kpiData.totalDocuments),
+                row('Nilai Total Kontrak (Rp)', `"Rp ${totalValue.toLocaleString('id-ID')}"`),
+                row('Nilai Terbayar (Rp)', `"Rp ${paidValue.toLocaleString('id-ID')}"`),
+                row('Sisa Nilai Kontrak (Rp)', `"Rp ${kpiData.remainingValue.toLocaleString('id-ID')}"`),
+                row('Rata-rata Waktu Proses (Hari)', kpiData.avgCycleTime),
+                row('Rasio Persetujuan (%)', `${kpiData.approvalRate}%`),
+                row('Kontrak Mendekati Jatuh Tempo (30 hari)', kpiData.nearDeadline),
+                row('Dokumen Menunggu Review', kpiData.pendingDocuments),
+                row('Rata-rata Progres Aktif (%)', `${kpiData.avgCompletion.toFixed(1)}%`),
+                sep(),
+
+                // ─── SECTION 3: Distribusi Anggaran per Status ───────────
+                sectionHeader('DISTRIBUSI ANGGARAN PER STATUS'),
+                row('Status', 'Nilai (Rp)', 'Persentase (%)'),
+                ...budgetRows.map(([label, val]) =>
+                    row(label, `Rp ${(val as number).toLocaleString('id-ID')}`, `${getPercent(val as number).toFixed(2)}%`)
+                ),
+                row('TOTAL', `"Rp ${totalBudget.toLocaleString('id-ID')}"`, '100.00%'),
+                sep(),
+
+                // ─── SECTION 4: Distribusi Jenis Anggaran ────────────────
+                sectionHeader('DISTRIBUSI JENIS ANGGARAN (AI vs AO)'),
+                row('Jenis Anggaran', 'Nilai (Rp)', 'Persentase (%)'),
+                row(
+                    'AI - Anggaran Investasi',
+                    `"Rp ${budgetTypeData.ai.toLocaleString('id-ID')}"`,
+                    `${(budgetTypeData.ai + budgetTypeData.ao) > 0 ? ((budgetTypeData.ai / (budgetTypeData.ai + budgetTypeData.ao)) * 100).toFixed(2) : '0.00'}%`
+                ),
+                row(
+                    'AO - Anggaran Operasional',
+                    `"Rp ${budgetTypeData.ao.toLocaleString('id-ID')}"`,
+                    `${(budgetTypeData.ai + budgetTypeData.ao) > 0 ? ((budgetTypeData.ao / (budgetTypeData.ai + budgetTypeData.ao)) * 100).toFixed(2) : '0.00'}%`
+                ),
+                sep(),
+
+                // ─── SECTION 5: Kontrak Mendekati Jatuh Tempo ────────────
+                sectionHeader('KONTRAK MENDEKATI JATUH TEMPO (≤ 30 HARI)'),
+                row('No', 'Nama Kontrak', 'Vendor', 'Status', 'Nilai (Rp)', 'Tgl Mulai', 'Tgl Selesai', 'Sisa Hari'),
+                ...(deadlineContracts.length > 0
+                    ? deadlineContracts.map((c, i) => {
+                        const end = new Date(c.end_date)
+                        const sisaHari = Math.ceil((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+                        return row(
+                            i + 1,
+                            c.name,
+                            c.vendor_name,
+                            c.status,
+                            `"Rp ${c.amount.toLocaleString('id-ID')}"`,
+                            c.start_date ? new Date(c.start_date).toLocaleDateString('id-ID') : '-',
+                            c.end_date ? new Date(c.end_date).toLocaleDateString('id-ID') : '-',
+                            sisaHari > 0 ? `${sisaHari} hari` : 'Sudah lewat'
+                        )
+                    })
+                    : [row('', 'Tidak ada kontrak yang mendekati jatuh tempo')]
+                ),
+                sep(),
+
+                // ─── SECTION 6: Daftar Kontrak Lengkap ───────────────────
+                sectionHeader(`DAFTAR KONTRAK LENGKAP (${allContracts.length} kontrak)`),
+                row('No', 'Nomor Kontrak', 'Nama Kontrak', 'Vendor', 'Status', 'Jenis Anggaran',
+                    'Nilai (Rp)', 'Progres (%)', 'Tgl Dibuat', 'Tgl Mulai', 'Tgl Selesai'),
+                ...allContracts.map((c, i) =>
+                    row(
+                        i + 1,
+                        c.invoice_number || c.nomor_surat || c.id || '-',
+                        c.name || '-',
+                        c.vendor_name || '-',
+                        c.status || '-',
+                        c.budget_type || '-',
+                        `"Rp ${(Number(c.amount) || 0).toLocaleString('id-ID')}"`,
+                        c.progress != null ? `${c.progress}%` : '-',
+                        c.created_at ? new Date(c.created_at).toLocaleDateString('id-ID') : '-',
+                        c.start_date ? new Date(c.start_date).toLocaleDateString('id-ID') : '-',
+                        c.end_date ? new Date(c.end_date).toLocaleDateString('id-ID') : '-',
+                    )
+                ),
+                sep(),
+                row(`-- Akhir Laporan: ${exportDate} ${exportTime} --`),
+            ]
+
+            // BOM for Excel UTF-8 compatibility
+            const BOM = '\uFEFF'
+            const csvContent = BOM + lines.join('\r\n')
 
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
             const url = URL.createObjectURL(blob)
             const link = document.createElement('a')
             link.setAttribute('href', url)
-            link.setAttribute('download', `laporan_kontrak_${new Date().toISOString().slice(0, 10)}.csv`)
+            link.setAttribute('download', `laporan_kontrak_${now.toISOString().slice(0, 10)}.csv`)
             link.style.visibility = 'hidden'
             document.body.appendChild(link)
             link.click()
@@ -552,10 +661,10 @@ function Laporan() {
                 doc.setFont('helvetica', 'bold')
                 doc.text('Daftar Kontrak', 14, finalY + 10)
 
-                const contractHeaders = [['No', 'ID', 'Nama Kontrak', 'Vendor', 'Status', 'Nilai (Rp)']]
+                const contractHeaders = [['No', 'Nomor Kontrak', 'Nama Kontrak', 'Vendor', 'Status', 'Nilai (Rp)']]
                 const contractRows = allContracts.map((c, idx) => [
                     (idx + 1).toString(),
-                    c.id || '-',
+                    c.invoice_number || c.nomor_surat || c.id || '-',
                     (c.name || '-').substring(0, 30),
                     (c.vendor_name || '-').substring(0, 25),
                     c.status || '-',
@@ -579,6 +688,86 @@ function Laporan() {
                     },
                     margin: { left: 14, right: 14 }
                 })
+
+                // ── TAMBAHAN: Distribusi Jenis Anggaran (AI vs AO) ──────────────
+                const afterContractY = (doc as any).lastAutoTable.finalY || 200
+                const aiaoTotal = budgetTypeData.ai + budgetTypeData.ao
+                doc.setFontSize(12)
+                doc.setFont('helvetica', 'bold')
+                doc.text('Distribusi Jenis Anggaran (AI vs AO)', 14, afterContractY + 12)
+
+                autoTable(doc, {
+                    head: [['Jenis Anggaran', 'Nilai (Rp)', 'Persentase']],
+                    body: [
+                        [
+                            'AI - Anggaran Investasi',
+                            budgetTypeData.ai.toLocaleString('id-ID'),
+                            `${aiaoTotal > 0 ? ((budgetTypeData.ai / aiaoTotal) * 100).toFixed(1) : '0.0'}%`
+                        ],
+                        [
+                            'AO - Anggaran Operasional',
+                            budgetTypeData.ao.toLocaleString('id-ID'),
+                            `${aiaoTotal > 0 ? ((budgetTypeData.ao / aiaoTotal) * 100).toFixed(1) : '0.0'}%`
+                        ],
+                        [
+                            'TOTAL',
+                            aiaoTotal.toLocaleString('id-ID'),
+                            '100.0%'
+                        ],
+                    ],
+                    startY: afterContractY + 16,
+                    theme: 'grid',
+                    headStyles: { fillColor: [94, 157, 196], fontSize: 9 },
+                    bodyStyles: { fontSize: 8 },
+                    columnStyles: {
+                        1: { halign: 'right' },
+                        2: { halign: 'center' }
+                    }
+                })
+
+                // ── TAMBAHAN: Kontrak Mendekati Jatuh Tempo (<= 30 hari) ─────
+                const afterAiaoY = (doc as any).lastAutoTable.finalY || 200
+                const now = new Date()
+                doc.setFontSize(12)
+                doc.setFont('helvetica', 'bold')
+                doc.text('Kontrak Mendekati Jatuh Tempo (<= 30 Hari)', 14, afterAiaoY + 12)
+
+                if (deadlineContracts.length > 0) {
+                    const deadlineRows = deadlineContracts.map((c, idx) => {
+                        const end = new Date(c.end_date)
+                        const sisaHari = Math.ceil((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+                        return [
+                            (idx + 1).toString(),
+                            (c.name || '-').substring(0, 30),
+                            (c.vendor_name || '-').substring(0, 25),
+                            c.status || '-',
+                            (c.amount || 0).toLocaleString('id-ID'),
+                            c.start_date ? new Date(c.start_date).toLocaleDateString('id-ID') : '-',
+                            c.end_date ? new Date(c.end_date).toLocaleDateString('id-ID') : '-',
+                            sisaHari > 0 ? `${sisaHari} hari` : 'Sudah lewat',
+                        ]
+                    })
+                    autoTable(doc, {
+                        head: [['No', 'Nama Kontrak', 'Vendor', 'Status', 'Nilai (Rp)', 'Tgl Mulai', 'Tgl Selesai', 'Sisa (hr)']],
+                        body: deadlineRows,
+                        startY: afterAiaoY + 16,
+                        theme: 'striped',
+                        headStyles: { fillColor: [94, 157, 196], fontSize: 8 },
+                        bodyStyles: { fontSize: 7 },
+                        columnStyles: {
+                            0: { cellWidth: 10, halign: 'center' },
+                            4: { halign: 'right' },
+                            5: { halign: 'center' },
+                            6: { halign: 'center' },
+                            7: { halign: 'center' },
+                        },
+                        margin: { left: 14, right: 14 }
+                    })
+                } else {
+                    doc.setFontSize(9)
+                    doc.setFont('helvetica', 'normal')
+                    doc.text('Tidak ada kontrak yang mendekati jatuh tempo.', 14, afterAiaoY + 20)
+                }
 
                 // Footer
                 const pageCount = doc.getNumberOfPages()

@@ -935,6 +935,33 @@ function ManajemenAset() {
         e.preventDefault()
 
         try {
+            // Validasi: Cek duplikasi nomor kontrak/nomor surat
+            if (!isEditing) {
+                // Untuk tambah baru, cek apakah nomor kontrak sudah ada
+                // Nomor kontrak disimpan di field nomor_surat
+                const contractNumber = formData.invoiceNumber || formData.id
+                if (contractNumber) {
+                    const { data: existingContracts, error: checkError } = await supabase
+                        .from('contracts')
+                        .select('id, nomor_surat, name')
+                        .eq('nomor_surat', contractNumber)
+
+                    if (checkError) {
+                        console.warn('Error checking duplicate:', checkError)
+                    }
+
+                    if (existingContracts && existingContracts.length > 0) {
+                        const existing = existingContracts[0]
+                        showAlert(
+                            'error',
+                            'Nomor Kontrak Sudah Ada',
+                            `Nomor kontrak "${contractNumber}" sudah terdaftar dalam sistem untuk kontrak "${existing.name}". Silakan gunakan nomor kontrak yang berbeda.`
+                        )
+                        return
+                    }
+                }
+            }
+
             if (isEditing) {
                 // Get old data once for both vendor sync and history log
                 const oldData = assets.find(a => a.id === editId)
@@ -1108,12 +1135,11 @@ function ManajemenAset() {
 
             const errorMessage = err.message || err.error_description || 'Terjadi kesalahan yang tidak diketahui.'
 
+            // Handle duplicate key error
             if (errorMessage.includes('duplicate key') || err.code === '23505') {
-                if (errorMessage.includes('duplicate key') || err.code === '23505') {
-                    showAlert('error', 'Gagal', 'Nomor Kontrak (ID) tersebut sudah ada di sistem. Gunakan nomor lain.')
-                } else {
-                    showAlert('error', 'Gagal', 'Gagal menyimpan data: ' + errorMessage)
-                }
+                showAlert('error', 'Nomor Kontrak Sudah Ada', `Nomor kontrak "${formData.id}" sudah terdaftar dalam sistem. Silakan gunakan nomor kontrak yang berbeda.`)
+            } else {
+                showAlert('error', 'Gagal', 'Gagal menyimpan data: ' + errorMessage)
             }
         }
     }
@@ -1275,7 +1301,7 @@ function ManajemenAset() {
                         </div>
                         <div className="deadline-stat-content">
                             <div className="deadline-stat-number">{noProgressCount}</div>
-                            <div className="deadline-stat-label">Tanpa Update (1 Bulan)</div>
+                            <div className="deadline-stat-label">Tanpa Update (1 Minggu)</div>
                         </div>
                     </div>
                 </div>
@@ -1292,11 +1318,9 @@ function ManajemenAset() {
                             style={{ display: 'block', padding: '12px 16px', borderRadius: '12px', border: '1px solid #e2e8f0', background: 'white', minWidth: '160px' }}
                         >
                             <option value="all">Semua Status</option>
-                            <option value="Selesai">Selesai</option>
-                            <option value="Dalam Pemeriksaan">Dalam Pemeriksaan</option>
+                            <option value="Dalam Pekerjaan">Dalam Pekerjaan</option>
                             <option value="Telah Diperiksa">Telah Diperiksa</option>
                             <option value="Terbayar">Terbayar</option>
-                            <option value="Dalam Pekerjaan">Dalam Pekerjaan</option>
                         </select>
 
                         <div style={{ position: 'relative', flex: '1 1 250px' }}>

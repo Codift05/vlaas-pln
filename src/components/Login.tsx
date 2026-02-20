@@ -16,15 +16,7 @@ import {
 import { supabase } from '../lib/supabaseClient'
 import NotificationModal from './NotificationModal'
 import styled from 'styled-components'
-import crypto from 'crypto'
-
-// Password hashing function (same as backend and vendorAuthService)
-const hashPassword = (password: string): string => {
-  return crypto
-    .createHash('sha256')
-    .update(password + (process.env.NEXT_PUBLIC_PASSWORD_SALT || 'sakti_pln_salt'))
-    .digest('hex')
-}
+import { hashPassword } from '../lib/passwordUtils'
 
 interface Platform {
   logo: string

@@ -1,19 +1,11 @@
 import { supabase } from '../lib/supabaseClient'
-import crypto from 'crypto'
+import { hashPassword } from '../lib/passwordUtils'
 
 export interface VendorAuthResult {
     success: boolean
     data?: any
     error?: string
     message?: string
-}
-
-// Simple password hashing (same as backend)
-const hashPassword = (password: string): string => {
-    return crypto
-        .createHash('sha256')
-        .update(password + (process.env.NEXT_PUBLIC_PASSWORD_SALT || 'sakti_pln_salt'))
-        .digest('hex')
 }
 
 // Temporary storage for verification codes (in production, use database)
