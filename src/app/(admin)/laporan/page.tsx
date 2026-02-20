@@ -561,12 +561,12 @@ function Laporan() {
 
                 // ─── SECTION 6: Daftar Kontrak Lengkap ───────────────────
                 sectionHeader(`DAFTAR KONTRAK LENGKAP (${allContracts.length} kontrak)`),
-                row('No', 'ID Kontrak', 'Nama Kontrak', 'Vendor', 'Status', 'Jenis Anggaran',
+                row('No', 'Nomor Kontrak', 'Nama Kontrak', 'Vendor', 'Status', 'Jenis Anggaran',
                     'Nilai (Rp)', 'Progres (%)', 'Tgl Dibuat', 'Tgl Mulai', 'Tgl Selesai'),
                 ...allContracts.map((c, i) =>
                     row(
                         i + 1,
-                        c.id,
+                        c.invoice_number || c.nomor_surat || c.id || '-',
                         c.name || '-',
                         c.vendor_name || '-',
                         c.status || '-',
@@ -661,10 +661,10 @@ function Laporan() {
                 doc.setFont('helvetica', 'bold')
                 doc.text('Daftar Kontrak', 14, finalY + 10)
 
-                const contractHeaders = [['No', 'ID', 'Nama Kontrak', 'Vendor', 'Status', 'Nilai (Rp)']]
+                const contractHeaders = [['No', 'Nomor Kontrak', 'Nama Kontrak', 'Vendor', 'Status', 'Nilai (Rp)']]
                 const contractRows = allContracts.map((c, idx) => [
                     (idx + 1).toString(),
-                    c.id || '-',
+                    c.invoice_number || c.nomor_surat || c.id || '-',
                     (c.name || '-').substring(0, 30),
                     (c.vendor_name || '-').substring(0, 25),
                     c.status || '-',
@@ -688,6 +688,86 @@ function Laporan() {
                     },
                     margin: { left: 14, right: 14 }
                 })
+
+                // ── TAMBAHAN: Distribusi Jenis Anggaran (AI vs AO) ──────────────
+                const afterContractY = (doc as any).lastAutoTable.finalY || 200
+                const aiaoTotal = budgetTypeData.ai + budgetTypeData.ao
+                doc.setFontSize(12)
+                doc.setFont('helvetica', 'bold')
+                doc.text('Distribusi Jenis Anggaran (AI vs AO)', 14, afterContractY + 12)
+
+                autoTable(doc, {
+                    head: [['Jenis Anggaran', 'Nilai (Rp)', 'Persentase']],
+                    body: [
+                        [
+                            'AI - Anggaran Investasi',
+                            budgetTypeData.ai.toLocaleString('id-ID'),
+                            `${aiaoTotal > 0 ? ((budgetTypeData.ai / aiaoTotal) * 100).toFixed(1) : '0.0'}%`
+                        ],
+                        [
+                            'AO - Anggaran Operasional',
+                            budgetTypeData.ao.toLocaleString('id-ID'),
+                            `${aiaoTotal > 0 ? ((budgetTypeData.ao / aiaoTotal) * 100).toFixed(1) : '0.0'}%`
+                        ],
+                        [
+                            'TOTAL',
+                            aiaoTotal.toLocaleString('id-ID'),
+                            '100.0%'
+                        ],
+                    ],
+                    startY: afterContractY + 16,
+                    theme: 'grid',
+                    headStyles: { fillColor: [94, 157, 196], fontSize: 9 },
+                    bodyStyles: { fontSize: 8 },
+                    columnStyles: {
+                        1: { halign: 'right' },
+                        2: { halign: 'center' }
+                    }
+                })
+
+                // ── TAMBAHAN: Kontrak Mendekati Jatuh Tempo (<= 30 hari) ─────
+                const afterAiaoY = (doc as any).lastAutoTable.finalY || 200
+                const now = new Date()
+                doc.setFontSize(12)
+                doc.setFont('helvetica', 'bold')
+                doc.text('Kontrak Mendekati Jatuh Tempo (<= 30 Hari)', 14, afterAiaoY + 12)
+
+                if (deadlineContracts.length > 0) {
+                    const deadlineRows = deadlineContracts.map((c, idx) => {
+                        const end = new Date(c.end_date)
+                        const sisaHari = Math.ceil((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+                        return [
+                            (idx + 1).toString(),
+                            (c.name || '-').substring(0, 30),
+                            (c.vendor_name || '-').substring(0, 25),
+                            c.status || '-',
+                            (c.amount || 0).toLocaleString('id-ID'),
+                            c.start_date ? new Date(c.start_date).toLocaleDateString('id-ID') : '-',
+                            c.end_date ? new Date(c.end_date).toLocaleDateString('id-ID') : '-',
+                            sisaHari > 0 ? `${sisaHari} hari` : 'Sudah lewat',
+                        ]
+                    })
+                    autoTable(doc, {
+                        head: [['No', 'Nama Kontrak', 'Vendor', 'Status', 'Nilai (Rp)', 'Tgl Mulai', 'Tgl Selesai', 'Sisa (hr)']],
+                        body: deadlineRows,
+                        startY: afterAiaoY + 16,
+                        theme: 'striped',
+                        headStyles: { fillColor: [94, 157, 196], fontSize: 8 },
+                        bodyStyles: { fontSize: 7 },
+                        columnStyles: {
+                            0: { cellWidth: 10, halign: 'center' },
+                            4: { halign: 'right' },
+                            5: { halign: 'center' },
+                            6: { halign: 'center' },
+                            7: { halign: 'center' },
+                        },
+                        margin: { left: 14, right: 14 }
+                    })
+                } else {
+                    doc.setFontSize(9)
+                    doc.setFont('helvetica', 'normal')
+                    doc.text('Tidak ada kontrak yang mendekati jatuh tempo.', 14, afterAiaoY + 20)
+                }
 
                 // Footer
                 const pageCount = doc.getNumberOfPages()
