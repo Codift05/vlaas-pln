@@ -1321,11 +1321,9 @@ function ManajemenAset() {
                             style={{ display: 'block', padding: '12px 16px', borderRadius: '12px', border: '1px solid #e2e8f0', background: 'white', minWidth: '160px' }}
                         >
                             <option value="all">Semua Status</option>
-                            <option value="Selesai">Selesai</option>
-                            <option value="Dalam Pemeriksaan">Dalam Pemeriksaan</option>
+                            <option value="Dalam Pekerjaan">Dalam Pekerjaan</option>
                             <option value="Telah Diperiksa">Telah Diperiksa</option>
                             <option value="Terbayar">Terbayar</option>
-                            <option value="Dalam Pekerjaan">Dalam Pekerjaan</option>
                         </select>
 
                         <div style={{ position: 'relative', flex: '1 1 250px' }}>
