@@ -1283,13 +1283,12 @@ function ManajemenAset() {
                 {/* Action Bar */}
                 {/* Action Bar */}
                 <div className="action-bar">
-                    <div className="filter-section" style={{ flex: '1 1 500px' }}>
+                    <div className="filter-section">
                         <select
                             value={filterStatus}
                             onChange={(e) => setFilterStatus(e.target.value)}
                             className="filter-select"
                             title="Pilih status kontrak"
-                            style={{ display: 'block', padding: '12px 16px', borderRadius: '12px', border: '1px solid #e2e8f0', background: 'white', minWidth: '160px' }}
                         >
                             <option value="all">Semua Status</option>
                             <option value="Selesai">Selesai</option>
@@ -1312,19 +1311,10 @@ function ManajemenAset() {
                         </div>
 
                         {/* Date Filter Placeholder - Styled to look intentional */}
-                        <div style={{
-                            display: 'flex',
-                            flexDirection: 'column',
-                            padding: '6px 16px',
-                            background: '#f8fafc',
-                            border: '1px solid #e2e8f0',
-                            borderRadius: '12px',
-                            height: '46px',
-                            justifyContent: 'center',
-                            minWidth: '140px'
-                        }}>
-                            <label style={{ fontSize: '10px', color: '#64748b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '2px' }}>Periode</label>
-                            <span style={{ fontSize: '13px', color: '#334155', fontWeight: 500 }}>Semua Waktu</span>
+                        {/* Date Filter Placeholder - Styled to look intentional */}
+                        <div className="periode-filter-box">
+                            <label className="periode-label">Periode</label>
+                            <span className="periode-value">Semua Waktu</span>
                         </div>
                     </div>
 

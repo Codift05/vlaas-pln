@@ -1,0 +1,2209 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VLAAS PLN - Wireframe</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #f0f2f5;
+            color: #333;
+        }
+
+        /* NAV */
+        .nav {
+            background: #1a1a2e;
+            padding: 0 24px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            height: 52px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .nav-title {
+            color: #fff;
+            font-weight: 700;
+            font-size: 16px;
+            margin-right: 8px;
+            letter-spacing: 1px;
+        }
+
+        .nav-badge {
+            background: #e63946;
+            color: #fff;
+            font-size: 10px;
+            padding: 2px 7px;
+            border-radius: 10px;
+        }
+
+        .nav-tabs {
+            display: flex;
+            gap: 4px;
+            margin-left: auto;
+        }
+
+        .nav-tab {
+            background: none;
+            border: none;
+            color: #aaa;
+            padding: 6px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+
+        .nav-tab:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+        }
+
+        .nav-tab.active {
+            background: #e63946;
+            color: #fff;
+            font-weight: 600;
+        }
+
+        /* SECTION */
+        .section {
+            display: none;
+            padding: 24px;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        .section-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: #1a1a2e;
+            margin-bottom: 6px;
+        }
+
+        .section-sub {
+            color: #666;
+            font-size: 13px;
+            margin-bottom: 20px;
+        }
+
+        /* SCREEN WRAPPER */
+        .screens-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(560px, 1fr));
+            gap: 28px;
+        }
+
+        .screen-card {
+            background: #fff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e0e0e0;
+        }
+
+        .screen-label {
+            background: #1a1a2e;
+            color: #fff;
+            padding: 10px 16px;
+            font-size: 13px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .screen-label .badge {
+            background: #e63946;
+            font-size: 10px;
+            padding: 2px 7px;
+            border-radius: 10px;
+        }
+
+        .screen-body {
+            padding: 0;
+        }
+
+        /* ========== WIREFRAME COMPONENTS ========== */
+        .wf {
+            background: #fafafa;
+        }
+
+        /* Topbar */
+        .wf-topbar {
+            background: #1a1a2e;
+            color: #fff;
+            padding: 10px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 13px;
+        }
+
+        .wf-logo {
+            width: 28px;
+            height: 28px;
+            background: #e63946;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 11px;
+            color: #fff;
+            flex-shrink: 0;
+        }
+
+        .wf-topbar-title {
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .wf-topbar-spacer {
+            flex: 1;
+        }
+
+        .wf-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: #444;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            color: #ccc;
+        }
+
+        /* Sidebar */
+        .wf-layout {
+            display: flex;
+        }
+
+        .wf-sidebar {
+            width: 160px;
+            background: #fff;
+            border-right: 1px solid #e8e8e8;
+            padding: 12px 0;
+            flex-shrink: 0;
+        }
+
+        .wf-sidebar-item {
+            padding: 8px 14px;
+            font-size: 12px;
+            color: #555;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        .wf-sidebar-item:hover {
+            background: #f5f5f5;
+        }
+
+        .wf-sidebar-item.active {
+            background: #fff0f1;
+            color: #e63946;
+            font-weight: 600;
+            border-left: 3px solid #e63946;
+        }
+
+        .wf-sidebar-icon {
+            width: 14px;
+            height: 14px;
+            background: currentColor;
+            border-radius: 3px;
+            opacity: 0.6;
+            flex-shrink: 0;
+        }
+
+        /* Content area */
+        .wf-content {
+            flex: 1;
+            padding: 14px;
+            background: #f5f6fa;
+            min-height: 320px;
+        }
+
+        .wf-page-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: #1a1a2e;
+            margin-bottom: 4px;
+        }
+
+        .wf-page-sub {
+            font-size: 11px;
+            color: #888;
+            margin-bottom: 12px;
+        }
+
+        /* Stat cards */
+        .wf-stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-bottom: 14px;
+        }
+
+        .wf-stat {
+            background: #fff;
+            border-radius: 8px;
+            padding: 10px 12px;
+            border: 1px solid #e8e8e8;
+        }
+
+        .wf-stat-label {
+            font-size: 10px;
+            color: #888;
+            margin-bottom: 4px;
+        }
+
+        .wf-stat-value {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1a1a2e;
+        }
+
+        .wf-stat-icon {
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .red-bg {
+            background: #fff0f1;
+        }
+
+        .blue-bg {
+            background: #e8f4fd;
+        }
+
+        .green-bg {
+            background: #e8f5e9;
+        }
+
+        .yellow-bg {
+            background: #fffde7;
+        }
+
+        /* Chart placeholder */
+        .wf-chart-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+
+        .wf-chart {
+            background: #fff;
+            border-radius: 8px;
+            border: 1px solid #e8e8e8;
+            padding: 12px;
+        }
+
+        .wf-chart-title {
+            font-size: 11px;
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 8px;
+        }
+
+        .wf-chart-area {
+            height: 80px;
+            background: linear-gradient(180deg, #e8f4fd 0%, #f5f6fa 100%);
+            border-radius: 6px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .bar-chart {
+            display: flex;
+            align-items: flex-end;
+            gap: 4px;
+            height: 80px;
+            padding: 8px 8px 0;
+        }
+
+        .bar {
+            flex: 1;
+            border-radius: 3px 3px 0 0;
+            min-width: 14px;
+        }
+
+        .bar-blue {
+            background: #4dabf7;
+        }
+
+        .bar-green {
+            background: #69db7c;
+        }
+
+        .bar-red {
+            background: #ff8787;
+        }
+
+        .donut-placeholder {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background: conic-gradient(#4dabf7 0deg 160deg, #69db7c 160deg 240deg, #ff8787 240deg 360deg);
+            margin: 5px auto;
+            position: relative;
+        }
+
+        .donut-placeholder::after {
+            content: '';
+            position: absolute;
+            top: 18px;
+            left: 18px;
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background: #fff;
+        }
+
+        /* Table */
+        .wf-table-wrap {
+            background: #fff;
+            border-radius: 8px;
+            border: 1px solid #e8e8e8;
+            overflow: hidden;
+        }
+
+        .wf-table-header {
+            display: flex;
+            align-items: center;
+            padding: 10px 12px;
+            gap: 8px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .wf-table-title {
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .wf-search {
+            margin-left: auto;
+            background: #f5f6fa;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            padding: 4px 10px;
+            font-size: 11px;
+            color: #888;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .wf-btn {
+            background: #e63946;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            padding: 5px 12px;
+            font-size: 11px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .wf-btn-outline {
+            background: #fff;
+            color: #e63946;
+            border: 1px solid #e63946;
+            border-radius: 6px;
+            padding: 4px 10px;
+            font-size: 11px;
+            cursor: pointer;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11px;
+        }
+
+        thead {
+            background: #f5f6fa;
+        }
+
+        th {
+            padding: 8px 12px;
+            text-align: left;
+            color: #666;
+            font-weight: 600;
+            border-bottom: 1px solid #eee;
+        }
+
+        td {
+            padding: 7px 12px;
+            border-bottom: 1px solid #f0f0f0;
+            color: #444;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        .wf-tag {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .tag-green {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .tag-yellow {
+            background: #fffde7;
+            color: #f57f17;
+        }
+
+        .tag-red {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .tag-blue {
+            background: #e3f2fd;
+            color: #1565c0;
+        }
+
+        .tag-gray {
+            background: #f5f5f5;
+            color: #616161;
+        }
+
+        .wf-actions {
+            display: flex;
+            gap: 4px;
+        }
+
+        .wf-icon-btn {
+            width: 24px;
+            height: 24px;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            cursor: pointer;
+        }
+
+        .icon-eye {
+            background: #e3f2fd;
+            color: #1565c0;
+        }
+
+        .icon-edit {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .icon-del {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .wf-pagination {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 6px;
+            padding: 8px 12px;
+            border-top: 1px solid #f0f0f0;
+            font-size: 11px;
+            color: #666;
+        }
+
+        .wf-pg-btn {
+            width: 24px;
+            height: 24px;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 11px;
+        }
+
+        .wf-pg-btn.current {
+            background: #e63946;
+            color: #fff;
+            border-color: #e63946;
+        }
+
+        /* Form */
+        .wf-form {
+            padding: 14px;
+        }
+
+        .wf-form-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #1a1a2e;
+            margin-bottom: 12px;
+        }
+
+        .wf-form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .wf-form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .wf-label {
+            font-size: 11px;
+            color: #555;
+            font-weight: 600;
+        }
+
+        .wf-input {
+            background: #f5f6fa;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            padding: 7px 10px;
+            font-size: 11px;
+            color: #333;
+        }
+
+        .wf-input.required {
+            border-left: 3px solid #e63946;
+        }
+
+        .wf-textarea {
+            background: #f5f6fa;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            padding: 7px 10px;
+            font-size: 11px;
+            color: #333;
+            height: 56px;
+            resize: none;
+        }
+
+        .wf-file-drop {
+            background: #f5f6fa;
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            padding: 18px;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .wf-file-drop-icon {
+            font-size: 22px;
+            margin-bottom: 6px;
+        }
+
+        .wf-file-drop-text {
+            font-size: 11px;
+            color: #888;
+        }
+
+        .wf-form-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            margin-top: 14px;
+        }
+
+        /* Login */
+        .wf-login-screen {
+            min-height: 320px;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .wf-login-card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 28px 24px;
+            width: 100%;
+            max-width: 320px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+        }
+
+        .wf-login-logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .wf-login-logo-icon {
+            width: 40px;
+            height: 40px;
+            background: #e63946;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .wf-login-logo-text {
+            font-size: 20px;
+            font-weight: 800;
+            color: #1a1a2e;
+        }
+
+        .wf-login-sub {
+            text-align: center;
+            font-size: 11px;
+            color: #888;
+            margin-bottom: 20px;
+        }
+
+        .wf-login-field {
+            margin-bottom: 12px;
+        }
+
+        .wf-login-label {
+            font-size: 11px;
+            color: #555;
+            font-weight: 600;
+            margin-bottom: 4px;
+            display: block;
+        }
+
+        .wf-login-input {
+            width: 100%;
+            background: #f5f6fa;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 9px 12px;
+            font-size: 12px;
+            color: #333;
+        }
+
+        .wf-login-btn {
+            width: 100%;
+            background: #e63946;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 11px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 4px;
+        }
+
+        .wf-login-footer {
+            text-align: center;
+            font-size: 11px;
+            color: #888;
+            margin-top: 16px;
+        }
+
+        /* Activate */
+        .wf-activate {
+            min-height: 320px;
+            background: #f5f6fa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .wf-activate-card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 28px 24px;
+            width: 100%;
+            max-width: 360px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e0e0e0;
+        }
+
+        /* Modal */
+        .wf-modal-overlay {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .wf-modal {
+            background: #fff;
+            border-radius: 12px;
+            padding: 20px;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .wf-modal-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #1a1a2e;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .wf-close {
+            font-size: 16px;
+            cursor: pointer;
+            color: #999;
+        }
+
+        /* Activity list */
+        .wf-activity-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .wf-activity-item {
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+            padding: 8px 10px;
+            background: #fff;
+            border-radius: 6px;
+            border: 1px solid #eee;
+        }
+
+        .wf-activity-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-top: 3px;
+            flex-shrink: 0;
+        }
+
+        .wf-activity-text {
+            font-size: 11px;
+            color: #555;
+        }
+
+        .wf-activity-time {
+            font-size: 10px;
+            color: #aaa;
+            margin-top: 2px;
+        }
+
+        /* KPI grid */
+        .wf-kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-bottom: 14px;
+        }
+
+        .wf-kpi {
+            background: #fff;
+            border-radius: 8px;
+            padding: 10px 12px;
+            border: 1px solid #e8e8e8;
+            text-align: center;
+        }
+
+        .wf-kpi-label {
+            font-size: 10px;
+            color: #888;
+            margin-bottom: 4px;
+        }
+
+        .wf-kpi-value {
+            font-size: 16px;
+            font-weight: 700;
+            color: #1a1a2e;
+        }
+
+        .wf-kpi-unit {
+            font-size: 10px;
+            color: #aaa;
+        }
+
+        /* Riwayat */
+        .wf-timeline {
+            padding: 4px 0;
+        }
+
+        .wf-timeline-item {
+            display: flex;
+            gap: 12px;
+            padding: 8px 0;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 11px;
+        }
+
+        .wf-timeline-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-top: 2px;
+            flex-shrink: 0;
+            background: #4dabf7;
+        }
+
+        /* Scroll for full-width sections */
+        .scroll-hint {
+            font-size: 11px;
+            color: #aaa;
+            text-align: right;
+            margin-bottom: 6px;
+        }
+
+        /* Vendor portal sidebar */
+        .wf-vendor-sidebar {
+            width: 140px;
+            background: #1a1a2e;
+            padding: 12px 0;
+            flex-shrink: 0;
+        }
+
+        .wf-vendor-sidebar-item {
+            padding: 9px 14px;
+            font-size: 11px;
+            color: #aaa;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        .wf-vendor-sidebar-item.active {
+            color: #fff;
+            background: rgba(230, 57, 70, 0.3);
+            border-left: 3px solid #e63946;
+        }
+
+        /* Upload progress */
+        .wf-progress-bar {
+            background: #f0f0f0;
+            border-radius: 10px;
+            height: 6px;
+            margin-top: 6px;
+            overflow: hidden;
+        }
+
+        .wf-progress-fill {
+            height: 100%;
+            background: #e63946;
+            border-radius: 10px;
+        }
+
+        /* Filter tabs */
+        .wf-filters {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 12px;
+        }
+
+        .wf-filter-tab {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            border: 1px solid #e0e0e0;
+            background: #fff;
+            color: #555;
+        }
+
+        .wf-filter-tab.active {
+            background: #e63946;
+            color: #fff;
+            border-color: #e63946;
+        }
+
+        /* Notification */
+        .wf-notif {
+            background: #e8f5e9;
+            border: 1px solid #a5d6a7;
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 12px;
+            color: #2e7d32;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .wf-notif-red {
+            background: #ffebee;
+            border-color: #ef9a9a;
+            color: #c62828;
+        }
+
+        /* Legend */
+        .wf-legend {
+            display: flex;
+            gap: 12px;
+            margin-top: 8px;
+        }
+
+        .wf-legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 10px;
+            color: #666;
+        }
+
+        .wf-legend-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- TOP NAV -->
+    <nav class="nav">
+        <div class="wf-login-logo-icon" style="width:32px;height:32px;font-size:12px;">PLN</div>
+        <span class="nav-title">VLAAS</span>
+        <span class="nav-badge">Wireframe</span>
+        <div class="nav-tabs">
+            <button class="nav-tab active" onclick="showSection('login')">Login</button>
+            <button class="nav-tab" onclick="showSection('admin')">Admin</button>
+            <button class="nav-tab" onclick="showSection('vendor')">Vendor</button>
+            <button class="nav-tab" onclick="showSection('flow')">Alur Sistem</button>
+        </div>
+    </nav>
+
+    <!-- ==================== LOGIN SECTION ==================== -->
+    <div id="section-login" class="section active">
+        <div class="section-title">Halaman Login</div>
+        <div class="section-sub">Halaman autentikasi untuk Admin dan Vendor Portal</div>
+        <div class="screens-grid">
+
+            <!-- Admin Login -->
+            <div class="screen-card">
+                <div class="screen-label">
+                    <span>🔐</span> Login Admin
+                    <span class="badge">Admin</span>
+                </div>
+                <div class="wf-login-screen">
+                    <div class="wf-login-card">
+                        <div class="wf-login-logo">
+                            <div class="wf-login-logo-icon">PLN</div>
+                            <div class="wf-login-logo-text">VLAAS</div>
+                        </div>
+                        <div class="wf-login-sub">Vendor & Laporan Aset Admin System<br><small>Login sebagai
+                                Administrator</small></div>
+                        <div class="wf-login-field">
+                            <label class="wf-login-label">Email</label>
+                            <div class="wf-login-input" style="color:#aaa">admin@pln.co.id</div>
+                        </div>
+                        <div class="wf-login-field">
+                            <label class="wf-login-label">Password</label>
+                            <div class="wf-login-input" style="color:#aaa">••••••••</div>
+                        </div>
+                        <div class="wf-login-btn">Masuk</div>
+                        <div class="wf-login-footer">
+                            Lupa password? <span style="color:#e63946">Reset di sini</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Vendor Login -->
+            <div class="screen-card">
+                <div class="screen-label">
+                    <span>🏢</span> Login Vendor
+                    <span class="badge">Vendor</span>
+                </div>
+                <div class="wf-login-screen"
+                    style="background: linear-gradient(135deg, #0f3460 0%, #16213e 50%, #1a1a2e 100%);">
+                    <div class="wf-login-card">
+                        <div class="wf-login-logo">
+                            <div class="wf-login-logo-icon" style="background:#0f3460">V</div>
+                            <div class="wf-login-logo-text" style="color:#0f3460">Vendor Portal</div>
+                        </div>
+                        <div class="wf-login-sub">Masuk ke Portal Vendor PLN<br><small>Kelola pengajuan surat
+                                Anda</small></div>
+                        <div class="wf-login-field">
+                            <label class="wf-login-label">Email Vendor</label>
+                            <div class="wf-login-input" style="color:#aaa">vendor@company.com</div>
+                        </div>
+                        <div class="wf-login-field">
+                            <label class="wf-login-label">Password</label>
+                            <div class="wf-login-input" style="color:#aaa">••••••••</div>
+                        </div>
+                        <div class="wf-login-btn" style="background:#0f3460">Masuk sebagai Vendor</div>
+                        <div class="wf-login-footer">
+                            Belum punya akun? <span style="color:#0f3460;font-weight:600">Daftar / Aktivasi</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Vendor Aktivasi -->
+            <div class="screen-card">
+                <div class="screen-label">
+                    <span>✅</span> Aktivasi Akun Vendor
+                    <span class="badge">Vendor</span>
+                </div>
+                <div class="wf-activate">
+                    <div class="wf-activate-card">
+                        <div style="text-align:center;margin-bottom:16px">
+                            <div style="font-size:32px;margin-bottom:8px">🔑</div>
+                            <div style="font-size:15px;font-weight:700;color:#1a1a2e">Aktivasi Akun Vendor</div>
+                            <div style="font-size:11px;color:#888;margin-top:4px">Masukkan kode aktivasi yang diberikan
+                                admin</div>
+                        </div>
+                        <div class="wf-login-field">
+                            <label class="wf-login-label">Kode Aktivasi (6 digit)</label>
+                            <div class="wf-login-input"
+                                style="color:#aaa;text-align:center;letter-spacing:8px;font-size:16px;font-weight:700">_
+                                _ _ _ _ _</div>
+                        </div>
+                        <div class="wf-login-field">
+                            <label class="wf-login-label">Buat Password Baru</label>
+                            <div class="wf-login-input" style="color:#aaa">••••••••</div>
+                        </div>
+                        <div class="wf-login-field">
+                            <label class="wf-login-label">Konfirmasi Password</label>
+                            <div class="wf-login-input" style="color:#aaa">••••••••</div>
+                        </div>
+                        <div class="wf-login-btn">Aktifkan Akun</div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ==================== ADMIN SECTION ==================== -->
+    <div id="section-admin" class="section">
+        <div class="section-title">Panel Admin</div>
+        <div class="section-sub">Halaman-halaman yang diakses Administrator sistem</div>
+        <div class="screens-grid">
+
+            <!-- Dashboard Admin -->
+            <div class="screen-card">
+                <div class="screen-label"><span>📊</span> Dashboard Admin <span class="badge">Admin</span></div>
+                <div class="wf">
+                    <div class="wf-topbar">
+                        <div class="wf-logo">PLN</div>
+                        <span class="wf-topbar-title">VLAAS</span>
+                        <span class="wf-topbar-spacer"></span>
+                        <span style="font-size:11px;color:#aaa">Admin PLN &nbsp;</span>
+                        <div class="wf-avatar">A</div>
+                    </div>
+                    <div class="wf-layout">
+                        <div class="wf-sidebar">
+                            <div class="wf-sidebar-item active">📊 Dashboard</div>
+                            <div class="wf-sidebar-item">🏢 Data Vendor</div>
+                            <div class="wf-sidebar-item">👤 Approval Akun</div>
+                            <div class="wf-sidebar-item">📄 Approval Surat</div>
+                            <div class="wf-sidebar-item">🗂 Aset</div>
+                            <div class="wf-sidebar-item">📈 Laporan</div>
+                            <div class="wf-sidebar-item">📋 Riwayat</div>
+                            <div class="wf-sidebar-item">⚙️ Pengaturan</div>
+                        </div>
+                        <div class="wf-content">
+                            <div class="wf-page-title">Dashboard</div>
+                            <div class="wf-page-sub">Ringkasan data vendor & kontrak PLN</div>
+                            <div class="wf-stats">
+                                <div class="wf-stat">
+                                    <div class="wf-stat-icon blue-bg" style="font-size:14px">📋</div>
+                                    <div class="wf-stat-label">Total Kontrak</div>
+                                    <div class="wf-stat-value">124</div>
+                                </div>
+                                <div class="wf-stat">
+                                    <div class="wf-stat-icon red-bg" style="font-size:14px">⏰</div>
+                                    <div class="wf-stat-label">Terlambat</div>
+                                    <div class="wf-stat-value" style="color:#e63946">8</div>
+                                </div>
+                                <div class="wf-stat">
+                                    <div class="wf-stat-icon yellow-bg" style="font-size:14px">🔄</div>
+                                    <div class="wf-stat-label">Dalam Proses</div>
+                                    <div class="wf-stat-value" style="color:#f57f17">42</div>
+                                </div>
+                                <div class="wf-stat">
+                                    <div class="wf-stat-icon green-bg" style="font-size:14px">🏢</div>
+                                    <div class="wf-stat-label">Total Vendor</div>
+                                    <div class="wf-stat-value" style="color:#2e7d32">67</div>
+                                </div>
+                            </div>
+                            <div class="wf-chart-row">
+                                <div class="wf-chart">
+                                    <div class="wf-chart-title">📈 Kontrak per Bulan (2025)</div>
+                                    <div class="bar-chart">
+                                        <div class="bar bar-blue" style="height:40%"></div>
+                                        <div class="bar bar-blue" style="height:55%"></div>
+                                        <div class="bar bar-blue" style="height:35%"></div>
+                                        <div class="bar bar-blue" style="height:70%"></div>
+                                        <div class="bar bar-blue" style="height:60%"></div>
+                                        <div class="bar bar-blue" style="height:80%"></div>
+                                        <div class="bar bar-blue" style="height:75%"></div>
+                                        <div class="bar bar-blue" style="height:90%"></div>
+                                        <div class="bar bar-blue" style="height:65%"></div>
+                                        <div class="bar bar-blue" style="height:85%"></div>
+                                        <div class="bar bar-blue" style="height:70%"></div>
+                                        <div class="bar bar-blue" style="height:95%"></div>
+                                    </div>
+                                    <div class="wf-legend">
+                                        <div class="wf-legend-item">
+                                            <div class="wf-legend-dot" style="background:#4dabf7"></div>Dalam Proses
+                                        </div>
+                                        <div class="wf-legend-item">
+                                            <div class="wf-legend-dot" style="background:#69db7c"></div>Terbayar
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="wf-chart">
+                                    <div class="wf-chart-title">🍩 Status Kontrak</div>
+                                    <div class="donut-placeholder"></div>
+                                    <div style="display:flex;flex-direction:column;gap:4px;margin-top:8px">
+                                        <div class="wf-legend-item">
+                                            <div class="wf-legend-dot" style="background:#4dabf7"></div>Dalam Pekerjaan
+                                            (44%)
+                                        </div>
+                                        <div class="wf-legend-item">
+                                            <div class="wf-legend-dot" style="background:#69db7c"></div>Diperiksa (22%)
+                                        </div>
+                                        <div class="wf-legend-item">
+                                            <div class="wf-legend-dot" style="background:#ff8787"></div>Terbayar (33%)
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="wf-table-wrap">
+                                <div class="wf-table-header">
+                                    <div class="wf-table-title">📋 Aktivitas Terkini</div>
+                                </div>
+                                <div style="padding:8px 12px">
+                                    <div class="wf-activity-list">
+                                        <div class="wf-activity-item">
+                                            <div class="wf-activity-dot" style="background:#4dabf7"></div>
+                                            <div>
+                                                <div class="wf-activity-text">Kontrak #K-2025-001 diperbarui statusnya
+                                                </div>
+                                                <div class="wf-activity-time">2 menit lalu</div>
+                                            </div>
+                                        </div>
+                                        <div class="wf-activity-item">
+                                            <div class="wf-activity-dot" style="background:#69db7c"></div>
+                                            <div>
+                                                <div class="wf-activity-text">Vendor PT. Maju Jaya mendaftar baru</div>
+                                                <div class="wf-activity-time">15 menit lalu</div>
+                                            </div>
+                                        </div>
+                                        <div class="wf-activity-item">
+                                            <div class="wf-activity-dot" style="background:#ff8787"></div>
+                                            <div>
+                                                <div class="wf-activity-text">Surat pengajuan #SP-2025-088 menunggu
+                                                    review</div>
+                                                <div class="wf-activity-time">1 jam lalu</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Data Vendor -->
+            <div class="screen-card">
+                <div class="screen-label"><span>🏢</span> Data Vendor <span class="badge">Admin</span></div>
+                <div class="wf">
+                    <div class="wf-topbar">
+                        <div class="wf-logo">PLN</div>
+                        <span class="wf-topbar-title">VLAAS</span>
+                        <span class="wf-topbar-spacer"></span>
+                        <div class="wf-avatar">A</div>
+                    </div>
+                    <div class="wf-layout">
+                        <div class="wf-sidebar">
+                            <div class="wf-sidebar-item">📊 Dashboard</div>
+                            <div class="wf-sidebar-item active">🏢 Data Vendor</div>
+                            <div class="wf-sidebar-item">👤 Approval Akun</div>
+                            <div class="wf-sidebar-item">📄 Approval Surat</div>
+                            <div class="wf-sidebar-item">🗂 Aset</div>
+                            <div class="wf-sidebar-item">📈 Laporan</div>
+                            <div class="wf-sidebar-item">📋 Riwayat</div>
+                            <div class="wf-sidebar-item">⚙️ Pengaturan</div>
+                        </div>
+                        <div class="wf-content">
+                            <div class="wf-page-title">Data Vendor</div>
+                            <div class="wf-page-sub">Kelola semua vendor yang terdaftar</div>
+                            <div class="wf-stats" style="grid-template-columns:repeat(2,1fr);margin-bottom:12px">
+                                <div class="wf-stat">
+                                    <div class="wf-stat-label">Total Vendor</div>
+                                    <div class="wf-stat-value">67</div>
+                                </div>
+                                <div class="wf-stat">
+                                    <div class="wf-stat-label">Vendor Aktif</div>
+                                    <div class="wf-stat-value" style="color:#2e7d32">52</div>
+                                </div>
+                            </div>
+                            <div class="wf-table-wrap">
+                                <div class="wf-table-header">
+                                    <div class="wf-table-title">Daftar Vendor</div>
+                                    <div class="wf-search">🔍 Cari vendor...</div>
+                                    <button class="wf-btn">+ Tambah Vendor</button>
+                                </div>
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Nama Vendor</th>
+                                            <th>Kontak</th>
+                                            <th>Status</th>
+                                            <th>Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td><b>PT. Maju Bersama</b><br><span
+                                                    style="color:#aaa;font-size:10px">vendor@majubersama.com</span></td>
+                                            <td>Budi Santoso</td>
+                                            <td><span class="wf-tag tag-green">Aktif</span></td>
+                                            <td>
+                                                <div class="wf-actions">
+                                                    <div class="wf-icon-btn icon-eye">👁</div>
+                                                    <div class="wf-icon-btn icon-edit">✏️</div>
+                                                    <div class="wf-icon-btn icon-del">🗑</div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td><b>CV. Teknik Jaya</b><br><span
+                                                    style="color:#aaa;font-size:10px">info@teknikjaya.com</span></td>
+                                            <td>Siti Rahayu</td>
+                                            <td><span class="wf-tag tag-yellow">Pending</span></td>
+                                            <td>
+                                                <div class="wf-actions">
+                                                    <div class="wf-icon-btn icon-eye">👁</div>
+                                                    <div class="wf-icon-btn icon-edit">✏️</div>
+                                                    <div class="wf-icon-btn icon-del">🗑</div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td><b>PT. Infrastruktur PLN</b><br><span
+                                                    style="color:#aaa;font-size:10px">admin@infrastruktur.co.id</span>
+                                            </td>
+                                            <td>Ahmad Fauzi</td>
+                                            <td><span class="wf-tag tag-gray">Non-Aktif</span></td>
+                                            <td>
+                                                <div class="wf-actions">
+                                                    <div class="wf-icon-btn icon-eye">👁</div>
+                                                    <div class="wf-icon-btn icon-edit">✏️</div>
+                                                    <div class="wf-icon-btn icon-del">🗑</div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                <div class="wf-pagination">
+                                    <span>Showing 1-3 of 67</span>
+                                    <div class="wf-pg-btn">‹</div>
+                                    <div class="wf-pg-btn current">1</div>
+                                    <div class="wf-pg-btn">2</div>
+                                    <div class="wf-pg-btn">3</div>
+                                    <div class="wf-pg-btn">›</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Approval Akun -->
+            <div class="screen-card">
+                <div class="screen-label"><span>👤</span> Approval Akun Vendor <span class="badge">Admin</span></div>
+                <div class="wf">
+                    <div class="wf-topbar">
+                        <div class="wf-logo">PLN</div>
+                        <span class="wf-topbar-title">VLAAS</span>
+                        <span class="wf-topbar-spacer"></span>
+                        <div class="wf-avatar">A</div>
+                    </div>
+                    <div class="wf-layout">
+                        <div class="wf-sidebar">
+                            <div class="wf-sidebar-item">📊 Dashboard</div>
+                            <div class="wf-sidebar-item">🏢 Data Vendor</div>
+                            <div class="wf-sidebar-item active">👤 Approval Akun</div>
+                            <div class="wf-sidebar-item">📄 Approval Surat</div>
+                            <div class="wf-sidebar-item">🗂 Aset</div>
+                            <div class="wf-sidebar-item">📈 Laporan</div>
+                            <div class="wf-sidebar-item">📋 Riwayat</div>
+                        </div>
+                        <div class="wf-content">
+                            <div class="wf-page-title">Approval Akun Vendor</div>
+                            <div class="wf-page-sub">Verifikasi pendaftaran vendor mandiri</div>
+                            <div class="wf-stats" style="grid-template-columns:repeat(3,1fr);margin-bottom:12px;">
+                                <div class="wf-stat">
+                                    <div class="wf-stat-label">Menunggu</div>
+                                    <div class="wf-stat-value" style="color:#f57f17">5</div>
+                                </div>
+                                <div class="wf-stat">
+                                    <div class="wf-stat-label">Disetujui</div>
+                                    <div class="wf-stat-value" style="color:#2e7d32">28</div>
+                                </div>
+                                <div class="wf-stat">
+                                    <div class="wf-stat-label">Ditolak</div>
+                                    <div class="wf-stat-value" style="color:#c62828">3</div>
+                                </div>
+                            </div>
+                            <div class="wf-filters">
+                                <div class="wf-filter-tab active">Semua</div>
+                                <div class="wf-filter-tab">Pending</div>
+                                <div class="wf-filter-tab">Disetujui</div>
+                                <div class="wf-filter-tab">Ditolak</div>
+                            </div>
+                            <div class="wf-table-wrap">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Nama Perusahaan</th>
+                                            <th>PIC</th>
+                                            <th>Tgl Daftar</th>
+                                            <th>Status</th>
+                                            <th>Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td><b>PT. Solusi Digital</b></td>
+                                            <td>Rini Wulandari</td>
+                                            <td>15 Feb 2025</td>
+                                            <td><span class="wf-tag tag-yellow">Pending</span></td>
+                                            <td>
+                                                <div class="wf-actions">
+                                                    <div class="wf-icon-btn icon-eye">👁</div>
+                                                    <div class="wf-icon-btn icon-edit"
+                                                        style="background:#e8f5e9;color:#2e7d32">✓</div>
+                                                    <div class="wf-icon-btn icon-del">✗</div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td><b>CV. Konstruksi Maju</b></td>
+                                            <td>Hendra Putra</td>
+                                            <td>12 Feb 2025</td>
+                                            <td><span class="wf-tag tag-green">Aktif</span></td>
+                                            <td>
+                                                <div class="wf-actions">
+                                                    <div class="wf-icon-btn icon-eye">👁</div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                <div class="wf-pagination">
+                                    <span>Showing 1-2 of 36</span>
+                                    <div class="wf-pg-btn current">1</div>
+                                    <div class="wf-pg-btn">2</div>
+                                    <div class="wf-pg-btn">›</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Approval Surat -->
+            <div class="screen-card">
+                <div class="screen-label"><span>📄</span> Approval Surat Pengajuan <span class="badge">Admin</span>
+                </div>
+                <div class="wf">
+                    <div class="wf-topbar">
+                        <div class="wf-logo">PLN</div>
+                        <span class="wf-topbar-title">VLAAS</span>
+                        <span class="wf-topbar-spacer"></span>
+                        <div class="wf-avatar">A</div>
+                    </div>
+                    <div class="wf-layout">
+                        <div class="wf-sidebar">
+                            <div class="wf-sidebar-item">📊 Dashboard</div>
+                            <div class="wf-sidebar-item">🏢 Data Vendor</div>
+                            <div class="wf-sidebar-item">👤 Approval Akun</div>
+                            <div class="wf-sidebar-item active">📄 Approval Surat</div>
+                            <div class="wf-sidebar-item">🗂 Aset</div>
+                            <div class="wf-sidebar-item">📈 Laporan</div>
+                            <div class="wf-sidebar-item">📋 Riwayat</div>
+                        </div>
+                        <div class="wf-content">
+                            <div class="wf-page-title">Approval Surat Pengajuan</div>
+                            <div class="wf-page-sub">Review dan tindak lanjut surat dari vendor</div>
+                            <div class="wf-filters">
+                                <div class="wf-filter-tab active">Semua</div>
+                                <div class="wf-filter-tab">Pending</div>
+                                <div class="wf-filter-tab">Approved</div>
+                                <div class="wf-filter-tab">Rejected</div>
+                                <div class="wf-filter-tab">Expired</div>
+                            </div>
+                            <div class="wf-table-wrap">
+                                <div class="wf-table-header">
+                                    <div class="wf-table-title">Daftar Surat Masuk</div>
+                                    <div class="wf-search">🔍 Cari...</div>
+                                </div>
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>No. Surat</th>
+                                            <th>Nama Pekerjaan</th>
+                                            <th>Vendor</th>
+                                            <th>Sisa Waktu</th>
+                                            <th>Status</th>
+                                            <th>Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td><b>SP-2025-001</b></td>
+                                            <td>Pengadaan Kabel</td>
+                                            <td>PT. Maju Bersama</td>
+                                            <td><span class="wf-tag tag-yellow">5h 12j</span></td>
+                                            <td><span class="wf-tag tag-yellow">Pending</span></td>
+                                            <td>
+                                                <div class="wf-actions">
+                                                    <div class="wf-icon-btn icon-eye">👁</div>
+                                                    <div class="wf-icon-btn" style="background:#e8f5e9;color:#2e7d32">✓
+                                                    </div>
+                                                    <div class="wf-icon-btn icon-del">✗</div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td><b>SP-2025-002</b></td>
+                                            <td>Instalasi Panel</td>
+                                            <td>CV. Teknik Jaya</td>
+                                            <td><span class="wf-tag tag-green">6h 4j</span></td>
+                                            <td><span class="wf-tag tag-green">Approved</span></td>
+                                            <td>
+                                                <div class="wf-actions">
+                                                    <div class="wf-icon-btn icon-eye">👁</div>
+                                                    <div class="wf-icon-btn icon-del">🗑</div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td><b>SP-2024-099</b></td>
+                                            <td>Pemeliharaan Trafo</td>
+                                            <td>PT. Infrastruktur</td>
+                                            <td><span class="wf-tag tag-red">Expired</span></td>
+                                            <td><span class="wf-tag tag-gray">Expired</span></td>
+                                            <td>
+                                                <div class="wf-actions">
+                                                    <div class="wf-icon-btn icon-eye">👁</div>
+                                                    <div class="wf-icon-btn icon-del">🗑</div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                <div class="wf-pagination">
+                                    <span>1-3 of 24</span>
+                                    <div class="wf-pg-btn current">1</div>
+                                    <div class="wf-pg-btn">2</div>
+                                    <div class="wf-pg-btn">›</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Laporan -->
+            <div class="screen-card">
+                <div class="screen-label"><span>📈</span> Laporan & KPI <span class="badge">Admin</span></div>
+                <div class="wf">
+                    <div class="wf-topbar">
+                        <div class="wf-logo">PLN</div>
+                        <span class="wf-topbar-title">VLAAS</span>
+                        <span class="wf-topbar-spacer"></span>
+                        <div class="wf-avatar">A</div>
+                    </div>
+                    <div class="wf-layout">
+                        <div class="wf-sidebar">
+                            <div class="wf-sidebar-item">📊 Dashboard</div>
+                            <div class="wf-sidebar-item">🏢 Data Vendor</div>
+                            <div class="wf-sidebar-item">👤 Approval Akun</div>
+                            <div class="wf-sidebar-item">📄 Approval Surat</div>
+                            <div class="wf-sidebar-item">🗂 Aset</div>
+                            <div class="wf-sidebar-item active">📈 Laporan</div>
+                            <div class="wf-sidebar-item">📋 Riwayat</div>
+                        </div>
+                        <div class="wf-content">
+                            <div class="wf-page-title">Laporan & Analitik</div>
+                            <div class="wf-page-sub">KPI dan statistik kontrak vendor</div>
+                            <div style="display:flex;gap:8px;margin-bottom:12px;align-items:center">
+                                <div class="wf-input" style="padding:4px 10px;font-size:11px;flex:1">📅 Tahun Ini</div>
+                                <div class="wf-input" style="padding:4px 10px;font-size:11px;flex:1">📋 Semua Status
+                                </div>
+                                <button class="wf-btn">📥 Export Excel</button>
+                                <button class="wf-btn-outline">📄 PDF</button>
+                            </div>
+                            <div class="wf-kpi-grid">
+                                <div class="wf-kpi">
+                                    <div class="wf-kpi-label">Sisa Nilai Kontrak</div>
+                                    <div class="wf-kpi-value" style="color:#e63946">Rp 2.4M</div>
+                                    <div class="wf-kpi-unit">dari total anggaran</div>
+                                </div>
+                                <div class="wf-kpi">
+                                    <div class="wf-kpi-label">Mendekati Deadline</div>
+                                    <div class="wf-kpi-value" style="color:#f57f17">12</div>
+                                    <div class="wf-kpi-unit">kontrak dalam 30 hari</div>
+                                </div>
+                                <div class="wf-kpi">
+                                    <div class="wf-kpi-label">Rata-rata Penyelesaian</div>
+                                    <div class="wf-kpi-value" style="color:#2e7d32">87%</div>
+                                    <div class="wf-kpi-unit">dari target</div>
+                                </div>
+                                <div class="wf-kpi">
+                                    <div class="wf-kpi-label">Total Dokumen</div>
+                                    <div class="wf-kpi-value">234</div>
+                                    <div class="wf-kpi-unit">dokumen aktif</div>
+                                </div>
+                                <div class="wf-kpi">
+                                    <div class="wf-kpi-label">Avg Cycle Time</div>
+                                    <div class="wf-kpi-value">4.2</div>
+                                    <div class="wf-kpi-unit">hari per approval</div>
+                                </div>
+                                <div class="wf-kpi">
+                                    <div class="wf-kpi-label">Approval Rate</div>
+                                    <div class="wf-kpi-value" style="color:#2e7d32">93%</div>
+                                    <div class="wf-kpi-unit">surat disetujui</div>
+                                </div>
+                            </div>
+                            <div class="wf-chart">
+                                <div class="wf-chart-title">📊 Tren Kontrak per Bulan</div>
+                                <div class="bar-chart">
+                                    <div style="display:flex;flex-direction:column;align-items:center;flex:1">
+                                        <div class="bar bar-blue" style="height:50%;width:60%"></div>
+                                        <div style="font-size:9px;color:#aaa">Jan</div>
+                                    </div>
+                                    <div style="display:flex;flex-direction:column;align-items:center;flex:1">
+                                        <div class="bar bar-blue" style="height:65%;width:60%"></div>
+                                        <div style="font-size:9px;color:#aaa">Feb</div>
+                                    </div>
+                                    <div style="display:flex;flex-direction:column;align-items:center;flex:1">
+                                        <div class="bar bar-blue" style="height:40%;width:60%"></div>
+                                        <div style="font-size:9px;color:#aaa">Mar</div>
+                                    </div>
+                                    <div style="display:flex;flex-direction:column;align-items:center;flex:1">
+                                        <div class="bar bar-green" style="height:80%;width:60%"></div>
+                                        <div style="font-size:9px;color:#aaa">Apr</div>
+                                    </div>
+                                    <div style="display:flex;flex-direction:column;align-items:center;flex:1">
+                                        <div class="bar bar-green" style="height:70%;width:60%"></div>
+                                        <div style="font-size:9px;color:#aaa">Mei</div>
+                                    </div>
+                                    <div style="display:flex;flex-direction:column;align-items:center;flex:1">
+                                        <div class="bar bar-green" style="height:95%;width:60%"></div>
+                                        <div style="font-size:9px;color:#aaa">Jun</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Riwayat -->
+            <div class="screen-card">
+                <div class="screen-label"><span>📋</span> Riwayat Kontrak <span class="badge">Admin</span></div>
+                <div class="wf">
+                    <div class="wf-topbar">
+                        <div class="wf-logo">PLN</div>
+                        <span class="wf-topbar-title">VLAAS</span>
+                        <span class="wf-topbar-spacer"></span>
+                        <div class="wf-avatar">A</div>
+                    </div>
+                    <div class="wf-layout">
+                        <div class="wf-sidebar">
+                            <div class="wf-sidebar-item">📊 Dashboard</div>
+                            <div class="wf-sidebar-item">🏢 Data Vendor</div>
+                            <div class="wf-sidebar-item">👤 Approval Akun</div>
+                            <div class="wf-sidebar-item">📄 Approval Surat</div>
+                            <div class="wf-sidebar-item">🗂 Aset</div>
+                            <div class="wf-sidebar-item">📈 Laporan</div>
+                            <div class="wf-sidebar-item active">📋 Riwayat</div>
+                        </div>
+                        <div class="wf-content">
+                            <div class="wf-page-title">Riwayat Kontrak</div>
+                            <div class="wf-page-sub">Histori semua perubahan kontrak vendor</div>
+                            <div style="display:flex;gap:8px;margin-bottom:12px">
+                                <div class="wf-search" style="flex:1">🔍 Cari nama/nomor kontrak...</div>
+                                <div class="wf-input" style="padding:4px 10px;font-size:11px">📅 Filter Tanggal</div>
+                            </div>
+                            <div class="wf-table-wrap">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>No. Kontrak</th>
+                                            <th>Nama Pekerjaan</th>
+                                            <th>Vendor</th>
+                                            <th>Nilai</th>
+                                            <th>Status</th>
+                                            <th>Tanggal</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td><b>K-2025-001</b></td>
+                                            <td>Pengadaan Material</td>
+                                            <td>PT. Maju Bersama</td>
+                                            <td>Rp 450 Jt</td>
+                                            <td><span class="wf-tag tag-green">Terbayar</span></td>
+                                            <td>10 Jan 2025</td>
+                                        </tr>
+                                        <tr>
+                                            <td><b>K-2025-002</b></td>
+                                            <td>Jasa Konsultansi</td>
+                                            <td>CV. Teknik Jaya</td>
+                                            <td>Rp 120 Jt</td>
+                                            <td><span class="wf-tag tag-blue">Diperiksa</span></td>
+                                            <td>22 Jan 2025</td>
+                                        </tr>
+                                        <tr>
+                                            <td><b>K-2024-089</b></td>
+                                            <td>Pemeliharaan Jaringan</td>
+                                            <td>PT. Infrastruktur</td>
+                                            <td>Rp 890 Jt</td>
+                                            <td><span class="wf-tag tag-blue">Dalam Pekerjaan</span></td>
+                                            <td>5 Des 2024</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                <div class="wf-pagination">
+                                    <span>1-3 of 89</span>
+                                    <div class="wf-pg-btn current">1</div>
+                                    <div class="wf-pg-btn">2</div>
+                                    <div class="wf-pg-btn">3</div>
+                                    <div class="wf-pg-btn">›</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ==================== VENDOR SECTION ==================== -->
+    <div id="section-vendor" class="section">
+        <div class="section-title">Portal Vendor</div>
+        <div class="section-sub">Halaman-halaman yang diakses Vendor setelah login</div>
+        <div class="screens-grid">
+
+            <!-- Vendor Dashboard -->
+            <div class="screen-card">
+                <div class="screen-label"><span>🏠</span> Dashboard Vendor <span class="badge">Vendor</span></div>
+                <div class="wf">
+                    <div class="wf-topbar" style="background:#0f3460">
+                        <div class="wf-logo" style="background:#e63946">V</div>
+                        <span class="wf-topbar-title">Vendor Portal</span>
+                        <span class="wf-topbar-spacer"></span>
+                        <span style="font-size:11px;color:#aaa">PT. Maju Bersama &nbsp;</span>
+                        <div class="wf-avatar">MB</div>
+                    </div>
+                    <div class="wf-layout">
+                        <div class="wf-vendor-sidebar">
+                            <div class="wf-vendor-sidebar-item active">🏠 Dashboard</div>
+                            <div class="wf-vendor-sidebar-item">📝 Pengajuan</div>
+                            <div class="wf-vendor-sidebar-item">👤 Profil</div>
+                        </div>
+                        <div class="wf-content">
+                            <div class="wf-page-title">Dashboard Vendor</div>
+                            <div class="wf-page-sub">Riwayat surat pengajuan Anda</div>
+                            <div class="wf-stats" style="grid-template-columns:repeat(4,1fr);margin-bottom:12px">
+                                <div class="wf-stat">
+                                    <div class="wf-stat-label">Total Pengajuan</div>
+                                    <div class="wf-stat-value">12</div>
+                                </div>
+                                <div class="wf-stat">
+                                    <div class="wf-stat-label">Pending</div>
+                                    <div class="wf-stat-value" style="color:#f57f17">3</div>
+                                </div>
+                                <div class="wf-stat">
+                                    <div class="wf-stat-label">Disetujui</div>
+                                    <div class="wf-stat-value" style="color:#2e7d32">8</div>
+                                </div>
+                                <div class="wf-stat">
+                                    <div class="wf-stat-label">Ditolak</div>
+                                    <div class="wf-stat-value" style="color:#c62828">1</div>
+                                </div>
+                            </div>
+                            <div class="wf-table-wrap">
+                                <div class="wf-table-header">
+                                    <div class="wf-table-title">Riwayat Surat Pengajuan</div>
+                                </div>
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>No. Surat</th>
+                                            <th>Perihal</th>
+                                            <th>Tgl Pengajuan</th>
+                                            <th>Status</th>
+                                            <th>Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td><b>SP-2025-010</b></td>
+                                            <td>Pengajuan Pembayaran</td>
+                                            <td>10 Feb 2025</td>
+                                            <td><span class="wf-tag tag-green">Approved</span></td>
+                                            <td>
+                                                <div class="wf-actions">
+                                                    <div class="wf-icon-btn icon-eye">👁</div>
+                                                    <div class="wf-icon-btn icon-edit"
+                                                        style="background:#e3f2fd;color:#1565c0">⬇</div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td><b>SP-2025-011</b></td>
+                                            <td>Laporan Progress</td>
+                                            <td>15 Feb 2025</td>
+                                            <td><span class="wf-tag tag-yellow">Pending</span></td>
+                                            <td>
+                                                <div class="wf-actions">
+                                                    <div class="wf-icon-btn icon-eye">👁</div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td><b>SP-2025-012</b></td>
+                                            <td>Berita Acara Serah Terima</td>
+                                            <td>17 Feb 2025</td>
+                                            <td><span class="wf-tag tag-red">Rejected</span></td>
+                                            <td>
+                                                <div class="wf-actions">
+                                                    <div class="wf-icon-btn icon-eye">👁</div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                <div class="wf-pagination">
+                                    <span>1-3 of 12</span>
+                                    <div class="wf-pg-btn current">1</div>
+                                    <div class="wf-pg-btn">2</div>
+                                    <div class="wf-pg-btn">3</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Form Pengajuan Surat -->
+            <div class="screen-card">
+                <div class="screen-label"><span>📝</span> Form Pengajuan Surat <span class="badge">Vendor</span></div>
+                <div class="wf">
+                    <div class="wf-topbar" style="background:#0f3460">
+                        <div class="wf-logo" style="background:#e63946">V</div>
+                        <span class="wf-topbar-title">Vendor Portal</span>
+                        <span class="wf-topbar-spacer"></span>
+                        <div class="wf-avatar">MB</div>
+                    </div>
+                    <div class="wf-layout">
+                        <div class="wf-vendor-sidebar">
+                            <div class="wf-vendor-sidebar-item">🏠 Dashboard</div>
+                            <div class="wf-vendor-sidebar-item active">📝 Pengajuan</div>
+                            <div class="wf-vendor-sidebar-item">👤 Profil</div>
+                        </div>
+                        <div class="wf-content" style="padding:10px">
+                            <div class="wf-page-title">Form Pengajuan Surat</div>
+                            <div class="wf-page-sub">Isi formulir dan upload file PDF</div>
+                            <div style="background:#fff;border-radius:8px;padding:12px;border:1px solid #e8e8e8">
+                                <div class="wf-form-row">
+                                    <div class="wf-form-group">
+                                        <div class="wf-label">Nomor Surat *</div>
+                                        <div class="wf-input required">SP-2025-013</div>
+                                    </div>
+                                    <div class="wf-form-group">
+                                        <div class="wf-label">Tanggal Surat *</div>
+                                        <div class="wf-input required">18 Feb 2025</div>
+                                    </div>
+                                </div>
+                                <div class="wf-form-row">
+                                    <div class="wf-form-group">
+                                        <div class="wf-label">Perihal *</div>
+                                        <div class="wf-input required">Pengajuan Pembayaran Tahap 1</div>
+                                    </div>
+                                    <div class="wf-form-group">
+                                        <div class="wf-label">Nomor Kontrak *</div>
+                                        <div class="wf-input required">K-2025-001</div>
+                                    </div>
+                                </div>
+                                <div class="wf-form-row" style="grid-template-columns:1fr">
+                                    <div class="wf-form-group">
+                                        <div class="wf-label">Nama Pekerjaan *</div>
+                                        <div class="wf-input required">Pengadaan dan Pemasangan Kabel Distribusi</div>
+                                    </div>
+                                </div>
+                                <div class="wf-form-group" style="margin-bottom:10px">
+                                    <div class="wf-label">Keterangan (opsional)</div>
+                                    <div class="wf-textarea">Pengajuan pembayaran tahap pertama sesuai kontrak...</div>
+                                </div>
+                                <div class="wf-label" style="margin-bottom:6px">Upload Surat (PDF, maks. 5MB) *</div>
+                                <div class="wf-file-drop">
+                                    <div class="wf-file-drop-icon">📎</div>
+                                    <div class="wf-file-drop-text">Drag & drop file PDF di sini<br>atau <span
+                                            style="color:#e63946;font-weight:600">klik untuk browse</span></div>
+                                </div>
+                                <div
+                                    style="background:#f0fff0;border:1px solid #a5d6a7;border-radius:6px;padding:8px;font-size:11px;color:#2e7d32;margin-bottom:10px">
+                                    ✅ surat_pengajuan_sp001.pdf (1.2 MB)
+                                    <div class="wf-progress-bar">
+                                        <div class="wf-progress-fill" style="width:100%"></div>
+                                    </div>
+                                </div>
+                                <div class="wf-form-footer">
+                                    <button class="wf-btn-outline">Batal</button>
+                                    <button class="wf-btn">📤 Kirim Pengajuan</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profil Vendor -->
+            <div class="screen-card">
+                <div class="screen-label"><span>👤</span> Profil Vendor <span class="badge">Vendor</span></div>
+                <div class="wf">
+                    <div class="wf-topbar" style="background:#0f3460">
+                        <div class="wf-logo" style="background:#e63946">V</div>
+                        <span class="wf-topbar-title">Vendor Portal</span>
+                        <span class="wf-topbar-spacer"></span>
+                        <div class="wf-avatar">MB</div>
+                    </div>
+                    <div class="wf-layout">
+                        <div class="wf-vendor-sidebar">
+                            <div class="wf-vendor-sidebar-item">🏠 Dashboard</div>
+                            <div class="wf-vendor-sidebar-item">📝 Pengajuan</div>
+                            <div class="wf-vendor-sidebar-item active">👤 Profil</div>
+                        </div>
+                        <div class="wf-content" style="padding:10px">
+                            <div class="wf-page-title">Profil Perusahaan</div>
+                            <div style="background:#fff;border-radius:8px;padding:14px;border:1px solid #e8e8e8">
+                                <div
+                                    style="display:flex;gap:14px;align-items:center;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid #eee">
+                                    <div
+                                        style="width:52px;height:52px;border-radius:50%;background:#0f3460;display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px;font-weight:700;flex-shrink:0">
+                                        MB</div>
+                                    <div>
+                                        <div style="font-size:14px;font-weight:700">PT. Maju Bersama</div>
+                                        <div style="font-size:11px;color:#888">vendor@majubersama.com</div>
+                                        <span class="wf-tag tag-green"
+                                            style="margin-top:4px;display:inline-block">Aktif</span>
+                                    </div>
+                                </div>
+                                <div class="wf-form-row">
+                                    <div class="wf-form-group">
+                                        <div class="wf-label">Nama Perusahaan</div>
+                                        <div class="wf-input">PT. Maju Bersama</div>
+                                    </div>
+                                    <div class="wf-form-group">
+                                        <div class="wf-label">Kontak Person</div>
+                                        <div class="wf-input">Budi Santoso</div>
+                                    </div>
+                                </div>
+                                <div class="wf-form-row">
+                                    <div class="wf-form-group">
+                                        <div class="wf-label">Telepon</div>
+                                        <div class="wf-input">+62 812-3456-7890</div>
+                                    </div>
+                                    <div class="wf-form-group">
+                                        <div class="wf-label">NPWP</div>
+                                        <div class="wf-input">12.345.678.9-012.000</div>
+                                    </div>
+                                </div>
+                                <div class="wf-form-row">
+                                    <div class="wf-form-group">
+                                        <div class="wf-label">Bank Pembayaran</div>
+                                        <div class="wf-input">BRI</div>
+                                    </div>
+                                    <div class="wf-form-group">
+                                        <div class="wf-label">No. Rekening</div>
+                                        <div class="wf-input">1234-5678-9012</div>
+                                    </div>
+                                </div>
+                                <div class="wf-form-footer">
+                                    <button class="wf-btn">💾 Simpan Perubahan</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Detail Surat (Vendor) -->
+            <div class="screen-card">
+                <div class="screen-label"><span>🪟</span> Modal Detail Surat <span class="badge">Vendor / Admin</span>
+                </div>
+                <div class="wf" style="background:rgba(0,0,0,0.4)">
+                    <div class="wf-modal-overlay">
+                        <div class="wf-modal" style="max-width:420px">
+                            <div class="wf-modal-title">
+                                Detail Surat Pengajuan
+                                <span class="wf-close">✕</span>
+                            </div>
+                            <div
+                                style="background:#f5f6fa;border-radius:6px;padding:10px;margin-bottom:10px;font-size:11px">
+                                <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+                                    <div>
+                                        <div style="color:#888">No. Surat</div>
+                                        <div style="font-weight:600">SP-2025-010</div>
+                                    </div>
+                                    <div>
+                                        <div style="color:#888">Status</div><span
+                                            class="wf-tag tag-green">Approved</span>
+                                    </div>
+                                    <div>
+                                        <div style="color:#888">Nama Pekerjaan</div>
+                                        <div>Pengadaan Kabel</div>
+                                    </div>
+                                    <div>
+                                        <div style="color:#888">No. Kontrak</div>
+                                        <div>K-2025-001</div>
+                                    </div>
+                                    <div>
+                                        <div style="color:#888">Perihal</div>
+                                        <div>Pengajuan Pembayaran</div>
+                                    </div>
+                                    <div>
+                                        <div style="color:#888">Tgl Surat</div>
+                                        <div>10 Feb 2025</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="font-size:11px;color:#555;margin-bottom:8px;">
+                                <b>Keterangan:</b> Pembayaran tahap pertama sesuai kontrak yang telah disepakati
+                                bersama.
+                            </div>
+                            <div
+                                style="background:#e3f2fd;border-radius:6px;padding:8px;display:flex;align-items:center;gap:8px;font-size:11px;margin-bottom:10px">
+                                📄 surat_pengajuan_sp010.pdf
+                                <div style="margin-left:auto;display:flex;gap:6px">
+                                    <button class="wf-btn-outline" style="padding:3px 10px;font-size:10px">👁
+                                        Lihat</button>
+                                    <button class="wf-btn" style="padding:3px 10px;font-size:10px">⬇ Download</button>
+                                </div>
+                            </div>
+                            <div style="display:flex;justify-content:flex-end;gap:8px">
+                                <button class="wf-btn-outline">Tutup</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ==================== FLOW SECTION ==================== -->
+    <div id="section-flow" class="section">
+        <div class="section-title">Alur Sistem VLAAS</div>
+        <div class="section-sub">Peta navigasi dan alur kerja antar halaman</div>
+        <div
+            style="background:#fff;border-radius:12px;padding:24px;box-shadow:0 4px 20px rgba(0,0,0,0.08);border:1px solid #e0e0e0">
+            <svg viewBox="0 0 900 580" xmlns="http://www.w3.org/2000/svg"
+                style="width:100%;max-width:900px;display:block;margin:0 auto">
+                <defs>
+                    <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+                        <path d="M0,0 L0,6 L8,3 z" fill="#888" />
+                    </marker>
+                    <marker id="arrow-red" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+                        <path d="M0,0 L0,6 L8,3 z" fill="#e63946" />
+                    </marker>
+                    <marker id="arrow-blue" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+                        <path d="M0,0 L0,6 L8,3 z" fill="#0f3460" />
+                    </marker>
+                </defs>
+
+                <!-- Title -->
+                <text x="450" y="28" text-anchor="middle" font-size="16" font-weight="700" fill="#1a1a2e">Alur Navigasi
+                    Sistem VLAAS PLN</text>
+
+                <!-- START -->
+                <ellipse cx="450" cy="65" rx="50" ry="22" fill="#1a1a2e" />
+                <text x="450" y="70" text-anchor="middle" font-size="12" fill="#fff" font-weight="600">START</text>
+                <line x1="450" y1="87" x2="450" y2="108" stroke="#888" stroke-width="1.5" marker-end="url(#arrow)" />
+
+                <!-- Login Page -->
+                <rect x="350" y="110" width="200" height="40" rx="8" fill="#f5f6fa" stroke="#ccc" stroke-width="1.5" />
+                <text x="450" y="135" text-anchor="middle" font-size="12" fill="#333" font-weight="600">🔐 Halaman
+                    Login</text>
+
+                <!-- Arrow to Admin Login and Vendor Login -->
+                <line x1="350" y1="130" x2="230" y2="195" stroke="#e63946" stroke-width="1.5"
+                    marker-end="url(#arrow-red)" />
+                <line x1="550" y1="130" x2="670" y2="195" stroke="#0f3460" stroke-width="1.5"
+                    marker-end="url(#arrow-blue)" />
+
+                <!-- Admin Login -->
+                <rect x="120" y="195" width="160" height="40" rx="8" fill="#fff0f1" stroke="#e63946"
+                    stroke-width="1.5" />
+                <text x="200" y="220" text-anchor="middle" font-size="12" fill="#e63946" font-weight="600">Admin
+                    Login</text>
+
+                <!-- Vendor Login -->
+                <rect x="610" y="195" width="160" height="40" rx="8" fill="#e8edf7" stroke="#0f3460"
+                    stroke-width="1.5" />
+                <text x="690" y="220" text-anchor="middle" font-size="12" fill="#0f3460" font-weight="600">Vendor
+                    Login</text>
+
+                <!-- Vendor Activate -->
+                <rect x="770" y="195" width="120" height="40" rx="8" fill="#e8f5e9" stroke="#2e7d32"
+                    stroke-width="1.5" />
+                <text x="830" y="220" text-anchor="middle" font-size="11" fill="#2e7d32" font-weight="600">Aktivasi
+                    Akun</text>
+                <line x1="770" y1="215" x2="770" y2="215" stroke="#0f3460" stroke-width="1" stroke-dasharray="4" />
+
+                <!-- Admin arrows to pages -->
+                <line x1="200" y1="235" x2="200" y2="275" stroke="#e63946" stroke-width="1.5"
+                    marker-end="url(#arrow-red)" />
+
+                <!-- Admin Dashboard -->
+                <rect x="100" y="275" width="200" height="35" rx="6" fill="#fff" stroke="#e63946" stroke-width="1.5" />
+                <text x="200" y="297" text-anchor="middle" font-size="11" fill="#e63946" font-weight="600">📊 Dashboard
+                    Admin</text>
+
+                <!-- Admin sub-menu -->
+                <line x1="200" y1="310" x2="200" y2="330" stroke="#e63946" stroke-width="1.2"
+                    marker-end="url(#arrow-red)" />
+
+                <!-- Grid of admin pages -->
+                <!-- Row 1 -->
+                <rect x="20" y="330" width="115" height="30" rx="5" fill="#fff0f1" stroke="#e63946" stroke-width="1" />
+                <text x="77" y="350" text-anchor="middle" font-size="10" fill="#c62828">🏢 Data Vendor</text>
+
+                <rect x="145" y="330" width="115" height="30" rx="5" fill="#fff0f1" stroke="#e63946" stroke-width="1" />
+                <text x="202" y="350" text-anchor="middle" font-size="10" fill="#c62828">👤 Approval Akun</text>
+
+                <rect x="270" y="330" width="115" height="30" rx="5" fill="#fff0f1" stroke="#e63946" stroke-width="1" />
+                <text x="327" y="350" text-anchor="middle" font-size="10" fill="#c62828">📄 Approval Surat</text>
+
+                <!-- Row 2 -->
+                <rect x="20" y="372" width="115" height="30" rx="5" fill="#fff0f1" stroke="#e63946" stroke-width="1" />
+                <text x="77" y="392" text-anchor="middle" font-size="10" fill="#c62828">🗂 Aset</text>
+
+                <rect x="145" y="372" width="115" height="30" rx="5" fill="#fff0f1" stroke="#e63946" stroke-width="1" />
+                <text x="202" y="392" text-anchor="middle" font-size="10" fill="#c62828">📈 Laporan &amp; KPI</text>
+
+                <rect x="270" y="372" width="115" height="30" rx="5" fill="#fff0f1" stroke="#e63946" stroke-width="1" />
+                <text x="327" y="392" text-anchor="middle" font-size="10" fill="#c62828">📋 Riwayat</text>
+
+                <!-- Connector lines for admin pages -->
+                <line x1="77" y1="330" x2="130" y2="310" stroke="#e63946" stroke-width="0.8" stroke-dasharray="3" />
+                <line x1="202" y1="330" x2="200" y2="310" stroke="#e63946" stroke-width="0.8" stroke-dasharray="3" />
+                <line x1="327" y1="330" x2="270" y2="310" stroke="#e63946" stroke-width="0.8" stroke-dasharray="3" />
+
+                <!-- Vendor flow -->
+                <line x1="690" y1="235" x2="690" y2="275" stroke="#0f3460" stroke-width="1.5"
+                    marker-end="url(#arrow-blue)" />
+
+                <!-- Vendor Dashboard -->
+                <rect x="590" y="275" width="200" height="35" rx="6" fill="#fff" stroke="#0f3460" stroke-width="1.5" />
+                <text x="690" y="297" text-anchor="middle" font-size="11" fill="#0f3460" font-weight="600">🏠 Dashboard
+                    Vendor</text>
+
+                <line x1="690" y1="310" x2="690" y2="330" stroke="#0f3460" stroke-width="1.2"
+                    marker-end="url(#arrow-blue)" />
+
+                <!-- Vendor sub pages -->
+                <rect x="590" y="330" width="115" height="30" rx="5" fill="#e8edf7" stroke="#0f3460" stroke-width="1" />
+                <text x="647" y="350" text-anchor="middle" font-size="10" fill="#0f3460">📝 Pengajuan Surat</text>
+
+                <rect x="715" y="330" width="115" height="30" rx="5" fill="#e8edf7" stroke="#0f3460" stroke-width="1" />
+                <text x="772" y="350" text-anchor="middle" font-size="10" fill="#0f3460">👤 Profil Vendor</text>
+
+                <line x1="647" y1="330" x2="660" y2="310" stroke="#0f3460" stroke-width="0.8" stroke-dasharray="3" />
+                <line x1="772" y1="330" x2="720" y2="310" stroke="#0f3460" stroke-width="0.8" stroke-dasharray="3" />
+
+                <!-- Flow: Vendor submits -> Admin approves -->
+                <line x1="647" y1="360" x2="647" y2="420" stroke="#888" stroke-width="1.2" stroke-dasharray="4" />
+                <line x1="647" y1="420" x2="327" y2="420" stroke="#888" stroke-width="1.2" stroke-dasharray="4"
+                    marker-end="url(#arrow)" />
+                <text x="490" y="413" text-anchor="middle" font-size="10" fill="#888">Surat dikirim → Admin
+                    review</text>
+
+                <!-- Approval result back to vendor -->
+                <line x1="327" y1="372" x2="327" y2="450" stroke="#888" stroke-width="1" stroke-dasharray="3" />
+                <line x1="327" y1="450" x2="647" y2="450" stroke="#888" stroke-width="1" stroke-dasharray="3"
+                    marker-end="url(#arrow)" />
+                <text x="490" y="445" text-anchor="middle" font-size="10" fill="#888">Notifikasi status → Vendor
+                    dashboard</text>
+
+                <!-- Legend -->
+                <rect x="30" y="490" width="16" height="16" rx="3" fill="#fff0f1" stroke="#e63946" stroke-width="1.5" />
+                <text x="52" y="502" font-size="11" fill="#555">Halaman Admin</text>
+
+                <rect x="160" y="490" width="16" height="16" rx="3" fill="#e8edf7" stroke="#0f3460"
+                    stroke-width="1.5" />
+                <text x="182" y="502" font-size="11" fill="#555">Halaman Vendor</text>
+
+                <line x1="300" y1="498" x2="320" y2="498" stroke="#888" stroke-width="1.5" stroke-dasharray="4"
+                    marker-end="url(#arrow)" />
+                <text x="327" y="502" font-size="11" fill="#555">Alur Data</text>
+
+                <line x1="420" y1="498" x2="440" y2="498" stroke="#e63946" stroke-width="1.5"
+                    marker-end="url(#arrow-red)" />
+                <text x="447" y="502" font-size="11" fill="#555">Navigasi Admin</text>
+
+                <line x1="560" y1="498" x2="580" y2="498" stroke="#0f3460" stroke-width="1.5"
+                    marker-end="url(#arrow-blue)" />
+                <text x="587" y="502" font-size="11" fill="#555">Navigasi Vendor</text>
+            </svg>
+        </div>
+    </div>
+
+    <script>
+        function showSection(name) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+            document.getElementById('section-' + name).classList.add('active');
+            event.target.classList.add('active');
+        }
+    </script>
+</body>
+
+</html>

@@ -1,13 +1,16 @@
 'use client'
 import React, { useState, useEffect } from 'react';
-import { Download, Calendar, Clock, CheckCircle, XCircle } from 'lucide-react';
+import { Download, Calendar, Clock, CheckCircle, XCircle, FileText } from 'lucide-react';
 import { getRiwayatSuratPengajuan } from '@/services/suratPengajuanService';
+import DetailModal from '@/components/vendor/DetailModal';
 import './VendorDashboard.css';
 
 export default function VendorDashboard() {
     const [currentPage, setCurrentPage] = useState(1);
     const [suratData, setSuratData] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [selectedSurat, setSelectedSurat] = useState<any>(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
     const itemsPerPage = 5;
 
     // Load data from Supabase
@@ -27,7 +30,9 @@ export default function VendorDashboard() {
                     tanggalPengajuan: new Date(surat.created_at).toLocaleDateString('id-ID'),
                     tanggalSurat: new Date(surat.tanggal_surat).toLocaleDateString('id-ID'),
                     status: surat.status,
-                    fileUrl: surat.file_url
+                    fileUrl: surat.file_url,
+                    alasanPenolakan: surat.alasan_penolakan,
+                    keterangan: surat.keterangan
                 }));
                 setSuratData(transformedData.reverse()); // Newest first
             }
@@ -62,6 +67,16 @@ export default function VendorDashboard() {
         if (currentPage < totalPages) {
             setCurrentPage(currentPage + 1);
         }
+    };
+
+    const handleOpenDetail = (surat) => {
+        setSelectedSurat(surat);
+        setIsModalOpen(true);
+    };
+
+    const handleCloseDetail = () => {
+        setIsModalOpen(false);
+        setSelectedSurat(null);
     };
 
     // Status badge dengan icon
@@ -191,10 +206,25 @@ export default function VendorDashboard() {
                                             <td>{surat.tanggalSurat}</td>
                                             <td>{getStatusBadge(surat.status)}</td>
                                             <td>
-                                                <button className="btn-download">
-                                                    <Download size={16} />
-                                                    Unduh
-                                                </button>
+                                                <div style={{ display: 'flex', gap: '8px' }}>
+                                                    <button
+                                                        className="btn-download"
+                                                        onClick={() => handleOpenDetail(surat)}
+                                                        style={{ background: '#f1f5f9', color: '#475569', borderColor: '#e2e8f0' }}
+                                                    >
+                                                        <FileText size={16} />
+                                                        Detail
+                                                    </button>
+                                                    <a
+                                                        href={surat.fileUrl}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="btn-download"
+                                                    >
+                                                        <Download size={16} />
+                                                        Unduh
+                                                    </a>
+                                                </div>
                                             </td>
                                         </tr>
                                     ))
@@ -226,6 +256,12 @@ export default function VendorDashboard() {
                     </>
                 )}
             </div>
+
+            <DetailModal
+                isOpen={isModalOpen}
+                onClose={handleCloseDetail}
+                data={selectedSurat}
+            />
         </div>
     );
 }

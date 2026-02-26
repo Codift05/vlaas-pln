@@ -1,6 +1,10 @@
 @import './modern_modal.css';
 
 /* Global Focus Reset to remove black outline */
+* {
+  box-sizing: border-box;
+}
+
 button:focus,
 input:focus,
 select:focus,
@@ -107,6 +111,7 @@ textarea:focus {
   position: relative;
   overflow: hidden;
   min-height: auto;
+  min-width: 0; /* Prevent grid blowout */
 }
 
 /* ... existing hover styles ... */
@@ -305,8 +310,27 @@ textarea:focus {
 }
 
 /* Hide old filter-select */
+/* Filter Select - Visible and Styled */
 .filter-select {
-  display: none;
+  display: block;
+  padding: 12px 16px;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  background: white;
+  min-width: 160px;
+  font-family: var(--font-inter);
+  color: #334155;
+  font-size: 14px;
+  cursor: pointer;
+  appearance: none; /* Remove default arrow */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 16px center;
+}
+
+.filter-select:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 .search-input-table {
@@ -1919,7 +1943,36 @@ textarea:focus {
   background: #f1f5f9;
 }
 
+/* Periode Filter Box */
+.periode-filter-box {
+  display: flex;
+  flex-direction: column;
+  padding: 6px 16px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  height: 46px;
+  justify-content: center;
+  min-width: 140px;
+}
+
+.periode-label {
+  font-size: 10px;
+  color: #64748b;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 2px;
+}
+
+.periode-value {
+  font-size: 13px;
+  color: #334155;
+  font-weight: 500;
+}
+
 /* Responsive Utilities */
+/* Mobile Grid Layout for Filters */
 @media (max-width: 768px) {
   .hide-on-mobile {
     display: none !important;
@@ -1928,29 +1981,88 @@ textarea:focus {
   .action-bar {
     flex-direction: column;
     align-items: stretch;
+    gap: 12px;
   }
   
   .filter-section {
-    flex-direction: column;
-    align-items: stretch;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas: 
+      "search search"
+      "dropdown periode";
+    gap: 10px;
+    width: 100%;
+  }
+
+  /* Assign Grid Areas */
+  .filter-select {
+    grid-area: dropdown;
+    width: 100%;
+  }
+
+  .filter-section > div:nth-child(2) {
+    grid-area: search;
+    width: 100%;
+  }
+
+  .periode-filter-box {
+    grid-area: periode;
+    width: 100%;
   }
   
   .action-buttons-group {
     justify-content: space-between;
     width: 100%;
-    margin-top: 12px;
+    margin-top: 4px;
+    background: #f8fafc;
+    padding: 10px;
+    border-radius: 12px;
+    border: 1px solid #edf2f7;
   }
 
   .deadline-stats-container {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 12px;
+  }
+
+  .deadline-stat-card {
+    padding: 16px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .deadline-stat-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+  }
+
+  .deadline-stat-icon svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .deadline-stat-number {
+    font-size: 20px;
+  }
+
+  .deadline-stat-label {
+    font-size: 11px;
   }
   
   .search-box-wrapper {
       width: 100%;
   }
+}
 
-  /* Make date placeholder full width on mobile if needed or keep inline */
-  .date-filter-placeholder {
-      width: 100%;
+@media (max-width: 480px) {
+  .filter-section {
+    grid-template-columns: 1fr; /* Stack everything on very small screens */
+  }
+  
+  .filter-section > div:nth-child(2),
+  .periode-filter-box {
+    grid-column: auto;
   }
 }
