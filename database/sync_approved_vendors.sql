@@ -41,7 +41,7 @@ SELECT
     COALESCE(vu.address, '') as alamat,
     COALESCE(vu.pic_phone, '') as telepon,
     vu.email,
-    COALESCE(vu.pic_name, '') as kontak_person,
+    COALESCE(vu.pic_name, '') as nama_pimpinan,
     COALESCE(vu.pic_position, '') as jabatan,
     '' as npwp, -- NPWP kosong untuk self-registration
     'Aktif' as status,

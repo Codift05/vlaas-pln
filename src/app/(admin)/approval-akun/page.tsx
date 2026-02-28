@@ -186,7 +186,7 @@ function ApprovalAkun() {
                             alamat: account.address || '',
                             telepon: account.pic_phone || '',
                             email: account.email,
-                            kontak_person: account.pic_name || '',
+                            nama_pimpinan: account.pic_name || '',
                             jabatan: account.pic_position || '',
                             npwp: '', // NPWP not available in self-registration
                             status: 'Aktif',

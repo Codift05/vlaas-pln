@@ -306,7 +306,7 @@ function VendorProfile() {
                     const { error: vendorUpdateError } = await supabase
                         .from('vendors')
                         .update({
-                            kontak_person: profileData.picName,
+                            nama_pimpinan: profileData.picName,
                             // jabatan: profileData.picPosition || null, // TODO: Uncomment setelah migration dijalankan
                             telepon: profileData.picPhone || null,
                             email: profileData.picEmail || null,

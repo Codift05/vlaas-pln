@@ -17,7 +17,7 @@ interface MappedVendor {
     alamat: string | null
     telepon: string | null
     email: string | null
-    kontak_person: string | null
+    nama_pimpinan: string | null
     jabatan: string | null
     npwp: string | null
     status: string
@@ -384,7 +384,7 @@ function mapRow(cells: string[], mapping: ColumnMapping, rowIndex: number): Mapp
         alamat: alamat || null,
         telepon: contactPerson || null, // Contact Person CSV → telepon
         email: (email && email.includes('@')) ? email : null,
-        kontak_person: namaPimpinan || null, // NAMA PIMPINAN CSV → kontak_person (Nama Pimpinan)
+        nama_pimpinan: namaPimpinan || null, // NAMA PIMPINAN CSV → nama_pimpinan
         jabatan: jabatan || null,
         npwp: null,
         status: 'Aktif',
@@ -597,20 +597,17 @@ export default function VendorCsvImportModal({ isOpen, onClose, onImportComplete
                 // Generate claim code for new vendor
                 const claimCode = Math.floor(100000 + Math.random() * 900000).toString()
 
-                // Insert vendor
+                // Insert vendor (sesuai kolom yang ada di tabel vendors Supabase)
                 const payload: Record<string, unknown> = {
                     id: vendor.id,
                     nama: vendor.nama,
                     alamat: vendor.alamat,
                     telepon: vendor.telepon,
                     email: vendor.email,
-                    kontak_person: vendor.kontak_person,
-                    jabatan: vendor.jabatan,
+                    nama_pimpinan: vendor.nama_pimpinan,
+                    // jabatan: vendor.jabatan || null, // TODO: Uncomment setelah migration dijalankan
                     npwp: vendor.npwp,
                     status: vendor.status,
-                    bank_pembayaran: vendor.bank_pembayaran,
-                    no_rekening: vendor.no_rekening,
-                    nama_rekening: vendor.nama_rekening,
                     claim_code: claimCode,
                     is_claimed: false,
                     created_at: new Date().toISOString()
@@ -889,7 +886,7 @@ export default function VendorCsvImportModal({ isOpen, onClose, onImportComplete
                                                 </td>
                                                 <td style={{ ...tdStyle, maxWidth: 180, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{v.alamat || '-'}</td>
                                                 <td style={tdStyle}>{v.email || '-'}</td>
-                                                <td style={tdStyle}>{v.kontak_person || '-'}</td>
+                                                <td style={tdStyle}>{v.nama_pimpinan || '-'}</td>
                                                 <td style={tdStyle}>{v.bank_pembayaran || '-'}</td>
                                                 <td style={tdStyle}>{v.no_rekening || '-'}</td>
                                                 <td style={tdStyle}>{v.jabatan || '-'}</td>
