@@ -1,11 +1,12 @@
 "use client"
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { Users, CheckCircle, Search, Eye, Edit, Trash2, PauseCircle, ClipboardList, Plus, Save, X, Briefcase, Mail, Send, RefreshCw, Copy, Key } from 'lucide-react'
+import { Users, CheckCircle, Search, Eye, Edit, Trash2, PauseCircle, ClipboardList, Plus, Save, X, Briefcase, Mail, Send, RefreshCw, Copy, Key, Upload } from 'lucide-react'
 import { supabase } from '../../../lib/supabaseClient'
 import { updateVendorContractStatus } from '../../../services/vendorAccountService'
 import NotificationModal from '../../../components/NotificationModal'
 import ConfirmModal from '../../../components/ConfirmModal'
+import VendorCsvImportModal from '../../../components/VendorCsvImportModal'
 import './DataVendor.css'
 
 // Generate 6-digit claim code untuk aktivasi vendor
@@ -37,7 +38,7 @@ function DataVendor() {
         alamat: '',
         telepon: '',
         email: '',
-        kontakPerson: '',
+        namaPimpinan: '',
         jabatan: '',
         npwp: '',
         status: 'Aktif',
@@ -52,11 +53,12 @@ function DataVendor() {
     const [currentPage, setCurrentPage] = useState(1)
     const itemsPerPage = 10
     const [showModal, setShowModal] = useState(false)
+    const [showCsvImportModal, setShowCsvImportModal] = useState(false)
     // Kolom selector
     const [showColumnSelector, setShowColumnSelector] = useState(false);
     const [columnVisibility, setColumnVisibility] = useState({
         nama: true,
-        kontakPerson: true,
+        namaPimpinan: true,
         telepon: true,
         email: true,
         status: true,
@@ -150,7 +152,7 @@ function DataVendor() {
                     alamat: vendor.alamat || '',
                     telepon: vendor.telepon || '',
                     email: vendor.email || '',
-                    kontakPerson: vendor.kontak_person || '',
+                    namaPimpinan: vendor.nama_pimpinan || '',
                     jabatan: vendor.jabatan || '',
                     npwp: vendor.npwp || '',
                     status: vendor.status || 'Aktif',
@@ -252,7 +254,7 @@ function DataVendor() {
                     alamat: formData.alamat,
                     telepon: formData.telepon || null,
                     email: formData.email || null,
-                    kontak_person: formData.kontakPerson || null,
+                    nama_pimpinan: formData.namaPimpinan || null,
                     // jabatan: formData.jabatan || null, // TODO: Uncomment setelah migration dijalankan
                     npwp: formData.npwp || null,
                     status: formData.status,
@@ -317,7 +319,7 @@ function DataVendor() {
                             .from('vendor_users')
                             .update({
                                 company_name: formData.nama || null,
-                                pic_name: formData.kontakPerson || null,
+                                pic_name: formData.namaPimpinan || null,
                                 // pic_position: formData.jabatan || null, // TODO: Uncomment setelah migration
                                 pic_phone: formData.telepon || null,
                                 pic_email: formData.email || null,
@@ -418,7 +420,7 @@ function DataVendor() {
                     alamat: formData.alamat,
                     telepon: formData.telepon || null,
                     email: formData.email || null, // Email opsional
-                    kontak_person: formData.kontakPerson || null,
+                    nama_pimpinan: formData.namaPimpinan || null,
                     // jabatan: formData.jabatan || null, // TODO: Uncomment setelah migration dijalankan
                     npwp: formData.npwp || null,
                     status: 'Aktif',
@@ -466,7 +468,7 @@ function DataVendor() {
                                 .from('vendor_users')
                                 .update({
                                     company_name: formData.nama,
-                                    pic_name: formData.kontakPerson || null,
+                                    pic_name: formData.namaPimpinan || null,
                                     pic_phone: formData.telepon || null,
                                     pic_email: formData.email,
                                     address: formData.alamat || null,
@@ -495,7 +497,7 @@ function DataVendor() {
                                     email: formData.email,
                                     password: tempPassword, // Temporary - will be replaced during activation
                                     company_name: formData.nama,
-                                    pic_name: formData.kontakPerson || null,
+                                    pic_name: formData.namaPimpinan || null,
                                     pic_phone: formData.telepon || null,
                                     pic_email: formData.email,
                                     address: formData.alamat || null,
@@ -580,7 +582,7 @@ function DataVendor() {
             alamat: '',
             telepon: '',
             email: '',
-            kontakPerson: '',
+            namaPimpinan: '',
             jabatan: '',
             npwp: '',
             status: 'Aktif',
@@ -690,7 +692,7 @@ function DataVendor() {
                             .from('vendor_users')
                             .update({
                                 company_name: vendor.nama,
-                                pic_name: vendor.kontakPerson || null,
+pic_name: vendor.namaPimpinan || null,
                                 pic_phone: vendor.telepon || null,
                                 pic_email: vendor.email,
                                 address: vendor.alamat || null,
@@ -719,7 +721,7 @@ function DataVendor() {
                                 email: vendor.email,
                                 password: tempPassword, // Temporary - will be replaced during activation
                                 company_name: vendor.nama,
-                                pic_name: vendor.kontakPerson || null,
+                                pic_name: vendor.namaPimpinan || null,
                                 pic_phone: vendor.telepon || null,
                                 pic_email: vendor.email,
                                 address: vendor.alamat || null,
@@ -786,7 +788,7 @@ function DataVendor() {
             alamat: vendor.alamat,
             telepon: vendor.telepon,
             email: vendor.email,
-            kontakPerson: vendor.kontakPerson,
+            namaPimpinan: vendor.namaPimpinan,
             jabatan: vendor.jabatan || '',
             npwp: vendor.npwp || '',
             status: vendor.status,
@@ -839,7 +841,7 @@ function DataVendor() {
                         noRekening: vendorUser.account_number || vendor.noRekening || '',
                         namaRekening: vendorUser.account_name || vendor.namaRekening || '',
                         jabatan: vendorUser.pic_position || vendor.jabatan || '',
-                        kontakPerson: vendorUser.pic_name || vendor.kontakPerson || '',
+                        namaPimpinan: vendorUser.pic_name || vendor.namaPimpinan || '',
                         telepon: vendorUser.pic_phone || vendor.telepon || '',
                         email: vendorUser.pic_email || vendor.email || ''
                     });
@@ -1073,8 +1075,8 @@ function DataVendor() {
                                         <span>Nama Vendor</span>
                                     </label>
                                     <label className="column-option-vendor">
-                                        <input type="checkbox" checked={columnVisibility.kontakPerson} onChange={() => toggleColumnVisibility('kontakPerson')} />
-                                        <span>Kontak Person</span>
+                                        <input type="checkbox" checked={columnVisibility.namaPimpinan} onChange={() => toggleColumnVisibility('namaPimpinan')} />
+                                        <span>Nama Pimpinan</span>
                                     </label>
                                     <label className="column-option-vendor">
                                         <input type="checkbox" checked={columnVisibility.telepon} onChange={() => toggleColumnVisibility('telepon')} />
@@ -1093,6 +1095,18 @@ function DataVendor() {
                         )}
                     </div>
                     <button
+                        onClick={() => setShowCsvImportModal(true)}
+                        style={{
+                            display: 'flex', alignItems: 'center', gap: '8px',
+                            background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                            color: '#fff', border: 'none', borderRadius: 8,
+                            padding: '10px 18px', cursor: 'pointer', fontSize: 14,
+                            fontWeight: 600
+                        }}
+                    >
+                        <Upload size={18} /> Import CSV
+                    </button>
+                    <button
                         className="btn-primary-vendor"
                         onClick={() => setShowModal(true)}
                         style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
@@ -1108,7 +1122,7 @@ function DataVendor() {
                     <thead>
                         <tr>
                             {columnVisibility.nama && <th>Nama Vendor</th>}
-                            {columnVisibility.kontakPerson && <th>Kontak Person</th>}
+                            {columnVisibility.namaPimpinan && <th>Nama Pimpinan</th>}
                             {columnVisibility.telepon && <th>Telepon</th>}
                             {columnVisibility.email && <th>Email</th>}
                             {columnVisibility.status && <th>Status</th>}
@@ -1132,7 +1146,7 @@ function DataVendor() {
                                         </td>
                                     )}
                                     {/* Removed Kategori column */}
-                                    {columnVisibility.kontakPerson && <td>{vendor.kontakPerson}</td>}
+                                    {columnVisibility.namaPimpinan && <td>{vendor.namaPimpinan}</td>}
                                     {columnVisibility.telepon && <td>{vendor.telepon}</td>}
                                     {columnVisibility.email && <td className="vendor-email">{vendor.email}</td>}
                                     {columnVisibility.status && (
@@ -1364,12 +1378,12 @@ function DataVendor() {
                                     />
                                 </div>
                                 <div className="form-group-vendor">
-                                    <label htmlFor="kontakPerson">Kontak Person</label>
+                                    <label htmlFor="namaPimpinan">Nama Pimpinan</label>
                                     <input
                                         type="text"
-                                        id="kontakPerson"
-                                        name="kontakPerson"
-                                        value={formData.kontakPerson}
+                                        id="namaPimpinan"
+                                        name="namaPimpinan"
+                                        value={formData.namaPimpinan}
                                         onChange={handleInputChange}
                                         placeholder="Contoh: John Doe"
                                     />
@@ -1516,8 +1530,8 @@ function DataVendor() {
                                     <div className="detail-value-vendor" style={{ background: '#f9fafb', border: '1px solid #e5e7eb', padding: '10px 14px', fontSize: 14, color: '#1f2937' }}>{detailVendor.email}</div>
                                 </div>
                                 <div className="detail-group-vendor full-width">
-                                    <span className="detail-label-vendor" style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: '0.5px', color: '#6b7280', marginBottom: 6 }}>Kontak Person</span>
-                                    <div className="detail-value-vendor" style={{ background: '#f9fafb', border: '1px solid #e5e7eb', padding: '10px 14px', fontSize: 14, color: '#1f2937' }}>{detailVendor.kontakPerson}</div>
+                                    <span className="detail-label-vendor" style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: '0.5px', color: '#6b7280', marginBottom: 6 }}>Nama Pimpinan</span>
+                                    <div className="detail-value-vendor" style={{ background: '#f9fafb', border: '1px solid #e5e7eb', padding: '10px 14px', fontSize: 14, color: '#1f2937' }}>{detailVendor.namaPimpinan}</div>
                                 </div>
                                 <div className="detail-group-vendor full-width">
                                     <span className="detail-label-vendor" style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: '0.5px', color: '#6b7280', marginBottom: 6 }}>Jabatan</span>
@@ -1687,6 +1701,20 @@ function DataVendor() {
                 message={confirmModal.message}
                 onConfirm={confirmModal.onConfirm}
                 onCancel={() => setConfirmModal({ ...confirmModal, show: false })}
+            />
+
+            {/* Vendor CSV Import Modal */}
+            <VendorCsvImportModal
+                isOpen={showCsvImportModal}
+                onClose={() => setShowCsvImportModal(false)}
+                onImportComplete={() => fetchVendors()}
+                showAlert={(type, message) => {
+                    setNotification({
+                        show: true,
+                        type: type as 'success' | 'error' | 'warning' | 'info',
+                        message
+                    })
+                }}
             />
         </>
     )

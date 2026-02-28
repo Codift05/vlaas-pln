@@ -199,7 +199,7 @@ export const autoSyncVendor = async (vendorName) => {
       alamat: '-', // Alamat placeholder
       telepon: '-', // Telepon placeholder
       email: '-', // Email placeholder, bisa diisi nanti
-      kontak_person: '-', // Kontak person placeholder
+      nama_pimpinan: '-', // Nama pimpinan placeholder
       status: 'Aktif', // Status default Aktif
       tanggal_registrasi: new Date().toISOString().split('T')[0], // Tanggal hari ini
       created_at: new Date().toISOString()

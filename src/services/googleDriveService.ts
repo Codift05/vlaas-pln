@@ -3,94 +3,91 @@ import { Readable } from 'stream';
 import path from 'path';
 import fs from 'fs';
 
-// Path ke OAuth2 credentials (BUKAN service account!)
-const CREDENTIALS_PATH = path.join(
+// Path ke Service Account credentials
+const SERVICE_ACCOUNT_PATH = path.join(
     process.cwd(),
     'src',
     'services',
     'server',
-    'credentials.json'
-);
-
-const TOKEN_PATH = path.join(
-    process.cwd(),
-    'src',
-    'services',
-    'server',
-    'token.json'
+    'service-account.json'
 );
 
 // Konstanta nama folder
 const ROOT_FOLDER_NAME = 'Berkas Kontrak';
-// ID folder Google Drive Anda
-const ROOT_FOLDER_ID = '15qEM_lIuA09Mm63h9kGKG9VzfWyLVcSI';
+// ID folder Google Drive yang sudah di-share atau Shared Drive
+const ROOT_FOLDER_ID = process.env.GOOGLE_DRIVE_FOLDER_ID || '';
 const SCOPES = ['https://www.googleapis.com/auth/drive'];
 
 /**
- * Inisialisasi Google Drive client dengan OAuth2
+ * Inisialisasi Google Drive client.
+ *
+ * Strategi autentikasi (dipilih otomatis):
+ *  1. OAuth2 Refresh Token  → prioritas utama, file tersimpan di Drive pengguna asli
+ *     Butuh: GOOGLE_OAUTH_CLIENT_ID, GOOGLE_OAUTH_CLIENT_SECRET, GOOGLE_OAUTH_REFRESH_TOKEN
+ *  2. Service Account JWT   → fallback, hanya cocok jika SA punya storage (mis. Workspace)
+ *     Butuh: service-account.json, opsional GOOGLE_DRIVE_IMPERSONATE_EMAIL
+ *
+ * Kenapa OAuth2 lebih diutamakan?
+ *   Service account GCP tidak memiliki storage Drive sendiri.
+ *   Pembuatan folder berhasil (tidak pakai kuota) tetapi upload file gagal 403
+ *   karena SA tidak punya kuota storage.
+ *   OAuth2 dengan refresh token memakai storage akun Gmail/Workspace asli.
  */
 export function getDriveClient() {
     try {
-        // Check if files exist
-        if (!fs.existsSync(CREDENTIALS_PATH)) {
-            throw new Error(
-                'credentials.json not found! Please download OAuth2 credentials from Google Cloud Console.\n' +
-                'See OAUTH2_SETUP_GUIDE.md for instructions.'
+        // ── Pilihan 1: OAuth2 dengan Refresh Token ──────────────────────────
+        const oauthClientId = process.env.GOOGLE_OAUTH_CLIENT_ID;
+        const oauthClientSecret = process.env.GOOGLE_OAUTH_CLIENT_SECRET;
+        const oauthRefreshToken = process.env.GOOGLE_OAUTH_REFRESH_TOKEN;
+
+        if (oauthClientId && oauthClientSecret && oauthRefreshToken) {
+            console.log('Using OAuth2 credentials (refresh token) for Google Drive');
+
+            const oauth2Client = new google.auth.OAuth2(
+                oauthClientId,
+                oauthClientSecret,
+                'urn:ietf:wg:oauth:2.0:oob' // redirect URI untuk token offline
             );
+
+            oauth2Client.setCredentials({
+                refresh_token: oauthRefreshToken,
+            });
+
+            return google.drive({ version: 'v3', auth: oauth2Client });
         }
 
-        if (!fs.existsSync(TOKEN_PATH)) {
-            throw new Error(
-                'token.json not found! Please run: node scripts/generate-drive-token.js\n' +
-                'See OAUTH2_SETUP_GUIDE.md for instructions.'
-            );
-        }
-
-        // Load credentials
-        const credentials = JSON.parse(fs.readFileSync(CREDENTIALS_PATH, 'utf-8'));
-        const { client_secret, client_id, redirect_uris } = credentials.installed || credentials.web;
-
-        // Create OAuth2 client
-        const oAuth2Client = new google.auth.OAuth2(
-            client_id,
-            client_secret,
-            redirect_uris[0]
+        // ── Pilihan 2: Service Account JWT ────────────────────────────────
+        console.warn(
+            '⚠️  OAuth2 credentials NOT configured. Falling back to Service Account.\n' +
+            '    Service accounts have no Drive storage quota → upload will likely fail (403).\n' +
+            '    Run: node scripts/get-google-refresh-token.js  to generate OAuth2 credentials.'
         );
 
-        // Load token
-        const token = JSON.parse(fs.readFileSync(TOKEN_PATH, 'utf-8'));
-        oAuth2Client.setCredentials(token);
+        if (!fs.existsSync(SERVICE_ACCOUNT_PATH)) {
+            throw new Error(
+                'service-account.json not found at: ' + SERVICE_ACCOUNT_PATH + '\n' +
+                'Configure GOOGLE_OAUTH_CLIENT_ID / SECRET / REFRESH_TOKEN in .env, OR\n' +
+                'download the Service Account JSON and save it to src/services/server/service-account.json'
+            );
+        }
 
-        // Auto-refresh token mechanism
-        // Setiap kali token di-refresh oleh googleapis, simpan token baru
-        oAuth2Client.on('tokens', (tokens) => {
-            console.log('🔄 Token refreshed automatically');
+        const serviceAccountKey = JSON.parse(fs.readFileSync(SERVICE_ACCOUNT_PATH, 'utf-8'));
 
-            // Jika ada refresh_token baru, update keduanya
-            if (tokens.refresh_token) {
-                token.refresh_token = tokens.refresh_token;
-            }
+        const authConfig: any = {
+            email: serviceAccountKey.client_email,
+            key: serviceAccountKey.private_key,
+            scopes: SCOPES,
+        };
 
-            // Update access_token dan expiry_date
-            if (tokens.access_token) {
-                token.access_token = tokens.access_token;
-            }
+        const impersonateEmail = process.env.GOOGLE_DRIVE_IMPERSONATE_EMAIL || '';
+        if (impersonateEmail) {
+            authConfig.subject = impersonateEmail;
+            console.log(`Service Account impersonating: ${impersonateEmail}`);
+        }
 
-            if (tokens.expiry_date) {
-                token.expiry_date = tokens.expiry_date;
-            }
+        const auth = new google.auth.JWT(authConfig);
+        return google.drive({ version: 'v3', auth });
 
-            // Simpan token yang sudah di-update ke file
-            try {
-                fs.writeFileSync(TOKEN_PATH, JSON.stringify(token, null, 2));
-                console.log('✅ New token saved to token.json');
-            } catch (error) {
-                console.error('❌ Failed to save refreshed token:', error);
-            }
-        });
-
-        const drive = google.drive({ version: 'v3', auth: oAuth2Client });
-        return drive;
     } catch (error: any) {
         console.error('Error initializing Google Drive client:', error);
         throw new Error('Failed to initialize Google Drive client: ' + error.message);
@@ -117,6 +114,8 @@ export async function findFolderByName(
             q: query,
             fields: 'files(id, name)',
             spaces: 'drive',
+            includeItemsFromAllDrives: true,
+            supportsAllDrives: true,
         });
 
         const folders = response.data.files;
@@ -156,6 +155,7 @@ export async function createFolder(
         const response = await drive.files.create({
             requestBody: fileMetadata,
             fields: 'id',
+            supportsAllDrives: true,
         });
 
         const folderId = response.data.id;
@@ -225,9 +225,19 @@ export async function setupContractFolderStructure(
         console.log(`Contract folder (${namaKontrak}) ID: ${contractFolderId}`);
 
         return contractFolderId;
-    } catch (error) {
+    } catch (error: any) {
         console.error('Error setting up folder structure:', error);
-        throw new Error('Failed to setup contract folder structure');
+
+        const actualMessage = error?.message || String(error);
+
+        if (actualMessage.includes('PERMISSION DENIED') || error?.code === 403) {
+            throw new Error(
+                'Permission denied! Folder Google Drive belum di-share ke service account.\n' +
+                'Solusi: Share folder Drive ke email: sakti-pln-uploader@sakti-488613.iam.gserviceaccount.com dengan akses Editor.'
+            );
+        }
+
+        throw new Error('Failed to setup contract folder structure: ' + actualMessage);
     }
 }
 
@@ -271,15 +281,35 @@ export async function uploadFileToDrive(
             requestBody: fileMetadata,
             media: media,
             fields: 'id, webViewLink',
+            supportsAllDrives: true,
         });
 
         console.log('Google Drive API response:', response.data);
 
         const fileId = response.data.id;
-        const webViewLink = response.data.webViewLink;
 
-        if (!fileId || !webViewLink) {
-            throw new Error('Failed to get file information after upload');
+        if (!fileId) {
+            throw new Error('Failed to get file ID after upload');
+        }
+
+        // Set permission agar file bisa diakses via webViewLink
+        try {
+            await drive.permissions.create({
+                fileId: fileId,
+                supportsAllDrives: true,
+                requestBody: {
+                    role: 'reader',
+                    type: 'anyone',
+                },
+            });
+        } catch (permError) {
+            console.warn('Could not set file permission:', permError);
+        }
+
+        // Ambil webViewLink setelah permission di-set
+        let webViewLink = response.data.webViewLink;
+        if (!webViewLink) {
+            webViewLink = `https://drive.google.com/file/d/${fileId}/view`;
         }
 
         console.log(`File uploaded: ${fileName} (ID: ${fileId})`);
@@ -301,7 +331,27 @@ export async function uploadFileToDrive(
         let errorMessage = `Failed to upload file: ${fileName}`;
 
         if (error.code === 403) {
-            errorMessage += '\n\n⚠️ PERMISSION DENIED!\n\nService account tidak punya akses ke folder Google Drive.\n\nCara mengatasi:\n1. Buka Google Drive\n2. Cari folder "Berkas Kontrak"\n3. Klik kanan > Share\n4. Tambahkan email service account (lihat di file JSON)\n5. Set permission ke "Editor"';
+            const errBody = JSON.stringify(error.response?.data || error.errors || {});
+            if (errBody.includes('storageQuotaExceeded')) {
+                errorMessage +=
+                    '\n\n⚠️ STORAGE QUOTA EXCEEDED!\n\n' +
+                    'Service Account tidak memiliki kuota penyimpanan Drive.\n\n' +
+                    'SOLUSI (pilih salah satu):\n' +
+                    '1. [DIREKOMENDASIKAN] Konfigurasi OAuth2 di .env:\n' +
+                    '   – Jalankan: node scripts/get-google-refresh-token.js\n' +
+                    '   – Isi GOOGLE_OAUTH_CLIENT_ID, GOOGLE_OAUTH_CLIENT_SECRET, GOOGLE_OAUTH_REFRESH_TOKEN\n' +
+                    '2. Gunakan Shared Drive (Team Drive) dan tambahkan SA sebagai Content Manager.';
+            } else {
+                errorMessage +=
+                    '\n\n⚠️ PERMISSION DENIED!\n\n' +
+                    'Service account tidak punya akses ke folder Google Drive.\n\n' +
+                    'SOLUSI (pilih salah satu):\n' +
+                    '1. [DIREKOMENDASIKAN] Konfigurasi OAuth2 di .env:\n' +
+                    '   – Jalankan: node scripts/get-google-refresh-token.js\n' +
+                    '   – Isi GOOGLE_OAUTH_CLIENT_ID, GOOGLE_OAUTH_CLIENT_SECRET, GOOGLE_OAUTH_REFRESH_TOKEN\n' +
+                    '2. Buka Google Drive > klik kanan folder > Share >\n' +
+                    '   tambahkan sakti-pln-uploader@sakti-488613.iam.gserviceaccount.com sebagai Editor.';
+            }
         } else if (error.code === 404) {
             errorMessage += `\n\n⚠️ Folder tidak ditemukan! Folder ID: ${folderId}`;
         } else if (error.message) {

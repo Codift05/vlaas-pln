@@ -38,6 +38,7 @@ yarn-error.log*
 src/services/server/credentials.json
 src/services/server/token.json
 src/services/server/*-service-account.json
+src/services/server/service-account.json
 src/services/server/*.apps.googleusercontent.com.json
 credentials.json
 token.json
