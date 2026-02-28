@@ -5,6 +5,7 @@ import { Eye, Edit, Trash2, Search, ChevronDown, ChevronUp, Plus, Save, Upload, 
 import { supabase } from '../../../lib/supabaseClient'
 import { autoSyncVendor } from '../../../services/vendorService'
 import { updateVendorContractStatus } from '../../../services/vendorAccountService'
+import CsvImportModal from '@/components/CsvImportModal'
 import './ManajemenAset.css'
 
 // Helper function untuk format currency dengan titik dan koma
@@ -34,6 +35,9 @@ function ManajemenAset() {
         startDate: false, // Hidden - use periode instead
         endDate: false // Hidden - use periode instead
     });
+    // State untuk CSV Import Modal
+    const [showCsvImportModal, setShowCsvImportModal] = useState(false)
+
     // State untuk Detail Modal
     const [showDetailModal, setShowDetailModal] = useState(false)
     const [selectedAsset, setSelectedAsset] = useState(null)
@@ -1483,6 +1487,25 @@ function ManajemenAset() {
                                 </div>
                             )}
                         </div>
+                        <button
+                            onClick={() => setShowCsvImportModal(true)}
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '8px',
+                                padding: '12px 18px',
+                                background: 'linear-gradient(135deg, #10b981, #059669)',
+                                border: 'none',
+                                borderRadius: '12px',
+                                fontWeight: 700,
+                                fontSize: '14px',
+                                color: 'white',
+                                cursor: 'pointer',
+                                boxShadow: '0 4px 6px -1px rgba(16, 185, 129, 0.3)'
+                            }}
+                        >
+                            <Upload size={18} /> <span className="hide-on-mobile">Import CSV</span>
+                        </button>
                         <button className="btn-primary" onClick={handleOpenAddModal}>
                             <Plus size={18} /> <span className="hide-on-mobile">Kontrak Baru</span>
                         </button>
@@ -3302,6 +3325,14 @@ function ManajemenAset() {
                         </div>
                     )
                 }
+
+                {/* CSV Import Modal */}
+                <CsvImportModal
+                    isOpen={showCsvImportModal}
+                    onClose={() => setShowCsvImportModal(false)}
+                    onImportComplete={() => fetchContracts()}
+                    showAlert={showAlert}
+                />
             </>
         )
 

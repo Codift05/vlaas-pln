@@ -1,6 +1,6 @@
 'use client'
 import { useState, useRef, useCallback, useEffect } from 'react'
-import { Upload, X, FileText, AlertCircle, CheckCircle, Download, Loader2, Clock, Trash2, ChevronDown, ChevronUp } from 'lucide-react'
+import { Upload, X, FileText, AlertCircle, CheckCircle, Download, Loader2, Clock, Trash2, ChevronDown, ChevronUp, RefreshCw } from 'lucide-react'
 import Papa from 'papaparse'
 import { supabase } from '@/lib/supabaseClient'
 
@@ -40,6 +40,7 @@ interface ImportLogEntry {
     success: number
     failed: number
     skipped: number
+    updated: number
     errors: string[]
 }
 
@@ -411,13 +412,13 @@ export default function VendorCsvImportModal({ isOpen, onClose, onImportComplete
     const [step, setStep] = useState<'upload' | 'preview' | 'importing' | 'result' | 'history'>('upload')
     const [importHistory, setImportHistory] = useState<ImportLogEntry[]>([])
     const [expandedLogId, setExpandedLogId] = useState<string | null>(null)
-    const [logFilter, setLogFilter] = useState<'all' | 'duplikat' | 'gagal'>('all')
-    const [resultFilter, setResultFilter] = useState<'all' | 'duplikat' | 'gagal'>('all')
+    const [logFilter, setLogFilter] = useState<'all' | 'duplikat' | 'diupdate' | 'gagal'>('all')
+    const [resultFilter, setResultFilter] = useState<'all' | 'duplikat' | 'diupdate' | 'gagal'>('all')
     const [csvFile, setCsvFile] = useState<File | null>(null)
     const [parsedData, setParsedData] = useState<MappedVendor[]>([])
     const [skippedRows, setSkippedRows] = useState<{ row: number, reason: string }[]>([])
     const [importProgress, setImportProgress] = useState({ current: 0, total: 0, errors: 0 })
-    const [importResults, setImportResults] = useState<{ success: number, failed: number, skipped: number, errors: string[] }>({ success: 0, failed: 0, skipped: 0, errors: [] })
+    const [importResults, setImportResults] = useState<{ success: number, failed: number, skipped: number, updated: number, errors: string[] }>({ success: 0, failed: 0, skipped: 0, updated: 0, errors: [] })
     const [dragActive, setDragActive] = useState(false)
     const [previewPage, setPreviewPage] = useState(0)
     const [showSkipped, setShowSkipped] = useState(false)
@@ -439,7 +440,7 @@ export default function VendorCsvImportModal({ isOpen, onClose, onImportComplete
         setParsedData([])
         setSkippedRows([])
         setImportProgress({ current: 0, total: 0, errors: 0 })
-        setImportResults({ success: 0, failed: 0, skipped: 0, errors: [] })
+        setImportResults({ success: 0, failed: 0, skipped: 0, updated: 0, errors: [] })
         setDragActive(false)
         setPreviewPage(0)
         setShowSkipped(false)
@@ -557,6 +558,7 @@ export default function VendorCsvImportModal({ isOpen, onClose, onImportComplete
         let success = 0
         let failed = 0
         let skipped = 0
+        let updated = 0
         const errors: string[] = []
 
         for (let i = 0; i < parsedData.length; i++) {
@@ -567,14 +569,45 @@ export default function VendorCsvImportModal({ isOpen, onClose, onImportComplete
                 // Check for duplicate by name
                 const { data: existingByName } = await supabase
                     .from('vendors')
-                    .select('id, nama')
+                    .select('*')
                     .eq('nama', vendor.nama)
                     .maybeSingle()
 
                 if (existingByName) {
-                    skipped++
-                    errors.push(`Baris ${(vendor._csvRowIndex || 0) + 1}: "${vendor.nama}" dilewati - vendor sudah ada (duplikat nama)`)
-                    setImportProgress(prev => ({ ...prev, errors: prev.errors + 1 }))
+                    // Vendor sudah ada → cek apakah ada kolom kosong yang bisa diisi dari CSV
+                    const updateFields: Record<string, unknown> = {}
+                    const isEmpty = (val: unknown) => !val || val === '' || val === '-' || val === null
+
+                    // Hanya update kolom yang di DB masih kosong dan di CSV ada datanya
+                    if (isEmpty(existingByName.alamat) && vendor.alamat) updateFields.alamat = vendor.alamat
+                    if (isEmpty(existingByName.telepon) && vendor.telepon) updateFields.telepon = vendor.telepon
+                    if (isEmpty(existingByName.email) && vendor.email) updateFields.email = vendor.email
+                    if (isEmpty(existingByName.nama_pimpinan) && vendor.nama_pimpinan) updateFields.nama_pimpinan = vendor.nama_pimpinan
+                    if (isEmpty(existingByName.jabatan) && vendor.jabatan) updateFields.jabatan = vendor.jabatan
+                    if (isEmpty(existingByName.npwp) && vendor.npwp) updateFields.npwp = vendor.npwp
+                    if (isEmpty(existingByName.bank_pembayaran) && vendor.bank_pembayaran) updateFields.bank_pembayaran = vendor.bank_pembayaran
+                    if (isEmpty(existingByName.no_rekening) && vendor.no_rekening) updateFields.no_rekening = vendor.no_rekening
+                    if (isEmpty(existingByName.nama_rekening) && vendor.nama_rekening) updateFields.nama_rekening = vendor.nama_rekening
+
+                    if (Object.keys(updateFields).length > 0) {
+                        // Ada kolom kosong yang bisa diisi → update
+                        updateFields.updated_at = new Date().toISOString()
+                        const { error: updateError } = await supabase
+                            .from('vendors')
+                            .update(updateFields)
+                            .eq('id', existingByName.id)
+
+                        if (updateError) throw updateError
+
+                        updated++
+                        const filledCols = Object.keys(updateFields).filter(k => k !== 'updated_at').join(', ')
+                        errors.push(`Baris ${(vendor._csvRowIndex || 0) + 1}: "${vendor.nama}" diupdate - kolom terisi: ${filledCols}`)
+                    } else {
+                        // Semua kolom sudah terisi → skip
+                        skipped++
+                        errors.push(`Baris ${(vendor._csvRowIndex || 0) + 1}: "${vendor.nama}" dilewati - vendor sudah ada & semua kolom sudah terisi`)
+                        setImportProgress(prev => ({ ...prev, errors: prev.errors + 1 }))
+                    }
                     continue
                 }
 
@@ -630,7 +663,7 @@ export default function VendorCsvImportModal({ isOpen, onClose, onImportComplete
             }
         }
 
-        const results = { success, failed, skipped, errors }
+        const results = { success, failed, skipped, updated, errors }
         setImportResults(results)
         setStep('result')
 
@@ -643,12 +676,13 @@ export default function VendorCsvImportModal({ isOpen, onClose, onImportComplete
             success,
             failed,
             skipped,
+            updated,
             errors
         }
         saveImportLog(logEntry)
         setImportHistory(loadImportHistory())
 
-        if (success > 0) {
+        if (success > 0 || updated > 0) {
             onImportComplete()
         }
     }, [parsedData, csvFile, onImportComplete])
@@ -656,17 +690,19 @@ export default function VendorCsvImportModal({ isOpen, onClose, onImportComplete
     // ============================================================
     // Filter helpers for error logs
     // ============================================================
-    const filterErrors = (errorList: string[], filterType: 'all' | 'duplikat' | 'gagal'): string[] => {
+    const filterErrors = (errorList: string[], filterType: 'all' | 'duplikat' | 'diupdate' | 'gagal'): string[] => {
         if (filterType === 'all') return errorList
-        if (filterType === 'duplikat') return errorList.filter(e => e.includes('dilewati') || e.includes('sudah ada') || e.includes('duplikat'))
-        if (filterType === 'gagal') return errorList.filter(e => e.includes('gagal') && !e.includes('dilewati') && !e.includes('sudah ada') && !e.includes('duplikat'))
+        if (filterType === 'diupdate') return errorList.filter(e => e.includes('diupdate'))
+        if (filterType === 'duplikat') return errorList.filter(e => (e.includes('dilewati') || e.includes('sudah ada') || e.includes('duplikat')) && !e.includes('diupdate'))
+        if (filterType === 'gagal') return errorList.filter(e => e.includes('gagal') && !e.includes('dilewati') && !e.includes('sudah ada') && !e.includes('duplikat') && !e.includes('diupdate'))
         return errorList
     }
 
     const countByType = (errorList: string[]) => {
-        const duplikat = errorList.filter(e => e.includes('dilewati') || e.includes('sudah ada') || e.includes('duplikat')).length
-        const gagal = errorList.filter(e => e.includes('gagal') && !e.includes('dilewati') && !e.includes('sudah ada') && !e.includes('duplikat')).length
-        return { duplikat, gagal }
+        const diupdate = errorList.filter(e => e.includes('diupdate')).length
+        const duplikat = errorList.filter(e => (e.includes('dilewati') || e.includes('sudah ada') || e.includes('duplikat')) && !e.includes('diupdate')).length
+        const gagal = errorList.filter(e => e.includes('gagal') && !e.includes('dilewati') && !e.includes('sudah ada') && !e.includes('duplikat') && !e.includes('diupdate')).length
+        return { duplikat, diupdate, gagal }
     }
 
     // ============================================================
@@ -958,6 +994,16 @@ export default function VendorCsvImportModal({ isOpen, onClose, onImportComplete
                                     <div style={{ fontSize: 28, fontWeight: 700, color: '#059669' }}>{importResults.success}</div>
                                     <div style={{ fontSize: 12, color: '#047857' }}>Berhasil</div>
                                 </div>
+                                {importResults.updated > 0 && (
+                                    <div style={{
+                                        flex: 1, padding: '16px', background: '#eff6ff', borderRadius: 10,
+                                        border: '1px solid #93c5fd', textAlign: 'center'
+                                    }}>
+                                        <RefreshCw size={24} style={{ color: '#2563eb', marginBottom: 4 }} />
+                                        <div style={{ fontSize: 28, fontWeight: 700, color: '#2563eb' }}>{importResults.updated}</div>
+                                        <div style={{ fontSize: 12, color: '#1d4ed8' }}>Diupdate</div>
+                                    </div>
+                                )}
                                 {importResults.skipped > 0 && (
                                     <div style={{
                                         flex: 1, padding: '16px', background: '#fef3c7', borderRadius: 10,
@@ -1003,6 +1049,12 @@ export default function VendorCsvImportModal({ isOpen, onClose, onImportComplete
                                                     style={filterTabStyle(resultFilter === 'all', '#6b7280')}>
                                                     Semua ({importResults.errors.length})
                                                 </button>
+                                                {counts.diupdate > 0 && (
+                                                    <button onClick={() => setResultFilter('diupdate')}
+                                                        style={filterTabStyle(resultFilter === 'diupdate', '#2563eb')}>
+                                                        Diupdate ({counts.diupdate})
+                                                    </button>
+                                                )}
                                                 {counts.duplikat > 0 && (
                                                     <button onClick={() => setResultFilter('duplikat')}
                                                         style={filterTabStyle(resultFilter === 'duplikat', '#d97706')}>
@@ -1022,8 +1074,8 @@ export default function VendorCsvImportModal({ isOpen, onClose, onImportComplete
                                         {filterErrors(importResults.errors, resultFilter).map((err, i) => (
                                             <div key={i} style={{
                                                 padding: '6px 8px', borderBottom: '1px solid #fee2e2',
-                                                color: err.includes('dilewati') || err.includes('duplikat') ? '#92400e' : '#991b1b'
-                                            }}>
+                                                color: err.includes('diupdate') ? '#1d4ed8' : err.includes('dilewati') || err.includes('duplikat') ? '#92400e' : '#991b1b'
+                                            }}>                                           
                                                 {err}
                                             </div>
                                         ))}
@@ -1084,6 +1136,12 @@ export default function VendorCsvImportModal({ isOpen, onClose, onImportComplete
                                                                 background: '#ecfdf5', color: '#059669', padding: '2px 8px',
                                                                 borderRadius: 6, fontSize: 12, fontWeight: 600
                                                             }}>✓ {log.success}</span>
+                                                            {(log.updated || 0) > 0 && (
+                                                                <span style={{
+                                                                    background: '#eff6ff', color: '#2563eb', padding: '2px 8px',
+                                                                    borderRadius: 6, fontSize: 12, fontWeight: 600
+                                                                }}>↻ {log.updated}</span>
+                                                            )}
                                                             {log.skipped > 0 && (
                                                                 <span style={{
                                                                     background: '#fef3c7', color: '#d97706', padding: '2px 8px',
@@ -1113,6 +1171,12 @@ export default function VendorCsvImportModal({ isOpen, onClose, onImportComplete
                                                                             style={filterTabStyle(logFilter === 'all', '#6b7280')}>
                                                                             Semua ({log.errors.length})
                                                                         </button>
+                                                                        {counts.diupdate > 0 && (
+                                                                            <button onClick={() => setLogFilter('diupdate')}
+                                                                                style={filterTabStyle(logFilter === 'diupdate', '#2563eb')}>
+                                                                                Diupdate ({counts.diupdate})
+                                                                            </button>
+                                                                        )}
                                                                         {counts.duplikat > 0 && (
                                                                             <button onClick={() => setLogFilter('duplikat')}
                                                                                 style={filterTabStyle(logFilter === 'duplikat', '#d97706')}>
