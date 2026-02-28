@@ -1,11 +1,12 @@
 "use client"
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { Users, CheckCircle, Search, Eye, Edit, Trash2, PauseCircle, ClipboardList, Plus, Save, X, Briefcase, Mail, Send, RefreshCw, Copy, Key } from 'lucide-react'
+import { Users, CheckCircle, Search, Eye, Edit, Trash2, PauseCircle, ClipboardList, Plus, Save, X, Briefcase, Mail, Send, RefreshCw, Copy, Key, Upload } from 'lucide-react'
 import { supabase } from '../../../lib/supabaseClient'
 import { updateVendorContractStatus } from '../../../services/vendorAccountService'
 import NotificationModal from '../../../components/NotificationModal'
 import ConfirmModal from '../../../components/ConfirmModal'
+import VendorCsvImportModal from '../../../components/VendorCsvImportModal'
 import './DataVendor.css'
 
 // Generate 6-digit claim code untuk aktivasi vendor
@@ -52,6 +53,7 @@ function DataVendor() {
     const [currentPage, setCurrentPage] = useState(1)
     const itemsPerPage = 10
     const [showModal, setShowModal] = useState(false)
+    const [showCsvImportModal, setShowCsvImportModal] = useState(false)
     // Kolom selector
     const [showColumnSelector, setShowColumnSelector] = useState(false);
     const [columnVisibility, setColumnVisibility] = useState({
@@ -1070,7 +1072,7 @@ function DataVendor() {
                                     </label>
                                     <label className="column-option-vendor">
                                         <input type="checkbox" checked={columnVisibility.kontakPerson} onChange={() => toggleColumnVisibility('kontakPerson')} />
-                                        <span>Kontak Person</span>
+                                        <span>Nama Pimpinan</span>
                                     </label>
                                     <label className="column-option-vendor">
                                         <input type="checkbox" checked={columnVisibility.telepon} onChange={() => toggleColumnVisibility('telepon')} />
@@ -1089,6 +1091,18 @@ function DataVendor() {
                         )}
                     </div>
                     <button
+                        onClick={() => setShowCsvImportModal(true)}
+                        style={{
+                            display: 'flex', alignItems: 'center', gap: '8px',
+                            background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                            color: '#fff', border: 'none', borderRadius: 8,
+                            padding: '10px 18px', cursor: 'pointer', fontSize: 14,
+                            fontWeight: 600
+                        }}
+                    >
+                        <Upload size={18} /> Import CSV
+                    </button>
+                    <button
                         className="btn-primary-vendor"
                         onClick={() => setShowModal(true)}
                         style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
@@ -1104,7 +1118,7 @@ function DataVendor() {
                     <thead>
                         <tr>
                             {columnVisibility.nama && <th>Nama Vendor</th>}
-                            {columnVisibility.kontakPerson && <th>Kontak Person</th>}
+                            {columnVisibility.kontakPerson && <th>Nama Pimpinan</th>}
                             {columnVisibility.telepon && <th>Telepon</th>}
                             {columnVisibility.email && <th>Email</th>}
                             {columnVisibility.status && <th>Status</th>}
@@ -1360,7 +1374,7 @@ function DataVendor() {
                                     />
                                 </div>
                                 <div className="form-group-vendor">
-                                    <label htmlFor="kontakPerson">Kontak Person</label>
+                                    <label htmlFor="kontakPerson">Nama Pimpinan</label>
                                     <input
                                         type="text"
                                         id="kontakPerson"
@@ -1512,7 +1526,7 @@ function DataVendor() {
                                     <div className="detail-value-vendor" style={{ background: '#f9fafb', border: '1px solid #e5e7eb', padding: '10px 14px', fontSize: 14, color: '#1f2937' }}>{detailVendor.email}</div>
                                 </div>
                                 <div className="detail-group-vendor full-width">
-                                    <span className="detail-label-vendor" style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: '0.5px', color: '#6b7280', marginBottom: 6 }}>Kontak Person</span>
+                                    <span className="detail-label-vendor" style={{ textTransform: 'uppercase', fontSize: 11, letterSpacing: '0.5px', color: '#6b7280', marginBottom: 6 }}>Nama Pimpinan</span>
                                     <div className="detail-value-vendor" style={{ background: '#f9fafb', border: '1px solid #e5e7eb', padding: '10px 14px', fontSize: 14, color: '#1f2937' }}>{detailVendor.kontakPerson}</div>
                                 </div>
                                 <div className="detail-group-vendor full-width">
@@ -1683,6 +1697,20 @@ function DataVendor() {
                 message={confirmModal.message}
                 onConfirm={confirmModal.onConfirm}
                 onCancel={() => setConfirmModal({ ...confirmModal, show: false })}
+            />
+
+            {/* Vendor CSV Import Modal */}
+            <VendorCsvImportModal
+                isOpen={showCsvImportModal}
+                onClose={() => setShowCsvImportModal(false)}
+                onImportComplete={() => fetchVendors()}
+                showAlert={(type, message) => {
+                    setNotification({
+                        show: true,
+                        type: type as 'success' | 'error' | 'warning' | 'info',
+                        message
+                    })
+                }}
             />
         </>
     )
