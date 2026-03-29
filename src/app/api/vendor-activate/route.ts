@@ -4,12 +4,75 @@ import { hashPassword } from '../../../lib/passwordUtils'
 
 export const dynamic = 'force-dynamic';
 
-// Create a separate Supabase client with service role for admin operations
+// Using anon key because SUPABASE_SERVICE_ROLE_KEY in .env is for a different project
 const supabaseAdmin = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co',
-    process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-key'
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-key'
 )
 
+
+export async function GET(request: NextRequest) {
+    try {
+        const { searchParams } = new URL(request.url)
+        const token = searchParams.get('token')
+
+        if (!token) {
+            return NextResponse.json(
+                { success: false, error: 'Token harus diisi' },
+                { status: 400 }
+            )
+        }
+
+        // Find vendor with this activation token (using admin client to bypass RLS)
+        const { data: vendor, error: fetchError } = await supabaseAdmin
+            .from('vendor_users')
+            .select('id, email, company_name, is_activated, activation_token_expires')
+            .eq('activation_token', token)
+            .single()
+
+        console.log('🔍 [GET] Token lookup result:', {
+            token: token.substring(0, 10) + '...',
+            found: !!vendor,
+            error: fetchError?.message
+        })
+
+        if (fetchError || !vendor) {
+            return NextResponse.json(
+                { success: false, error: 'Link aktivasi tidak valid atau sudah tidak berlaku' },
+                { status: 400 }
+            )
+        }
+
+        if (vendor.is_activated) {
+            return NextResponse.json(
+                { success: false, error: 'Akun sudah diaktifkan sebelumnya. Silakan login.' },
+                { status: 400 }
+            )
+        }
+
+        const tokenExpires = new Date(vendor.activation_token_expires)
+        if (tokenExpires < new Date()) {
+            return NextResponse.json(
+                { success: false, error: 'Link aktivasi sudah kadaluarsa. Silakan hubungi admin PLN untuk mengirim ulang undangan.' },
+                { status: 400 }
+            )
+        }
+
+        return NextResponse.json({
+            success: true,
+            data: {
+                email: vendor.email,
+                company_name: vendor.company_name
+            }
+        })
+    } catch (error) {
+        console.error('❌ Error verifying token:', error)
+        return NextResponse.json({
+            success: false,
+            error: 'Terjadi kesalahan saat memverifikasi link aktivasi'
+        }, { status: 500 })
+    }
+}
 
 export async function POST(request: NextRequest) {
     try {

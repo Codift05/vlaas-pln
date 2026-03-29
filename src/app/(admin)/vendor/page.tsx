@@ -454,97 +454,23 @@ function DataVendor() {
                     let emailSentSuccessfully = false
                     if (formData.email && formData.email.trim() !== '') {
                         try {
-                            // Generate activation token
-                            const activationToken = generateActivationToken()
-                            const tokenExpires = new Date()
-                            tokenExpires.setDate(tokenExpires.getDate() + 7) // 7 hari
-
-                            console.log('🔐 Generated activation token:', {
-                                tokenLength: activationToken.length,
-                                tokenPreview: activationToken.substring(0, 10) + '...',
-                                expires: tokenExpires.toISOString(),
-                                email: formData.email
-                            })
-
-                            // Cek apakah vendor_users sudah ada dengan email ini
-                            const { data: existingVendorUser } = await supabase
-                                .from('vendor_users')
-                                .select('id')
-                                .eq('email', formData.email)
-                                .maybeSingle()
-
-                            if (existingVendorUser) {
-                                console.log('📝 Updating existing vendor_user:', existingVendorUser.id)
-                                // Update existing vendor_users dengan token baru
-                                const { error: updateError } = await supabase
-                                    .from('vendor_users')
-                                    .update({
-                                        company_name: formData.nama,
-                                        pic_name: formData.namaPimpinan || null,
-                                        pic_phone: formData.telepon || null,
-                                        pic_email: formData.email,
-                                        address: formData.alamat || null,
-                                        activation_token: activationToken,
-                                        activation_token_expires: tokenExpires.toISOString(),
-                                        invited_by: adminName,
-                                        is_activated: false,
-                                        status: 'Menunggu Aktivasi'
-                                    })
-                                    .eq('id', existingVendorUser.id)
-
-                                if (updateError) {
-                                    console.error('❌ Error updating vendor_user:', updateError)
-                                    throw updateError
-                                }
-                                console.log('✅ Vendor_user updated successfully')
-                            } else {
-                                console.log('➕ Creating new vendor_user')
-                                // Create new vendor_users
-                                // TEMPORARY: Using placeholder password until database migration is run
-                                const tempPassword = 'TEMP_PENDING_ACTIVATION_' + Date.now()
-
-                                const { error: insertError } = await supabase
-                                    .from('vendor_users')
-                                    .insert([{
-                                        email: formData.email,
-                                        password: tempPassword, // Temporary - will be replaced during activation
-                                        company_name: formData.nama,
-                                        pic_name: formData.namaPimpinan || null,
-                                        pic_phone: formData.telepon || null,
-                                        pic_email: formData.email,
-                                        address: formData.alamat || null,
-                                        activation_token: activationToken,
-                                        activation_token_expires: tokenExpires.toISOString(),
-                                        invited_by: adminName,
-                                        is_activated: false,
-                                        status: 'Menunggu Aktivasi'
-                                    }])
-
-                                if (insertError) {
-                                    console.error('❌ Error creating vendor_user:', insertError)
-                                    throw insertError
-                                }
-                                console.log('✅ Vendor_user created successfully')
-                            }
-
-                            // Kirim email undangan
-                            const emailResponse = await fetch('/api/send-invitation-email', {
+                            // Delegasikan ke server-side API (menggunakan supabaseAdmin agar bypass RLS)
+                            const inviteResponse = await fetch('/api/resend-invitation', {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify({
                                     email: formData.email,
                                     companyName: formData.nama,
-                                    activationToken: activationToken,
                                     invitedBy: adminName
                                 })
                             })
 
-                            const emailResult = await emailResponse.json()
-                            if (emailResult.success) {
+                            const inviteResult = await inviteResponse.json()
+                            if (inviteResult.success) {
                                 emailSentSuccessfully = true
                                 console.log('✅ Email undangan berhasil dikirim ke:', formData.email)
                             } else {
-                                console.error('❌ Gagal mengirim email undangan:', emailResult.error)
+                                console.error('❌ Gagal mengirim email undangan:', inviteResult.error)
                             }
                         } catch (emailError) {
                             console.error('❌ Error saat mengirim email undangan:', emailError)
@@ -675,104 +601,30 @@ function DataVendor() {
                 setLoading(true)
 
                 try {
-                    // Get admin name
                     const adminName = localStorage.getItem('userName') || localStorage.getItem('userEmail') || 'Admin PLN'
 
-                    // Generate new activation token
-                    const activationToken = generateActivationToken()
-                    const tokenExpires = new Date()
-                    tokenExpires.setDate(tokenExpires.getDate() + 7) // 7 hari
-
-                    console.log('🔄 Resending invitation:', {
-                        tokenLength: activationToken.length,
-                        tokenPreview: activationToken.substring(0, 10) + '...',
-                        expires: tokenExpires.toISOString(),
-                        email: vendor.email,
-                        vendorName: vendor.nama
-                    })
-
-                    // Cek apakah vendor_users sudah ada dengan email ini
-                    const { data: existingVendorUser } = await supabase
-                        .from('vendor_users')
-                        .select('id')
-                        .eq('email', vendor.email)
-                        .maybeSingle()
-
-                    if (existingVendorUser) {
-                        console.log('📝 Updating existing vendor_user for resend:', existingVendorUser.id)
-                        // Update existing vendor_users dengan token baru
-                        const { error: updateError } = await supabase
-                            .from('vendor_users')
-                            .update({
-                                company_name: vendor.nama,
-                                pic_name: vendor.namaPimpinan || null,
-                                pic_phone: vendor.telepon || null,
-                                pic_email: vendor.email,
-                                address: vendor.alamat || null,
-                                activation_token: activationToken,
-                                activation_token_expires: tokenExpires.toISOString(),
-                                invited_by: adminName,
-                                is_activated: false,
-                                status: 'Menunggu Aktivasi'
-                            })
-                            .eq('id', existingVendorUser.id)
-
-                        if (updateError) {
-                            console.error('❌ Error updating vendor_user for resend:', updateError)
-                            throw updateError
-                        }
-                        console.log('✅ Vendor_user updated for resend')
-                    } else {
-                        console.log('➕ Creating new vendor_user for resend')
-                        // Create new vendor_users
-                        // TEMPORARY: Using placeholder password until database migration is run
-                        const tempPassword = 'TEMP_PENDING_ACTIVATION_' + Date.now()
-
-                        const { error: insertError } = await supabase
-                            .from('vendor_users')
-                            .insert([{
-                                email: vendor.email,
-                                password: tempPassword, // Temporary - will be replaced during activation
-                                company_name: vendor.nama,
-                                pic_name: vendor.namaPimpinan || null,
-                                pic_phone: vendor.telepon || null,
-                                pic_email: vendor.email,
-                                address: vendor.alamat || null,
-                                activation_token: activationToken,
-                                activation_token_expires: tokenExpires.toISOString(),
-                                invited_by: adminName,
-                                is_activated: false,
-                                status: 'Menunggu Aktivasi'
-                            }])
-
-                        if (insertError) {
-                            console.error('❌ Error creating vendor_user for resend:', insertError)
-                            throw insertError
-                        }
-                        console.log('✅ Vendor_user created for resend')
-                    }
-
-                    // Kirim email undangan
-                    const emailResponse = await fetch('/api/send-invitation-email', {
+                    // Delegasikan semua proses ke server (generate token + simpan DB + kirim email)
+                    // menggunakan supabaseAdmin agar bypass RLS
+                    const response = await fetch('/api/resend-invitation', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
                             email: vendor.email,
                             companyName: vendor.nama,
-                            activationToken: activationToken,
                             invitedBy: adminName
                         })
                     })
 
-                    const emailResult = await emailResponse.json()
-                    if (emailResult.success) {
+                    const result = await response.json()
+
+                    if (result.success) {
                         setNotification({
                             show: true,
                             type: 'success',
                             message: `Email undangan berhasil dikirim ulang ke ${vendor.email}`
                         })
                     } else {
-                        throw new Error(emailResult.error || 'Gagal mengirim email')
+                        throw new Error(result.error || 'Gagal mengirim ulang undangan')
                     }
                 } catch (err) {
                     console.error('Error resending invitation:', err)

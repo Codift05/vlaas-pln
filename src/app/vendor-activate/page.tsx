@@ -31,60 +31,28 @@ function ActivateContent() {
     // Verify token on load OR show claim code input
     useEffect(() => {
         const verifyToken = async () => {
-            // Jika ada token di URL, verifikasi langsung
+            // Jika ada token di URL, verifikasi melalui API (pakai supabaseAdmin di server agar bypass RLS)
             if (token) {
-                console.log('🔍 Verifying activation token...', {
+                console.log('🔍 Verifying activation token via API...', {
                     tokenLength: token.length,
                     tokenPreview: token.substring(0, 10) + '...'
                 })
 
                 try {
-                    // Find vendor with this activation token
-                    const { data: vendor, error: fetchError } = await supabase
-                        .from('vendor_users')
-                        .select('*')
-                        .eq('activation_token', token)
-                        .single()
+                    const response = await fetch(`/api/vendor-activate?token=${encodeURIComponent(token)}`)
+                    const result = await response.json()
 
-                    console.log('📋 Query result:', {
-                        found: !!vendor,
-                        error: fetchError?.message,
-                        vendorEmail: vendor?.email
-                    })
+                    console.log('📋 API verification result:', result)
 
-                    if (fetchError || !vendor) {
-                        console.error('❌ Token verification failed:', fetchError)
-                        setError('Link aktivasi tidak valid atau sudah tidak berlaku.')
-                        setLoading(false)
-                        return
-                    }
-
-                    // Check if already activated
-                    if (vendor.is_activated) {
-                        console.log('⚠️ Account already activated')
-                        setError('Akun ini sudah diaktifkan sebelumnya. Silakan login.')
-                        setLoading(false)
-                        return
-                    }
-
-                    // Check if token expired
-                    const tokenExpires = new Date(vendor.activation_token_expires)
-                    const now = new Date()
-                    console.log('⏰ Token expiry check:', {
-                        expires: tokenExpires.toISOString(),
-                        now: now.toISOString(),
-                        isExpired: tokenExpires < now
-                    })
-
-                    if (tokenExpires < now) {
-                        console.log('❌ Token expired')
-                        setError('Link aktivasi sudah kadaluarsa. Silakan hubungi admin PLN untuk mengirim ulang undangan.')
+                    if (!result.success) {
+                        console.error('❌ Token verification failed:', result.error)
+                        setError(result.error || 'Link aktivasi tidak valid atau sudah tidak berlaku.')
                         setLoading(false)
                         return
                     }
 
                     console.log('✅ Token valid, showing password form')
-                    setVendorData(vendor)
+                    setVendorData(result.data)
                     setMode('password')
                     setLoading(false)
                 } catch (err) {
