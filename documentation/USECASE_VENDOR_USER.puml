@@ -1,0 +1,65 @@
+@startuml
+' Use Case Diagram: Vendor/User
+skinparam actorStyle awesome
+actor Vendor
+actor User
+
+rectangle "Vendor Use Cases" {
+  Vendor --> (Register Vendor)
+  Vendor --> (Upload Documents)
+  Vendor --> (View Contract Status)
+  Vendor --> (Submit Claims)
+  Vendor --> (Update Profile)
+}
+
+' Detail Use Cases
+rectangle "Document Upload" {
+  (Upload Documents) --> (Upload KTP)
+  (Upload Documents) --> (Upload NPWP)
+  (Upload Documents) --> (Upload SIUP)
+  (Upload Documents) --> (Upload Other Documents)
+}
+
+rectangle "Profile Update" {
+  (Update Profile) --> (Edit Company Info)
+  (Update Profile) --> (Edit Contact Info)
+  (Update Profile) --> (Change Password)
+}
+
+' Relasi include/extend
+(Register Vendor) ..> (Verify Email) : <<include>>
+(Submit Claims) ..> (Upload Documents) : <<include>>
+(Edit Company Info) ..> (Audit Logs) : <<include>>
+
+' Notes
+note right of (Register Vendor)
+  Vendor melakukan pendaftaran dan wajib verifikasi email.
+end note
+
+note right of (Upload Documents)
+  Vendor mengunggah dokumen legal seperti KTP, NPWP, SIUP, dll.
+end note
+
+note right of (Submit Claims)
+  Vendor dapat mengajukan klaim terkait kontrak.
+end note
+
+note right of (Update Profile)
+  Vendor dapat memperbarui informasi perusahaan dan kontak.
+end note
+
+note right of (View Contract Status)
+  Vendor dapat memantau status kontrak yang sedang berjalan.
+end note
+
+note right of (Track Progress)
+  User dapat memantau progres kontrak/vendor.
+end note
+
+rectangle "User Use Cases" {
+  User --> (View Vendor List)
+  User --> (Request Contract)
+  User --> (Track Progress)
+  User --> (Verify Email)
+}
+@enduml

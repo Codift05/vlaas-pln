@@ -24,6 +24,7 @@ export const createSurat = async (data: any): Promise<SupabaseResponse> => {
         const vendorUserId = localStorage.getItem('vendorUserId')
         const vendorEmail = localStorage.getItem('vendorEmail')
 
+
         if (!vendorUserId || !vendorEmail) {
             return handleSupabaseError({
                 message: 'Sesi login tidak ditemukan. Silakan login ulang.'

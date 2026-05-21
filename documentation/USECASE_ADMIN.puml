@@ -1,0 +1,55 @@
+@startuml
+' Use Case Diagram: Admin
+skinparam actorStyle awesome
+actor Admin
+'
+' Vertical Use Case Diagram: Admin
+skinparam actorStyle awesome
+actor Admin
+
+Admin --> (Manage Vendors)
+Admin --> (Approve Vendor Registration)
+Admin --> (View Reports)
+Admin --> (Manage Contracts)
+Admin --> (Audit Logs)
+Admin --> (Reset Vendor Password)
+Admin --> (Manage User Roles)
+
+' Sub-use case (vertikal)
+(Manage Vendors) --> (Add Vendor)
+(Manage Vendors) --> (Edit Vendor)
+(Manage Vendors) --> (Delete Vendor)
+(Manage Vendors) --> (View Vendor Details)
+
+(Manage Contracts) --> (Create Contract)
+(Manage Contracts) --> (Edit Contract)
+(Manage Contracts) --> (Delete Contract)
+(Manage Contracts) --> (View Contract History)
+
+(Manage User Roles) --> (Assign Role)
+(Manage User Roles) --> (Remove Role)
+(Manage User Roles) --> (View User List)
+
+' Relasi include/extend
+(Approve Vendor Registration) ..> (Audit Logs) : <<include>>
+(Reset Vendor Password) ..> (Audit Logs) : <<include>>
+(Delete Vendor) ..> (Audit Logs) : <<include>>
+(Delete Contract) ..> (Audit Logs) : <<include>>
+
+' Notes (vertikal)
+note right of (Approve Vendor Registration)
+  Admin dapat memverifikasi dan menyetujui pendaftaran vendor.
+end note
+
+note right of (Manage Vendors)
+  Admin dapat menambah, mengedit, menghapus, dan melihat detail vendor.
+end note
+
+note right of (Manage Contracts)
+  Admin dapat membuat, mengedit, menghapus, dan melihat riwayat kontrak.
+end note
+
+note right of (Audit Logs)
+  Semua aktivitas penting dicatat untuk keperluan audit.
+end note
+@enduml

@@ -43,7 +43,7 @@ export function useFetch<T = any>(
             setLoading(true)
             setError(null)
 
-            const result = await fetchFn()
+            const result = await fetchFn() 
 
             if (!isMountedRef.current) return
 
